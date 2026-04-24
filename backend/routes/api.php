@@ -10,3 +10,8 @@ Route::get('/health', function (): JsonResponse {
         'timestamp' => now()->toIso8601String(),
     ]);
 });
+
+// Load module routes dynamically
+foreach (glob(app_path('Modules/*/routes.php')) as $routeFile) {
+    require $routeFile;
+}
