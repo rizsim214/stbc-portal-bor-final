@@ -26,5 +26,8 @@ onMounted(async () => {
   <main class="p-6 space-y-3">
     <h1 class="text-3xl font-bold text-blue-500">STBC-BOR-FINAL</h1>
     <p class="text-slate-700">{{ status }}</p>
+    <RouterLink to="/calendar" class="inline-block text-sm text-blue-600 hover:text-blue-700">
+      Open Calendar UI
+    </RouterLink>
   </main>
 </template>
