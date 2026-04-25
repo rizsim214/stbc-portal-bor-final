@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Modules\Appointments;
+namespace App\Modules\Appointments\Controllers;
 
-abstract class Controller
+use Illuminate\Routing\Controller as BaseController;
+
+abstract class Controller extends BaseController
 {
-    //
 }
