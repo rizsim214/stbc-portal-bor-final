@@ -21,7 +21,7 @@ class LoginAction
 
         return [
             'token' => $user->createToken($dto->deviceName ?? 'web')->plainTextToken,
-            'user' => $user,
+            'user' => $user->load('role'),
         ];
     }
 }
