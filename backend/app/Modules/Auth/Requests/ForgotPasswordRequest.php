@@ -1,0 +1,29 @@
+<?php
+
+namespace App\Modules\Auth\Requests;
+
+use App\Modules\Auth\DTOs\ForgotPasswordDTO;
+use Illuminate\Foundation\Http\FormRequest;
+
+class ForgotPasswordRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'email' => ['required', 'email'],
+        ];
+    }
+
+    public function toDTO(): ForgotPasswordDTO
+    {
+        return new ForgotPasswordDTO(
+            email: (string) $this->string('email'),
+        );
+    }
+}
+
