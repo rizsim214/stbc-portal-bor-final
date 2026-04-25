@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Auth\Enums;
+namespace App\Modules\Users\Enums;
 
 enum StaffStatus: string
 {
@@ -20,4 +20,5 @@ enum StaffStatus: string
         );
     }
 }
+
 

@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             AppointmentTypeSeeder::class,
             ResourceSeeder::class,
+            ClinicHoursSeeder::class,
         ]);
     }
 }

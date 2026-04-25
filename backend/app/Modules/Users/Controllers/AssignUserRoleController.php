@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Auth\Controllers;
+namespace App\Modules\Users\Controllers;
 
-use App\Modules\Auth\Actions\AssignRoleAction;
-use App\Modules\Auth\Requests\AssignRoleRequest;
+use App\Modules\Users\Actions\AssignRoleAction;
+use App\Modules\Users\Requests\AssignRoleRequest;
 use Illuminate\Http\JsonResponse;
 
 class AssignUserRoleController extends Controller
@@ -16,4 +16,5 @@ class AssignUserRoleController extends Controller
         ]);
     }
 }
+
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Auth\Requests;
+namespace App\Modules\Users\Requests;
 
-use App\Modules\Auth\DTOs\AssignRoleDTO;
+use App\Modules\Users\DTOs\AssignRoleDTO;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AssignRoleRequest extends FormRequest
@@ -27,4 +27,5 @@ class AssignRoleRequest extends FormRequest
         );
     }
 }
+
 

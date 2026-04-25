@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Auth\Controllers;
+namespace App\Modules\Users\Controllers;
 
-use App\Modules\Auth\Actions\AdminRegisterUserAction;
-use App\Modules\Auth\Requests\AdminRegisterUserRequest;
+use App\Modules\Users\Actions\AdminRegisterUserAction;
+use App\Modules\Users\Requests\AdminRegisterUserRequest;
 use Illuminate\Http\JsonResponse;
 
 class AdminRegisterUserController extends Controller
@@ -16,4 +16,5 @@ class AdminRegisterUserController extends Controller
         ], 201);
     }
 }
+
 

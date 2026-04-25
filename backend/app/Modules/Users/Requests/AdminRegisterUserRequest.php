@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\Auth\Requests;
+namespace App\Modules\Users\Requests;
 
 use App\Models\Role;
-use App\Modules\Auth\DTOs\AdminRegisterUserDTO;
-use App\Modules\Auth\Enums\StaffStatus;
+use App\Modules\Users\DTOs\AdminRegisterUserDTO;
+use App\Modules\Users\Enums\StaffStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -57,3 +57,4 @@ class AdminRegisterUserRequest extends FormRequest
         );
     }
 }
+

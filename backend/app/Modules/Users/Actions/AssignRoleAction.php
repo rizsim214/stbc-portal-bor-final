@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\Auth\Actions;
+namespace App\Modules\Users\Actions;
 
 use App\Models\Role;
 use App\Models\User;
-use App\Modules\Auth\DTOs\AssignRoleDTO;
-use App\Modules\Auth\Enums\StaffStatus;
+use App\Modules\Users\DTOs\AssignRoleDTO;
+use App\Modules\Users\Enums\StaffStatus;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class AssignRoleAction
@@ -35,3 +35,4 @@ class AssignRoleAction
         return $user->load('role');
     }
 }
+

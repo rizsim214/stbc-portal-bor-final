@@ -35,6 +35,22 @@ class SchedulingAvailabilityTest extends TestCase
             ->assertStatus(401);
     }
 
+    public function test_scheduling_returns_no_slots_on_global_holiday_exception(): void
+    {
+        $user = User::factory()->create();
+        $resourceId = $this->createResource();
+        $appointmentTypeId = $this->createAppointmentType();
+        $this->createResourceSchedule($resourceId, 6, '09:00:00', '10:00:00');
+        $this->createScheduleException(null, '2026-04-25', null, null, 'Holiday');
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson('/api/scheduling/availability?date=2026-04-25&appointment_type_id='.$appointmentTypeId.'&resource_ids[]='.$resourceId);
+
+        $response->assertOk()
+            ->assertJsonCount(0, 'slots');
+    }
+
     private function createAppointmentType(): int
     {
         return (int) DB::table('appointment_types')->insertGetId([
@@ -66,5 +82,22 @@ class SchedulingAvailabilityTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-}
 
+    private function createScheduleException(
+        ?int $resourceId,
+        string $date,
+        ?string $startTime,
+        ?string $endTime,
+        ?string $reason = null
+    ): void {
+        DB::table('schedule_exceptions')->insert([
+            'resource_id' => $resourceId,
+            'exception_date' => $date,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'reason' => $reason,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+}

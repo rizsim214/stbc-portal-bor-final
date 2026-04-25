@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Auth\Controllers;
+namespace App\Modules\Users\Controllers;
 
-use App\Modules\Auth\Actions\UpdateOwnStaffStatusAction;
-use App\Modules\Auth\Requests\UpdateStaffStatusRequest;
+use App\Modules\Users\Actions\UpdateOwnStaffStatusAction;
+use App\Modules\Users\Requests\UpdateStaffStatusRequest;
 use Illuminate\Http\JsonResponse;
 
 class UpdateOwnStaffStatusController extends Controller
@@ -16,4 +16,5 @@ class UpdateOwnStaffStatusController extends Controller
         ]);
     }
 }
+
 

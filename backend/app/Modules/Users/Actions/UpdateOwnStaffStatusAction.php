@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Auth\Actions;
+namespace App\Modules\Users\Actions;
 
 use App\Models\User;
-use App\Modules\Auth\DTOs\UpdateStaffStatusDTO;
+use App\Modules\Users\DTOs\UpdateStaffStatusDTO;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UpdateOwnStaffStatusAction
@@ -22,4 +22,5 @@ class UpdateOwnStaffStatusAction
         return $user->load('role');
     }
 }
+
 

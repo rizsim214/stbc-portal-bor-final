@@ -105,7 +105,7 @@ class RoleManagementTest extends TestCase
 
         Sanctum::actingAs($doctor);
 
-        $response = $this->patchJson('/api/auth/me/staff-status', [
+        $response = $this->patchJson('/api/users/me/staff-status', [
             'staff_status' => 'on_break',
         ]);
 
@@ -127,7 +127,7 @@ class RoleManagementTest extends TestCase
 
         Sanctum::actingAs($patient);
 
-        $this->patchJson('/api/auth/me/staff-status', [
+        $this->patchJson('/api/users/me/staff-status', [
             'staff_status' => 'on_duty',
         ])->assertStatus(403);
     }

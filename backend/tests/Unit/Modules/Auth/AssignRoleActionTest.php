@@ -3,8 +3,8 @@
 namespace Tests\Unit\Modules\Auth;
 
 use App\Models\User;
-use App\Modules\Auth\Actions\AssignRoleAction;
-use App\Modules\Auth\DTOs\AssignRoleDTO;
+use App\Modules\Users\Actions\AssignRoleAction;
+use App\Modules\Users\DTOs\AssignRoleDTO;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;

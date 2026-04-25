@@ -88,6 +88,42 @@ class SchedulingServiceTest extends TestCase
         $this->assertSame('2026-04-25 09:30:00', $result['slots'][0]['end_time']);
     }
 
+    public function test_is_available_returns_false_when_full_day_exception_exists(): void
+    {
+        $service = new SchedulingService();
+        $resourceId = $this->createResource();
+        $this->createResourceSchedule($resourceId, 6, '08:00:00', '17:00:00');
+        $this->createScheduleException($resourceId, '2026-04-25', null, null, 'Public holiday');
+
+        $isAvailable = $service->isAvailable(
+            [$resourceId],
+            CarbonImmutable::parse('2026-04-25 09:00:00')->toDateTimeString(),
+            CarbonImmutable::parse('2026-04-25 10:00:00')->toDateTimeString(),
+        );
+
+        $this->assertFalse($isAvailable);
+    }
+
+    public function test_get_available_slots_excludes_partial_exception_window(): void
+    {
+        $service = new SchedulingService();
+        $resourceId = $this->createResource();
+        $appointmentTypeId = $this->createAppointmentType();
+        $this->createResourceSchedule($resourceId, 6, '09:00:00', '11:00:00');
+        $this->createScheduleException($resourceId, '2026-04-25', '09:30:00', '10:00:00', 'Team huddle');
+
+        $result = $service->getAvailableSlots(new SchedulingAvailabilityDTO(
+            date: '2026-04-25',
+            appointmentTypeId: $appointmentTypeId,
+            resourceIds: [$resourceId],
+        ));
+
+        $this->assertSame(3, count($result['slots']));
+        $this->assertSame('2026-04-25 09:00:00', $result['slots'][0]['start_time']);
+        $this->assertSame('2026-04-25 09:30:00', $result['slots'][0]['end_time']);
+        $this->assertSame('2026-04-25 10:00:00', $result['slots'][1]['start_time']);
+    }
+
     private function createAppointmentType(): int
     {
         return (int) DB::table('appointment_types')->insertGetId([
@@ -119,5 +155,22 @@ class SchedulingServiceTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-}
 
+    private function createScheduleException(
+        ?int $resourceId,
+        string $date,
+        ?string $startTime,
+        ?string $endTime,
+        ?string $reason = null
+    ): void {
+        DB::table('schedule_exceptions')->insert([
+            'resource_id' => $resourceId,
+            'exception_date' => $date,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'reason' => $reason,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+}

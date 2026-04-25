@@ -4,6 +4,7 @@ namespace App\Modules\Scheduling\Services;
 
 use App\Models\Appointment;
 use App\Models\ResourceSchedule;
+use App\Models\ScheduleException;
 use App\Modules\Scheduling\DTOs\SchedulingAvailabilityDTO;
 use Carbon\CarbonImmutable;
 
@@ -162,7 +163,68 @@ class SchedulingService
             }
         }
 
-        return $commonIntervals;
+        return $this->applyScheduleExceptions($resourceIds, $date, $commonIntervals);
+    }
+
+    /**
+     * @param  array<int>  $resourceIds
+     * @param  array<int, array{start:int,end:int}>  $intervals
+     * @return array<int, array{start:int,end:int}>
+     */
+    private function applyScheduleExceptions(array $resourceIds, CarbonImmutable $date, array $intervals): array
+    {
+        if ($intervals === []) {
+            return [];
+        }
+
+        $exceptions = ScheduleException::query()
+            ->whereDate('exception_date', $date->toDateString())
+            ->where(function ($query) use ($resourceIds) {
+                $query->whereNull('resource_id')
+                    ->orWhereIn('resource_id', $resourceIds);
+            })
+            ->get(['resource_id', 'start_time', 'end_time']);
+
+        if ($exceptions->isEmpty()) {
+            return $intervals;
+        }
+
+        $fullDayGlobalExceptionExists = $exceptions
+            ->whereNull('resource_id')
+            ->contains(fn ($exception): bool => $exception->start_time === null && $exception->end_time === null);
+
+        if ($fullDayGlobalExceptionExists) {
+            return [];
+        }
+
+        $resourceWithFullDayException = $exceptions
+            ->whereNotNull('resource_id')
+            ->whereIn('resource_id', $resourceIds)
+            ->contains(fn ($exception): bool => $exception->start_time === null && $exception->end_time === null);
+
+        if ($resourceWithFullDayException) {
+            return [];
+        }
+
+        $blockedIntervals = $exceptions
+            ->filter(fn ($exception): bool => $exception->start_time !== null && $exception->end_time !== null)
+            ->map(function ($exception): array {
+                $start = CarbonImmutable::parse($exception->start_time);
+                $end = CarbonImmutable::parse($exception->end_time);
+
+                return [
+                    'start' => $start->hour * 60 + $start->minute,
+                    'end' => $end->hour * 60 + $end->minute,
+                ];
+            })
+            ->values()
+            ->all();
+
+        if ($blockedIntervals === []) {
+            return $intervals;
+        }
+
+        return $this->subtractIntervals($intervals, $this->mergeIntervals($blockedIntervals));
     }
 
     /**
@@ -190,5 +252,88 @@ class SchedulingService
 
         return $result;
     }
-}
 
+    /**
+     * @param  array<int, array{start:int,end:int}>  $baseIntervals
+     * @param  array<int, array{start:int,end:int}>  $blockedIntervals
+     * @return array<int, array{start:int,end:int}>
+     */
+    private function subtractIntervals(array $baseIntervals, array $blockedIntervals): array
+    {
+        $result = [];
+
+        foreach ($baseIntervals as $base) {
+            $fragments = [$base];
+
+            foreach ($blockedIntervals as $block) {
+                $nextFragments = [];
+
+                foreach ($fragments as $fragment) {
+                    if ($block['end'] <= $fragment['start'] || $block['start'] >= $fragment['end']) {
+                        $nextFragments[] = $fragment;
+                        continue;
+                    }
+
+                    if ($block['start'] > $fragment['start']) {
+                        $nextFragments[] = [
+                            'start' => $fragment['start'],
+                            'end' => $block['start'],
+                        ];
+                    }
+
+                    if ($block['end'] < $fragment['end']) {
+                        $nextFragments[] = [
+                            'start' => $block['end'],
+                            'end' => $fragment['end'],
+                        ];
+                    }
+                }
+
+                $fragments = $nextFragments;
+
+                if ($fragments === []) {
+                    break;
+                }
+            }
+
+            foreach ($fragments as $fragment) {
+                if ($fragment['start'] < $fragment['end']) {
+                    $result[] = $fragment;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param  array<int, array{start:int,end:int}>  $intervals
+     * @return array<int, array{start:int,end:int}>
+     */
+    private function mergeIntervals(array $intervals): array
+    {
+        if ($intervals === []) {
+            return [];
+        }
+
+        usort($intervals, static function (array $a, array $b): int {
+            return $a['start'] <=> $b['start'];
+        });
+
+        $merged = [$intervals[0]];
+
+        foreach (array_slice($intervals, 1) as $interval) {
+            $lastIndex = count($merged) - 1;
+            $last = $merged[$lastIndex];
+
+            if ($interval['start'] <= $last['end']) {
+                $merged[$lastIndex]['end'] = max($last['end'], $interval['end']);
+                continue;
+            }
+
+            $merged[] = $interval;
+        }
+
+        return $merged;
+    }
+}

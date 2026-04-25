@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Auth\Controllers;
+namespace App\Modules\Users\Controllers;
 
 use App\Models\Role;
 use Illuminate\Http\JsonResponse;
@@ -14,4 +14,5 @@ class ListRolesController extends Controller
         ]);
     }
 }
+
 

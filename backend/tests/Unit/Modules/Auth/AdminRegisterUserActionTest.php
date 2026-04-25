@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Modules\Auth;
 
-use App\Modules\Auth\Actions\AdminRegisterUserAction;
-use App\Modules\Auth\DTOs\AdminRegisterUserDTO;
+use App\Modules\Users\Actions\AdminRegisterUserAction;
+use App\Modules\Users\DTOs\AdminRegisterUserDTO;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -31,4 +31,3 @@ class AdminRegisterUserActionTest extends TestCase
         $this->assertSame('available', $user->staff_status);
     }
 }
-

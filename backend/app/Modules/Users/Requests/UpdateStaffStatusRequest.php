@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Auth\Requests;
+namespace App\Modules\Users\Requests;
 
-use App\Modules\Auth\DTOs\UpdateStaffStatusDTO;
-use App\Modules\Auth\Enums\StaffStatus;
+use App\Modules\Users\DTOs\UpdateStaffStatusDTO;
+use App\Modules\Users\Enums\StaffStatus;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateStaffStatusRequest extends FormRequest
@@ -28,4 +28,5 @@ class UpdateStaffStatusRequest extends FormRequest
         );
     }
 }
+
 

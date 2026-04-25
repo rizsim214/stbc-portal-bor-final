@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Auth\DTOs;
+namespace App\Modules\Users\DTOs;
 
 final readonly class UpdateStaffStatusDTO
 {
@@ -10,4 +10,5 @@ final readonly class UpdateStaffStatusDTO
     ) {
     }
 }
+
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Auth\DTOs;
+namespace App\Modules\Users\DTOs;
 
 final readonly class AdminRegisterUserDTO
 {
@@ -13,4 +13,5 @@ final readonly class AdminRegisterUserDTO
     ) {
     }
 }
+
 

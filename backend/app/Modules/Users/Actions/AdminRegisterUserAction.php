@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\Auth\Actions;
+namespace App\Modules\Users\Actions;
 
 use App\Models\Role;
 use App\Models\User;
-use App\Modules\Auth\DTOs\AdminRegisterUserDTO;
-use App\Modules\Auth\Enums\StaffStatus;
+use App\Modules\Users\DTOs\AdminRegisterUserDTO;
+use App\Modules\Users\Enums\StaffStatus;
 use Illuminate\Validation\ValidationException;
 
 class AdminRegisterUserAction
@@ -42,3 +42,4 @@ class AdminRegisterUserAction
         return $staffStatus ?? StaffStatus::AVAILABLE->value;
     }
 }
+
