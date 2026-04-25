@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Modules\Auth;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class RegisterRequestValidationTest extends TestCase
@@ -45,5 +47,25 @@ class RegisterRequestValidationTest extends TestCase
                 'password',
             ]);
     }
-}
 
+    public function test_public_register_always_assigns_patient_role(): void
+    {
+        $adminRoleId = (int) DB::table('roles')->insertGetId([
+            'name' => 'admin',
+        ]);
+
+        $this->postJson(self::REGISTER_ENDPOINT, [
+            'name' => 'Patient User',
+            'email' => 'patient@example.com',
+            'password' => 'secret-123',
+            'password_confirmation' => 'secret-123',
+            'role_id' => $adminRoleId,
+            'staff_status' => 'on_duty',
+        ])->assertCreated();
+
+        $user = User::query()->where('email', 'patient@example.com')->firstOrFail();
+
+        $this->assertSame('patient', $user->role?->name);
+        $this->assertNull($user->staff_status);
+    }
+}

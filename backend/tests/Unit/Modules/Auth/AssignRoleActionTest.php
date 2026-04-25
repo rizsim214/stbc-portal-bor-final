@@ -36,7 +36,36 @@ class AssignRoleActionTest extends TestCase
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
             'role_id' => $staffRoleId,
+            'staff_status' => 'available',
+        ]);
+    }
+
+    public function test_execute_clears_staff_status_for_non_medical_role(): void
+    {
+        $staffRoleId = (int) DB::table('roles')->insertGetId([
+            'name' => 'staff',
+        ]);
+        $patientRoleId = (int) DB::table('roles')->insertGetId([
+            'name' => 'patient',
+        ]);
+
+        $user = User::factory()->create([
+            'role_id' => $staffRoleId,
+            'staff_status' => 'on_duty',
+        ]);
+
+        $action = new AssignRoleAction();
+        $result = $action->execute(new AssignRoleDTO(
+            userId: $user->id,
+            roleId: $patientRoleId,
+        ));
+
+        $this->assertSame('patient', $result->role?->name);
+        $this->assertNull($result->staff_status);
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'role_id' => $patientRoleId,
+            'staff_status' => null,
         ]);
     }
 }
-
