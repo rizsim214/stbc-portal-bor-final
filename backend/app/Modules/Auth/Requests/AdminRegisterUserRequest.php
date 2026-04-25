@@ -40,7 +40,7 @@ class AdminRegisterUserRequest extends FormRequest
             $roleName = (string) Role::query()->whereKey($roleId)->value('name');
             $staffStatus = $this->filled('staff_status') ? (string) $this->string('staff_status') : null;
 
-            if ($staffStatus !== null && !in_array($roleName, self::MEDICAL_ROLES, true)) {
+            if ($staffStatus !== null && !\in_array($roleName, self::MEDICAL_ROLES, true)) {
                 $validator->errors()->add('staff_status', 'Staff status can only be set for medical staff roles.');
             }
         });
@@ -57,4 +57,3 @@ class AdminRegisterUserRequest extends FormRequest
         );
     }
 }
-

@@ -4,14 +4,15 @@ namespace App\Modules\Appointments\Actions;
 
 use App\Models\Appointment;
 use App\Modules\Appointments\DTOs\StoreAppointmentDTO;
-use App\Modules\Appointments\Services\AvailabilityService;
+use App\Modules\Scheduling\Services\SchedulingService;
+use App\Modules\Shared\Exceptions\UnprocessableEntityApiException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 class CreateAppointment
 {
     public function __construct(
-        private readonly AvailabilityService $availabilityService,
+        private readonly SchedulingService $schedulingService,
     ) {
     }
 
@@ -19,13 +20,16 @@ class CreateAppointment
     {
         return DB::transaction(function () use ($dto) {
             if (
-                !$this->availabilityService->isAvailable(
+                !$this->schedulingService->isAvailable(
                     $dto->resourceIds,
                     $dto->startTime,
                     $dto->endTime
                 )
             ) {
-                abort(422, 'Selected time slot is not available.');
+                throw new UnprocessableEntityApiException(
+                    message: 'Selected time slot is not available.',
+                    errorCode: 'APPOINTMENT_SLOT_UNAVAILABLE',
+                );
             }
 
             $appointment = Appointment::create([
@@ -41,4 +45,3 @@ class CreateAppointment
         });
     }
 }
-

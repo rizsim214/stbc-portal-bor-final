@@ -7,5 +7,4 @@ Route::prefix('appointments')
     ->middleware('auth:sanctum')
     ->group(function () {
         Route::post('/', [AppointmentController::class, 'store']);
-        Route::get('/availability', [AppointmentController::class, 'availability']);
     });

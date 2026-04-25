@@ -24,7 +24,7 @@ class AssignRoleAction
 
         $user->role_id = $role->id;
 
-        if (!in_array($role->name, self::MEDICAL_ROLES, true)) {
+        if (!\in_array($role->name, self::MEDICAL_ROLES, true)) {
             $user->staff_status = null;
         } elseif ($user->staff_status === null) {
             $user->staff_status = StaffStatus::AVAILABLE->value;

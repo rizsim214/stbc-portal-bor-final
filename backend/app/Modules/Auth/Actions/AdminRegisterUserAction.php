@@ -16,7 +16,7 @@ class AdminRegisterUserAction
     {
         $role = Role::query()->findOrFail($dto->roleId);
 
-        if ($dto->staffStatus !== null && !in_array($role->name, self::MEDICAL_ROLES, true)) {
+        if ($dto->staffStatus !== null && !\in_array($role->name, self::MEDICAL_ROLES, true)) {
             throw ValidationException::withMessages([
                 'staff_status' => ['Staff status can only be assigned to medical staff roles.'],
             ]);
@@ -35,11 +35,10 @@ class AdminRegisterUserAction
 
     private function resolveStaffStatus(string $roleName, ?string $staffStatus): ?string
     {
-        if (!in_array($roleName, self::MEDICAL_ROLES, true)) {
+        if (!\in_array($roleName, self::MEDICAL_ROLES, true)) {
             return null;
         }
 
         return $staffStatus ?? StaffStatus::AVAILABLE->value;
     }
 }
-
