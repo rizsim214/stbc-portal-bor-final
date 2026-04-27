@@ -24,7 +24,7 @@ class CreateLabResultAction
 
         $labResult = LabResult::query()->create([
             'appointment_id' => $appointment->id,
-            'file_path' => $dto->filePath,
+            'file_path' => $dto->fileKey,
             'result_data' => $dto->resultData,
             'released_at' => $dto->releasedAt,
         ]);
@@ -32,4 +32,3 @@ class CreateLabResultAction
         return $labResult->load('appointment.user');
     }
 }
-

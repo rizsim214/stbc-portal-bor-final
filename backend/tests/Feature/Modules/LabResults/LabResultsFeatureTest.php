@@ -3,9 +3,11 @@
 namespace Tests\Feature\Modules\LabResults;
 
 use App\Models\User;
+use App\Modules\LabResults\Services\LabResultFileUrlService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\Sanctum;
+use Mockery\MockInterface;
 use Tests\TestCase;
 
 class LabResultsFeatureTest extends TestCase
@@ -121,11 +123,91 @@ class LabResultsFeatureTest extends TestCase
             ->assertJsonPath('data.0.id', $ownReleasedResultId);
     }
 
+    public function test_staff_can_generate_signed_upload_url_for_lab_result_file(): void
+    {
+        $staff = $this->createUserWithRole('staff');
+        $patient = $this->createUserWithRole('patient');
+        $appointmentId = $this->createAppointmentForPatient($patient->id);
+
+        $this->mock(LabResultFileUrlService::class, function (MockInterface $mock): void {
+            $mock
+                ->shouldReceive('createTemporaryUploadUrl')
+                ->once()
+                ->andReturn([
+                    'url' => 'https://example-s3/upload',
+                    'headers' => ['Content-Type' => 'application/pdf'],
+                ]);
+        });
+
+        Sanctum::actingAs($staff);
+
+        $response = $this->postJson('/api/lab-results/upload-url', [
+            'appointment_id' => $appointmentId,
+            'file_name' => 'cbc-report.pdf',
+            'content_type' => 'application/pdf',
+            'size_bytes' => 12000,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.upload_url', 'https://example-s3/upload')
+            ->assertJsonPath('data.file_key', fn (string $value): bool => str_starts_with($value, "lab-results/{$appointmentId}/"));
+    }
+
+    public function test_patient_cannot_generate_signed_upload_url_for_lab_result_file(): void
+    {
+        $patient = $this->createUserWithRole('patient');
+        $appointmentId = $this->createAppointmentForPatient($patient->id);
+
+        Sanctum::actingAs($patient);
+
+        $this->postJson('/api/lab-results/upload-url', [
+            'appointment_id' => $appointmentId,
+            'file_name' => 'cbc-report.pdf',
+            'content_type' => 'application/pdf',
+            'size_bytes' => 12000,
+        ])->assertStatus(403);
+    }
+
+    public function test_patient_can_get_signed_download_url_for_own_released_lab_result(): void
+    {
+        $patient = $this->createUserWithRole('patient');
+        $appointmentId = $this->createAppointmentForPatient($patient->id);
+        $labResultId = $this->createLabResult($appointmentId, now()->toDateTimeString());
+
+        $this->mock(LabResultFileUrlService::class, function (MockInterface $mock): void {
+            $mock
+                ->shouldReceive('createTemporaryDownloadUrl')
+                ->once()
+                ->andReturn('https://example-s3/download');
+        });
+
+        Sanctum::actingAs($patient);
+
+        $this->getJson("/api/lab-results/{$labResultId}/file-url")
+            ->assertOk()
+            ->assertJsonPath('data.download_url', 'https://example-s3/download');
+    }
+
+    public function test_patient_cannot_get_signed_download_url_for_unreleased_lab_result(): void
+    {
+        $patient = $this->createUserWithRole('patient');
+        $appointmentId = $this->createAppointmentForPatient($patient->id);
+        $labResultId = $this->createLabResult($appointmentId, null);
+
+        Sanctum::actingAs($patient);
+
+        $this->getJson("/api/lab-results/{$labResultId}/file-url")
+            ->assertStatus(403);
+    }
+
     private function createUserWithRole(string $roleName): User
     {
-        $roleId = (int) DB::table('roles')->insertGetId([
-            'name' => $roleName,
-        ]);
+        $existingRoleId = DB::table('roles')->where('name', $roleName)->value('id');
+        $roleId = $existingRoleId
+            ? (int) $existingRoleId
+            : (int) DB::table('roles')->insertGetId([
+                'name' => $roleName,
+            ]);
 
         return User::factory()->create([
             'role_id' => $roleId,
@@ -164,4 +246,3 @@ class LabResultsFeatureTest extends TestCase
         ]);
     }
 }
-

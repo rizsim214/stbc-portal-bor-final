@@ -49,11 +49,15 @@ return [
 
         's3' => [
             'driver' => 's3',
+            // Set in .env: AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
             'key' => env('AWS_ACCESS_KEY_ID'),
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            // Set in .env: AWS_DEFAULT_REGION and your bucket name.
             'region' => env('AWS_DEFAULT_REGION'),
             'bucket' => env('AWS_BUCKET'),
+            // Optional: set AWS_URL for a custom/public S3 URL.
             'url' => env('AWS_URL'),
+            // For MinIO or S3-compatible providers, set AWS_ENDPOINT.
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,

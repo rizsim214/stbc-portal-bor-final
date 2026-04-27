@@ -9,10 +9,9 @@ final readonly class StoreLabResultDTO
      */
     public function __construct(
         public int $appointmentId,
-        public ?string $filePath = null,
+        public ?string $fileKey = null,
         public ?array $resultData = null,
         public ?string $releasedAt = null,
     ) {
     }
 }
-
