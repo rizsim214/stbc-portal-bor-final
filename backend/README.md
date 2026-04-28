@@ -1,58 +1,247 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Backend README (STBC)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This backend is a Laravel 13 API for:
+- auth + token-based sessions (Sanctum)
+- user/role management
+- appointment booking
+- schedule availability computation
+- lab result upload/release/download flow (S3/MinIO signed URLs)
 
-## About Laravel
+The goal of this README is to explain how the code is structured and where business rules live so future-you can re-orient quickly.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 1. Tech Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- PHP `^8.3`
+- Laravel `^13`
+- Laravel Sanctum `^4.3`
+- PostgreSQL (default in `.env.example`)
+- S3-compatible object storage (MinIO in local Docker)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Main dependencies are in `composer.json`.
 
-## Learning Laravel
+## 2. High-Level Architecture
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+This codebase follows a modular pattern under `app/Modules/*`:
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- `Requests/`: validation + mapping request data into DTOs
+- `DTOs/`: typed input objects for actions/services
+- `Actions/`: business use-cases (one class per operation)
+- `Controllers/`: thin transport layer
+- `Services/`: reusable domain services (scheduling, file URL signing)
+- `routes.php`: per-module route definitions
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+Global API routes are loaded in `routes/api.php` and module routes are auto-discovered with:
 
-## Agentic Development
+`glob(app_path('Modules/*/routes.php'))`
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## 3. Request Lifecycle (How a feature usually works)
 
-```bash
-composer require laravel/boost --dev
+1. Route points to a controller method.
+2. FormRequest validates input.
+3. FormRequest converts input to a DTO.
+4. Controller calls an Action with that DTO.
+5. Action runs domain logic and returns model/data.
+6. Controller returns JSON response.
+7. Exceptions are normalized in `bootstrap/app.php`.
 
-php artisan boost:install
+This keeps controllers simple and business rules testable.
+
+## 4. Modules Overview
+
+### Auth (`app/Modules/Auth`)
+
+Endpoints:
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout` (auth required)
+- `POST /api/auth/forgot-password`
+- `GET /api/auth/reset-password/{token}` (helper JSON response for frontend flow)
+
+Key rules:
+- Register always creates/uses `patient` role.
+- Login uses email/password and returns Sanctum token.
+- Logout deletes current access token only.
+- Forgot password uses Laravel password broker mail flow.
+
+### Users + Roles (`app/Modules/Users`)
+
+Endpoints (auth required):
+- `GET /api/roles` (`can:manage-roles`)
+- `POST /api/users` (`can:manage-users`)
+- `PATCH /api/users/{user}/role` (`can:manage-users`)
+- `PATCH /api/users/me/staff-status` (`can:update-own-staff-status`)
+
+Key rules:
+- `AdminRegisterUserAction` and request validation enforce that `staff_status` only applies to medical roles.
+- `AssignRoleAction` clears `staff_status` when moving to non-medical roles, or defaults it to `available` for medical roles.
+- Staff statuses are in `App\Modules\Users\Enums\StaffStatus`.
+
+### Scheduling (`app/Modules/Scheduling`)
+
+Endpoint:
+- `GET /api/scheduling/availability`
+
+Core logic is in `SchedulingService`:
+- intersects schedules across all requested resources
+- subtracts schedule exceptions (resource-level and global)
+- splits intervals into 30-minute slots
+- filters out slots that conflict with existing appointments
+
+Important: availability is for the intersection of all selected resources, not union.
+
+### Appointments (`app/Modules/Appointments`)
+
+Endpoint:
+- `POST /api/appointments`
+
+`CreateAppointment`:
+- verifies slot availability through `SchedulingService::isAvailable`
+- writes appointment + pivot links to resources in a transaction
+- throws `422 APPOINTMENT_SLOT_UNAVAILABLE` when slot is not bookable
+
+### Lab Results (`app/Modules/LabResults`)
+
+Endpoints (auth required):
+- `GET /api/lab-results`
+- `POST /api/lab-results/upload-url` (`can:upload-lab-results`)
+- `POST /api/lab-results` (`can:upload-lab-results`)
+- `GET /api/lab-results/{labResult}` (`can:view-lab-result,labResult`)
+- `GET /api/lab-results/{labResult}/file-url` (`can:view-lab-result,labResult`)
+- `PATCH /api/lab-results/{labResult}/release` (`can:release-lab-results`)
+
+Flow:
+1. Request signed upload URL with file metadata.
+2. Frontend uploads directly to S3/MinIO using signed URL.
+3. Frontend stores lab result record with returned `file_key`.
+4. Authorized users generate temporary download URL when needed.
+
+Key rules:
+- exactly one lab result per appointment (enforced in action logic)
+- patients only see released results tied to their own appointments
+- `file_path` is kept as DB column, but API now prefers input field name `file_key` (backward compatible)
+
+## 5. Authorization Model
+
+Authorization is gate-based in `app/Providers/AppServiceProvider.php`.
+
+Defined gates:
+- `manage-users`
+- `manage-roles`
+- `update-own-staff-status`
+- `upload-lab-results`
+- `release-lab-results`
+- `view-lab-result`
+
+Role checks are string-based (`$user->role?->name`), so role seed data matters.
+
+## 6. Data Model (Core Tables)
+
+Primary tables:
+- `users` (+ `role_id`, `staff_status`)
+- `roles` (unique `name`)
+- `appointments`
+- `appointment_types`
+- `resources`
+- `resource_schedules`
+- `schedule_exceptions`
+- `appointment_resources` (pivot)
+- `lab_results`
+- `personal_access_tokens` (Sanctum)
+
+Relationship highlights:
+- user has many appointments
+- appointment belongs to user + appointment type
+- appointment belongs to many resources
+- appointment has one lab result
+- resource has many schedules
+- schedule exceptions can be global (`resource_id = null`) or per-resource
+
+## 7. Error Response Shape
+
+Custom API exceptions inherit `ApiException` and are rendered in `bootstrap/app.php` as:
+
+```json
+{
+  "message": "...",
+  "error_code": "...",
+  "context": {}
+}
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Other normalized responses include:
+- validation errors (`VALIDATION_ERROR`, with `errors`)
+- auth (`UNAUTHENTICATED`)
+- authorization (`FORBIDDEN`)
+- not found (`RESOURCE_NOT_FOUND`)
+- fallback 500 (`SERVER_ERROR`)
 
-## Contributing
+## 8. Environment and Config Notes
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Important env/config:
+- DB: `DB_*` (default pgsql)
+- Auth: `AUTH_GUARD=sanctum`
+- CORS: `CORS_ALLOWED_ORIGINS`
+- Sanitized Sanctum SPA settings:
+  - `SANCTUM_STATEFUL_DOMAINS`
+  - `SANCTUM_ROUTES=false` for API-only mode
+- Initial admin seed:
+  - `INITIAL_ADMIN_NAME`
+  - `INITIAL_ADMIN_EMAIL`
+  - `INITIAL_ADMIN_PASSWORD`
+- Lab result storage:
+  - `LAB_RESULTS_STORAGE_DISK`
+  - `LAB_RESULTS_UPLOAD_URL_TTL_MINUTES`
+  - `LAB_RESULTS_DOWNLOAD_URL_TTL_MINUTES`
+  - `LAB_RESULTS_MAX_FILE_SIZE_BYTES`
+  - `AWS_*` for S3/MinIO
 
-## Code of Conduct
+Lab-result-specific config is in `config/lab_results.php`.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 9. Local Setup
 
-## Security Vulnerabilities
+From repo root (Docker path, recommended):
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+1. Copy env files
+   - `.env.example` -> `.env`
+   - `backend/.env.example` -> `backend/.env`
+2. Generate app key
+   - `docker compose run --rm app php artisan key:generate`
+3. Run migrations/seeds
+   - `docker compose run --rm app php artisan migrate --seed`
+4. Start services
+   - `docker compose up -d`
 
-## License
+Useful URLs:
+- API health: `http://localhost:8000/api/health`
+- Laravel health: `http://localhost:8000/up`
+- MinIO console: `http://localhost:9001`
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 10. Testing
+
+Run tests:
+
+```bash
+php artisan test
+```
+
+Tests include module-focused feature/unit coverage under `tests/Feature/Modules` and `tests/Unit/Modules`.
+
+## 11. Known Gotchas
+
+1. Role naming consistency is critical.
+Current gates reference roles like `doctor`, `radiologist`, and `lab_technologist`, but default `RoleSeeder` currently seeds only `admin`, `staff`, and `patient`.
+If those extra roles are expected, seed or create them before relying on those gates.
+
+2. Lab result uniqueness is enforced in application logic, not DB unique index.
+Concurrent requests could still race in edge cases; DB-level unique on `lab_results.appointment_id` would make this stricter.
+
+3. `appointment_type_id` is required in availability requests but currently not used in scheduling calculations.
+If appointment-type-specific rules are needed, this is an extension point.
+
+## 12. Where to Change Things Quickly
+
+- Add endpoint in existing domain: edit that module's `routes.php` + new `Request/DTO/Action/Controller`.
+- Change permissions: update gates in `AppServiceProvider`.
+- Change slot duration/algorithm: `SchedulingService`.
+- Change lab file URL behavior/storage disk: `LabResultFileUrlService` + `config/lab_results.php`.
+- Change seeded defaults: `database/seeders/*`.
