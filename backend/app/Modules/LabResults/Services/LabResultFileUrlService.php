@@ -3,10 +3,10 @@
 namespace App\Modules\LabResults\Services;
 
 use Carbon\CarbonInterface;
+use App\Modules\LabResults\Exceptions\LabResultStorageConfigurationException;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
-use RuntimeException;
 
 class LabResultFileUrlService
 {
@@ -49,7 +49,7 @@ class LabResultFileUrlService
         $disk = $this->disk();
 
         if (!$disk instanceof FilesystemAdapter) {
-            throw new RuntimeException('Configured storage disk must resolve to an Illuminate FilesystemAdapter instance.');
+            throw new LabResultStorageConfigurationException();
         }
 
         return $disk;
