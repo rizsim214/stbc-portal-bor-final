@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { cn } from "@/shared/lib/utils";
-import { cva, type VariantProps } from 'class-variance-authority'
+import { cva } from "class-variance-authority";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center rounded-md text-sm font-medium transition",
@@ -22,15 +22,26 @@ const buttonVariants = cva(
       size: "md",
     },
   }
-)
+);
 
-defineProps<{
-  class?: string
-} & VariantProps<typeof buttonVariants>>()
+type ButtonVariant = "default" | "outline" | "ghost";
+type ButtonSize = "sm" | "md" | "lg";
+
+const props = withDefaults(
+  defineProps<{
+    class?: string;
+    variant?: ButtonVariant;
+    size?: ButtonSize;
+  }>(),
+  {
+    variant: "default",
+    size: "md",
+  }
+);
 </script>
 
 <template>
-  <button :class="cn(buttonVariants({ variant, size }), $props.class)">
+  <button :class="cn(buttonVariants({ variant: props.variant, size: props.size }), props.class)">
     <slot />
   </button>
 </template>

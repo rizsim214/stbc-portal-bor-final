@@ -41,13 +41,6 @@ const calendarOptions: CalendarOptions = {
 
 <template>
   <main class="p-6 space-y-4">
-    <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-slate-800">Calendar</h1>
-      <RouterLink to="/" class="text-sm text-blue-600 hover:text-blue-700">
-        Back to Home
-      </RouterLink>
-    </div>
-
     <div class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
       <FullCalendar :options="calendarOptions" />
     </div>
