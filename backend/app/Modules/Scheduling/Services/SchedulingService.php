@@ -2,11 +2,11 @@
 
 namespace App\Modules\Scheduling\Services;
 
-use App\Models\Appointment;
 use App\Models\ResourceSchedule;
 use App\Models\ScheduleException;
 use App\Modules\Scheduling\DTOs\SchedulingAvailabilityDTO;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 
 class SchedulingService
 {
@@ -28,9 +28,11 @@ class SchedulingService
     {
         $date = CarbonImmutable::parse($dto->date)->startOfDay();
         $intervals = $this->getCommonIntervalsForDate($dto->resourceIds, $date);
+        $blockedIntervals = $this->getBookedIntervalsForDate($dto->resourceIds, $date);
+        $freeIntervals = $this->subtractIntervals($intervals, $this->mergeIntervals($blockedIntervals));
         $slots = [];
 
-        foreach ($intervals as $interval) {
+        foreach ($freeIntervals as $interval) {
             $cursor = $date->setTime(
                 (int) floor($interval['start'] / 60),
                 $interval['start'] % 60
@@ -42,13 +44,10 @@ class SchedulingService
 
             while ($cursor->addMinutes(self::DEFAULT_SLOT_MINUTES) <= $windowEnd) {
                 $slotEnd = $cursor->addMinutes(self::DEFAULT_SLOT_MINUTES);
-
-                if ($this->isConflictFree($dto->resourceIds, $cursor->toDateTimeString(), $slotEnd->toDateTimeString())) {
-                    $slots[] = [
-                        'start_time' => $cursor->toDateTimeString(),
-                        'end_time' => $slotEnd->toDateTimeString(),
-                    ];
-                }
+                $slots[] = [
+                    'start_time' => $cursor->toDateTimeString(),
+                    'end_time' => $slotEnd->toDateTimeString(),
+                ];
 
                 $cursor = $slotEnd;
             }
@@ -98,20 +97,41 @@ class SchedulingService
      */
     private function isConflictFree(array $resourceIds, string $start, string $end): bool
     {
-        return !Appointment::query()
-            ->whereHas('resources', function ($q) use ($resourceIds) {
-                $q->whereIn('resources.id', $resourceIds);
-            })
-            ->where(function ($query) use ($start, $end) {
-                $query
-                    ->whereBetween('start_time', [$start, $end])
-                    ->orWhereBetween('end_time', [$start, $end])
-                    ->orWhere(function ($q) use ($start, $end) {
-                        $q->where('start_time', '<=', $start)
-                            ->where('end_time', '>=', $end);
-                    });
-            })
+        return !DB::table('resource_bookings')
+            ->join('appointments', 'appointments.id', '=', 'resource_bookings.appointment_id')
+            ->whereIn('resource_bookings.resource_id', $resourceIds)
+            ->where('appointments.start_time', '<', $end)
+            ->where('appointments.end_time', '>', $start)
             ->exists();
+    }
+
+    /**
+     * @param  array<int>  $resourceIds
+     * @return array<int, array{start:int,end:int}>
+     */
+    private function getBookedIntervalsForDate(array $resourceIds, CarbonImmutable $date): array
+    {
+        $dayStart = $date->startOfDay()->toDateTimeString();
+        $dayEnd = $date->endOfDay()->toDateTimeString();
+
+        return DB::table('appointment_resources')
+            ->join('appointments', 'appointments.id', '=', 'appointment_resources.appointment_id')
+            ->whereIn('appointment_resources.resource_id', $resourceIds)
+            ->where('appointments.start_time', '<', $dayEnd)
+            ->where('appointments.end_time', '>', $dayStart)
+            ->get(['appointments.start_time', 'appointments.end_time'])
+            ->map(function ($booking): array {
+                $start = CarbonImmutable::parse($booking->start_time);
+                $end = CarbonImmutable::parse($booking->end_time);
+
+                return [
+                    'start' => max(0, $start->hour * 60 + $start->minute),
+                    'end' => min(24 * 60, $end->hour * 60 + $end->minute),
+                ];
+            })
+            ->filter(static fn(array $interval): bool => $interval['start'] < $interval['end'])
+            ->values()
+            ->all();
     }
 
     /**
@@ -191,7 +211,7 @@ class SchedulingService
 
         $fullDayGlobalExceptionExists = $exceptions
             ->whereNull('resource_id')
-            ->contains(fn ($exception): bool => $exception->start_time === null && $exception->end_time === null);
+            ->contains(fn($exception): bool => $exception->start_time === null && $exception->end_time === null);
 
         if ($fullDayGlobalExceptionExists) {
             return [];
@@ -200,14 +220,14 @@ class SchedulingService
         $resourceWithFullDayException = $exceptions
             ->whereNotNull('resource_id')
             ->whereIn('resource_id', $resourceIds)
-            ->contains(fn ($exception): bool => $exception->start_time === null && $exception->end_time === null);
+            ->contains(fn($exception): bool => $exception->start_time === null && $exception->end_time === null);
 
         if ($resourceWithFullDayException) {
             return [];
         }
 
         $blockedIntervals = $exceptions
-            ->filter(fn ($exception): bool => $exception->start_time !== null && $exception->end_time !== null)
+            ->filter(fn($exception): bool => $exception->start_time !== null && $exception->end_time !== null)
             ->map(function ($exception): array {
                 $start = CarbonImmutable::parse($exception->start_time);
                 $end = CarbonImmutable::parse($exception->end_time);

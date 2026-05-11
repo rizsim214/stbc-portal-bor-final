@@ -216,6 +216,12 @@ Useful URLs:
 - Laravel health: `http://localhost:8000/up`
 - MinIO console: `http://localhost:9001`
 
+Queue worker (Docker):
+- A dedicated `queue-worker` service runs `php artisan queue:work` with recycling flags for long-lived process stability:
+  - `--memory=${QUEUE_WORKER_MEMORY:-256}`
+  - `--max-jobs=${QUEUE_WORKER_MAX_JOBS:-1000}`
+  - `--max-time=${QUEUE_WORKER_MAX_TIME:-3600}`
+
 ## 10. Testing
 
 Run tests:
