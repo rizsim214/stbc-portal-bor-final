@@ -5,8 +5,34 @@ services:
     volumes:
       - ./backend:/var/www
     depends_on:
-      - postgres
-      - minio
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_started
+
+  queue-worker:
+    build: ./docker/php
+    container_name: stbc_queue_worker
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    command: >
+      sh -c "php artisan queue:work ${QUEUE_CONNECTION:-redis}
+      --sleep=${QUEUE_WORKER_SLEEP:-1}
+      --tries=${QUEUE_WORKER_TRIES:-3}
+      --memory=${QUEUE_WORKER_MEMORY:-256}
+      --max-jobs=${QUEUE_WORKER_MAX_JOBS:-1000}
+      --max-time=${QUEUE_WORKER_MAX_TIME:-3600}"
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_started
 
   nginx:
     image: nginx:latest
@@ -31,6 +57,24 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-stbc_user} -d ${POSTGRES_DB:-stbc}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: stbc_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   frontend:
     image: node:20

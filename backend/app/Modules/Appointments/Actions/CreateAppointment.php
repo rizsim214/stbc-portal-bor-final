@@ -4,41 +4,70 @@ namespace App\Modules\Appointments\Actions;
 
 use App\Models\Appointment;
 use App\Modules\Appointments\DTOs\StoreAppointmentDTO;
-use App\Modules\Appointments\Services\AvailabilityService;
+use App\Modules\Scheduling\Services\SchedulingService;
+use App\Modules\Shared\Exceptions\UnprocessableEntityApiException;
+use Illuminate\Database\QueryException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 class CreateAppointment
 {
     public function __construct(
-        private readonly AvailabilityService $availabilityService,
+        private readonly SchedulingService $schedulingService,
     ) {
     }
 
     public function execute(StoreAppointmentDTO $dto): Model
     {
-        return DB::transaction(function () use ($dto) {
-            if (
-                !$this->availabilityService->isAvailable(
-                    $dto->resourceIds,
-                    $dto->startTime,
-                    $dto->endTime
-                )
-            ) {
-                abort(422, 'Selected time slot is not available.');
+        try {
+            return DB::transaction(function () use ($dto) {
+                if (
+                    !$this->schedulingService->isAvailable(
+                        $dto->resourceIds,
+                        $dto->startTime,
+                        $dto->endTime
+                    )
+                ) {
+                    throw new UnprocessableEntityApiException(
+                        message: 'Selected time slot is not available.',
+                        errorCode: 'APPOINTMENT_SLOT_UNAVAILABLE',
+                    );
+                }
+
+                $appointment = Appointment::create([
+                    'user_id' => $dto->userId,
+                    'appointment_type_id' => $dto->appointmentTypeId,
+                    'start_time' => $dto->startTime,
+                    'end_time' => $dto->endTime,
+                ]);
+
+                $appointment->resources()->attach($dto->resourceIds);
+
+                $bookingRows = array_map(
+                    fn (int $resourceId): array => [
+                        'resource_id' => $resourceId,
+                        'appointment_id' => $appointment->id,
+                        'start_time' => $dto->startTime,
+                        'end_time' => $dto->endTime,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ],
+                    $dto->resourceIds
+                );
+
+                DB::table('resource_bookings')->insert($bookingRows);
+
+                return $appointment->load('resources');
+            });
+        } catch (QueryException $e) {
+            if (in_array($e->getCode(), ['23P01', '23505'], true)) {
+                throw new UnprocessableEntityApiException(
+                    message: 'Selected time slot is not available.',
+                    errorCode: 'APPOINTMENT_SLOT_UNAVAILABLE',
+                );
             }
 
-            $appointment = Appointment::create([
-                'user_id' => $dto->userId,
-                'appointment_type_id' => $dto->appointmentTypeId,
-                'start_time' => $dto->startTime,
-                'end_time' => $dto->endTime,
-            ]);
-
-            $appointment->resources()->attach($dto->resourceIds);
-
-            return $appointment->load('resources');
-        });
+            throw $e;
+        }
     }
 }
-
