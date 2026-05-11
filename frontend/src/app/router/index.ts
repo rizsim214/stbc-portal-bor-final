@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
-import HomePage from "@/app/pages/HomePage.vue";
-import CalendarPage from "@/app/pages/CalendarPage.vue";
+import HomePage from "@/pages/HomePage.vue";
+import AppointmentPage from "@/pages/AppointmentPage.vue";
+import ServicesPage from "@/pages/ServicesPage.vue";
+import AboutPage from "@/pages/AboutPage.vue";
 
 const routes = [
   {
@@ -9,9 +11,19 @@ const routes = [
     component: HomePage,
   },
   {
-    path: "/calendar",
-    name: "calendar",
-    component: CalendarPage,
+    path: "/about",
+    name: "about",
+    component: AboutPage,
+  },
+  {
+    path: "/services",
+    name: "services",
+    component: ServicesPage,
+  },
+  {
+    path: "/appointments",
+    name: "appointments",
+    component: AppointmentPage,
   },
 ];
 
