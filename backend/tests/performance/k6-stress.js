@@ -3,7 +3,7 @@ import { check, sleep } from "k6";
 
 const BASE_URL = __ENV.BASE_URL || "http://localhost:8000";
 const ADMIN_EMAIL = __ENV.ADMIN_EMAIL || "admin@stbc.local";
-const ADMIN_PASSWORD = __ENV.ADMIN_PASSWORD || "ChangeMe123!";
+const ADMIN_PASSWORD = __ENV.ADMIN_PASSWORD;
 
 const APPOINTMENT_TYPE_ID = Number(__ENV.APPOINTMENT_TYPE_ID || "1");
 const RESOURCE_IDS = (__ENV.RESOURCE_IDS || "1")
@@ -12,8 +12,11 @@ const RESOURCE_IDS = (__ENV.RESOURCE_IDS || "1")
   .filter((id) => Number.isFinite(id) && id > 0);
 
 const SCENARIO = __ENV.SCENARIO || "mixed";
-const CONTENTION_RESOURCE_ID = Number(__ENV.CONTENTION_RESOURCE_ID || RESOURCE_IDS[0] || 1);
-const CONTENTION_START_TIME = __ENV.CONTENTION_START_TIME || "2026-12-01 09:00:00";
+const CONTENTION_RESOURCE_ID = Number(
+  __ENV.CONTENTION_RESOURCE_ID || RESOURCE_IDS[0] || 1,
+);
+const CONTENTION_START_TIME =
+  __ENV.CONTENTION_START_TIME || "2026-12-01 09:00:00";
 const CONTENTION_END_TIME = __ENV.CONTENTION_END_TIME || "2026-12-01 09:30:00";
 const AVAILABILITY_DATE = __ENV.AVAILABILITY_DATE || "2026-12-01";
 
@@ -28,9 +31,18 @@ export const options = {
             preAllocatedVUs: Number(__ENV.PRE_ALLOCATED_VUS || 50),
             maxVUs: Number(__ENV.MAX_VUS || 500),
             stages: [
-              { target: Number(__ENV.STAGE1_RATE || 80), duration: __ENV.STAGE1_DURATION || "2m" },
-              { target: Number(__ENV.STAGE2_RATE || 150), duration: __ENV.STAGE2_DURATION || "3m" },
-              { target: Number(__ENV.STAGE3_RATE || 200), duration: __ENV.STAGE3_DURATION || "3m" },
+              {
+                target: Number(__ENV.STAGE1_RATE || 80),
+                duration: __ENV.STAGE1_DURATION || "2m",
+              },
+              {
+                target: Number(__ENV.STAGE2_RATE || 150),
+                duration: __ENV.STAGE2_DURATION || "3m",
+              },
+              {
+                target: Number(__ENV.STAGE3_RATE || 200),
+                duration: __ENV.STAGE3_DURATION || "3m",
+              },
               { target: 0, duration: __ENV.STAGE4_DURATION || "1m" },
             ],
             exec: "contentionFlow",
@@ -44,9 +56,18 @@ export const options = {
             preAllocatedVUs: Number(__ENV.PRE_ALLOCATED_VUS || 60),
             maxVUs: Number(__ENV.MAX_VUS || 600),
             stages: [
-              { target: Number(__ENV.STAGE1_RATE || 100), duration: __ENV.STAGE1_DURATION || "3m" },
-              { target: Number(__ENV.STAGE2_RATE || 250), duration: __ENV.STAGE2_DURATION || "4m" },
-              { target: Number(__ENV.STAGE3_RATE || 400), duration: __ENV.STAGE3_DURATION || "4m" },
+              {
+                target: Number(__ENV.STAGE1_RATE || 100),
+                duration: __ENV.STAGE1_DURATION || "3m",
+              },
+              {
+                target: Number(__ENV.STAGE2_RATE || 250),
+                duration: __ENV.STAGE2_DURATION || "4m",
+              },
+              {
+                target: Number(__ENV.STAGE3_RATE || 400),
+                duration: __ENV.STAGE3_DURATION || "4m",
+              },
               { target: 0, duration: __ENV.STAGE4_DURATION || "2m" },
             ],
             exec: "mixedFlow",
@@ -79,7 +100,7 @@ function login() {
       "login succeeded": (r) => r.status === 200,
       "login has token": (r) => Boolean(r.json("data.token")),
     },
-    { kind: "login" }
+    { kind: "login" },
   );
 
   if (!ok) {
@@ -116,27 +137,35 @@ export function mixedFlow() {
   const path = Math.random();
 
   if (path < 0.6) {
-    const url = `${BASE_URL}/api/scheduling/availability?date=${encodeURIComponent(
-      AVAILABILITY_DATE
-    )}&appointment_type_id=${APPOINTMENT_TYPE_ID}&${RESOURCE_IDS.map((id) => `resource_ids[]=${id}`).join("&")}`;
-    const res = http.get(url, { ...authHeaders(token), tags: { endpoint: "availability" } });
+    const resourceQuery = RESOURCE_IDS.map(
+      (id) => "resource_ids[]=" + encodeURIComponent(id),
+    ).join("&");
+    const url = `${BASE_URL}/api/scheduling/availability?date=${encodeURIComponent(AVAILABILITY_DATE)}&appointment_type_id=${APPOINTMENT_TYPE_ID}&${resourceQuery}`;
+    const res = http.get(url, {
+      ...authHeaders(token),
+      tags: { endpoint: "availability" },
+    });
 
     check(
       res,
       {
         "availability status ok": (r) => r.status === 200,
       },
-      { kind: "availability" }
+      { kind: "availability" },
     );
   } else if (path < 0.9) {
-    const startAt = new Date(Date.now() + (5 + Math.floor(Math.random() * 120)) * 60 * 1000);
+    const startAt = new Date(
+      Date.now() + (5 + Math.floor(Math.random() * 120)) * 60 * 1000,
+    );
     const endAt = new Date(startAt.getTime() + 30 * 60 * 1000);
 
     const payload = JSON.stringify({
       appointment_type_id: APPOINTMENT_TYPE_ID,
       start_time: formatDateTime(startAt),
       end_time: formatDateTime(endAt),
-      resource_ids: [RESOURCE_IDS[Math.floor(Math.random() * RESOURCE_IDS.length)]],
+      resource_ids: [
+        RESOURCE_IDS[Math.floor(Math.random() * RESOURCE_IDS.length)],
+      ],
     });
 
     const res = http.post(`${BASE_URL}/api/appointments`, payload, {
@@ -147,9 +176,10 @@ export function mixedFlow() {
     check(
       res,
       {
-        "appointment status expected": (r) => r.status === 201 || r.status === 422,
+        "appointment status expected": (r) =>
+          r.status === 201 || r.status === 422,
       },
-      { kind: "appointment" }
+      { kind: "appointment" },
     );
   } else {
     const res = http.get(`${BASE_URL}/api/health`, {
@@ -188,7 +218,7 @@ export function contentionFlow() {
     {
       "contention status expected": (r) => r.status === 201 || r.status === 422,
     },
-    { kind: "appointment" }
+    { kind: "appointment" },
   );
 
   sleep(Number(__ENV.SLEEP_SECONDS || "0.05"));
