@@ -19,6 +19,7 @@ class StoreAppointmentTest extends TestCase
         $user = User::factory()->create();
         $appointmentTypeId = $this->createAppointmentType();
         $resourceId = $this->createResource();
+        $this->createResourceSchedule($resourceId, 6, '08:00:00', '17:00:00');
         $start = CarbonImmutable::parse('2026-04-25 09:00:00');
         $end = $start->addHour();
 
@@ -51,6 +52,7 @@ class StoreAppointmentTest extends TestCase
         $user = User::factory()->create();
         $appointmentTypeId = $this->createAppointmentType();
         $resourceId = $this->createResource();
+        $this->createResourceSchedule($resourceId, 6, '08:00:00', '17:00:00');
         $start = CarbonImmutable::parse('2026-04-25 09:00:00');
         $end = $start->addHour();
 
@@ -76,6 +78,26 @@ class StoreAppointmentTest extends TestCase
         $this->assertDatabaseCount('appointments', 1);
     }
 
+    public function test_store_appointment_returns_422_when_request_is_outside_resource_schedule(): void
+    {
+        $user = User::factory()->create();
+        $appointmentTypeId = $this->createAppointmentType();
+        $resourceId = $this->createResource();
+        $this->createResourceSchedule($resourceId, 6, '08:00:00', '17:00:00');
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson('/api/appointments', [
+            'appointment_type_id' => $appointmentTypeId,
+            'start_time' => '2026-04-25 18:00:00',
+            'end_time' => '2026-04-25 19:00:00',
+            'resource_ids' => [$resourceId],
+        ]);
+
+        $response->assertStatus(422);
+        $this->assertSame('Selected time slot is not available.', $response->json('message'));
+    }
+
     private function createAppointmentType(): int
     {
         return (int) DB::table('appointment_types')->insertGetId([
@@ -91,6 +113,18 @@ class StoreAppointmentTest extends TestCase
             'name' => 'Dr. Test',
             'type' => 'doctor',
             'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    private function createResourceSchedule(int $resourceId, int $dayOfWeek, string $startTime, string $endTime): void
+    {
+        DB::table('resource_schedules')->insert([
+            'resource_id' => $resourceId,
+            'day_of_week' => $dayOfWeek,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

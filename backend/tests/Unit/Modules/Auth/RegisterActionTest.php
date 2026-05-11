@@ -30,7 +30,10 @@ class RegisterActionTest extends TestCase
             'email' => 'register@example.com',
             'name' => 'Test User',
         ]);
+        $this->assertDatabaseHas('roles', [
+            'name' => 'patient',
+        ]);
+        $this->assertSame('patient', $result['user']->role?->name);
         $this->assertDatabaseCount('personal_access_tokens', 1);
     }
 }
-
