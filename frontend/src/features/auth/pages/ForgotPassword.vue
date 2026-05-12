@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import { reactive } from "vue";
 import { useRouter } from "vue-router";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
+import { useAuthForms } from "../composables/useAuthForm";
 
 const router = useRouter();
 
-const form = reactive({
-  email: "",
-  password: "",
-});
+const {
+  forgotForm,
+  forgotErrors,
+  validateForgot
+} = useAuthForms();
 
 const onSubmit = (): void => {
-  // Connect to auth API here.
-  console.log("Forgot Password Submit", { ...form });
+  // API is submitted here
+  if (validateForgot()) {
+    console.log("Forgot Password Submit", { ...forgotForm });
+  }
 };
 
 const onCancel = (): void => {
@@ -31,8 +34,8 @@ const onCancel = (): void => {
       <p class="mt-2 text-sm text-brand-dark">New password will be submitted to your email address.</p>
 
       <form class="mt-6 space-y-4" @submit.prevent="onSubmit">
-        <Input id="email" v-model="form.email" type="email" label="Retrieval Email" placeholder="you@example.com"
-          autocomplete="email" />
+        <Input id="email" v-model="forgotForm.email" type="email" :error="forgotErrors.email" label="Retrieval Email"
+          placeholder="you@example.com" autocomplete="email" />
 
         <Button type="submit" class="bg-brand-dark hover:bg-brand-darker">Submit</Button>
         <Button type="button" variant="outline" @click="onCancel">Cancel</Button>

@@ -1,17 +1,21 @@
 <script setup lang="ts">
-import { reactive } from "vue";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { useRouter } from "vue-router";
+import { useAuthForms } from "../composables/useAuthForm";
 
-const form = reactive({
-  email: "",
-  password: "",
-});
+const {
+  loginForm,
+  loginErrors,
+  validateLogin
+} = useAuthForms();
 
 const onSubmit = (): void => {
-  // Connect to auth API here.
-  console.log("Login submit", { ...form });
+  if (validateLogin()) {
+    // Submitted Here
+    console.log("Login submit ", { ...loginForm });
+    console.log("validate login ", validateLogin());
+  }
 };
 
 const router = useRouter();
@@ -31,11 +35,11 @@ const goToForgotPassword = (): void => {
       <p class="mt-2 text-sm text-brand-dark">Sign in to continue to your account.</p>
 
       <form class="mt-6 space-y-4" @submit.prevent="onSubmit">
-        <Input id="email" v-model="form.email" type="email" label="Email" placeholder="you@example.com"
-          autocomplete="email" />
+        <Input id="email" v-model="loginForm.email" :error="loginErrors.email" type="email" label="Email"
+          placeholder="you@example.com" autocomplete="email" />
 
-        <Input id="password" v-model="form.password" type="password" label="Password" placeholder="Enter your password"
-          autocomplete="current-password" />
+        <Input id="password" v-model="loginForm.password" :error="loginErrors.password" type="password" label="Password"
+          placeholder="Enter your password" autocomplete="current-password" />
 
         <div class="flex justify-end">
           <button type="button"

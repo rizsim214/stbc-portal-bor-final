@@ -1,20 +1,23 @@
 <script setup lang="ts">
-import { reactive } from "vue";
 import { useRouter } from "vue-router";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
+import { useAuthForms } from "../composables/useAuthForm";
 
 const router = useRouter();
 
-const form = reactive({
-  email: "",
-  password: "",
-  passwordConfirm: ""
-});
+const {
+  registerForm,
+  registerErrors,
+  validateRegister
+} = useAuthForms();
 
 const onSubmit = (): void => {
-  // Connect to auth API here.
-  console.log("Register Submit", { ...form });
+  // Submit registration to API here
+  if (validateRegister()) {
+    console.log("Register Submit", { ...registerForm });
+    console.log("validate login ", validateRegister());
+  }
 };
 
 const goToLogin = (): void => {
@@ -34,12 +37,12 @@ const goToLogin = (): void => {
       <p class="mt-2 text-sm text-brand-dark">Sign up to create a user account.</p>
 
       <form class="mt-6 space-y-4" @submit.prevent="onSubmit">
-        <Input id="email" v-model="form.email" type="email" label="Email" placeholder="you@example.com"
-          autocomplete="email" />
-        <Input id="password" v-model="form.password" type="password" label="Password" placeholder="Enter your password"
-          autocomplete="current-password" />
-        <Input id="passwordConfirm" v-model="form.passwordConfirm" type="password" label="Confirm Password"
-          placeholder="Enter your password again" />
+        <Input id="email" v-model="registerForm.email" :error="registerErrors.email" type="email" label="Email"
+          placeholder="you@example.com" autocomplete="email" />
+        <Input id="password" v-model="registerForm.password" :error="registerErrors.password" type="password"
+          label="Password" placeholder="Enter your password" autocomplete="current-password" />
+        <Input id="passwordConfirm" v-model="registerForm.passwordConfirm" :error="registerErrors.passwordConfirm"
+          type="password" label="Confirm Password" placeholder="Enter password again" />
 
         <Button type="submit" class="bg-brand-dark hover:bg-brand-darker">Register</Button>
 
