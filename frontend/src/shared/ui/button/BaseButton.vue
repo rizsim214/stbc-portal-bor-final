@@ -3,7 +3,7 @@ import { cn } from "@/shared/lib/utils";
 import { cva } from "class-variance-authority";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium transition",
+  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-black disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -32,16 +32,34 @@ const props = withDefaults(
     class?: string;
     variant?: ButtonVariant;
     size?: ButtonSize;
+    type?: "button" | "submit" | "reset";
+    disabled?: boolean;
+    loading?: boolean;
   }>(),
   {
     variant: "default",
     size: "md",
+    type: "button",
+    disabled: false,
+    loading: false,
   }
 );
 </script>
 
 <template>
-  <button :class="cn(buttonVariants({ variant: props.variant, size: props.size }), props.class)">
-    <slot />
+  <button :type="props.type" :disabled="props.disabled || props.loading" :class="cn(
+    buttonVariants({
+      variant: props.variant,
+      size: props.size,
+    }),
+    'w-full',
+    props.class
+  )
+    ">
+    <span v-if="props.loading" class="mr-2 animate-spin">⏳</span>
+
+    <slot>
+      {{ props.loading ? "Loading..." : "Submit" }}
+    </slot>
   </button>
 </template>

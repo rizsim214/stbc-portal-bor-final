@@ -71,7 +71,8 @@ function navigateTo(link: string) {
       <RouterLink to="/" class="flex items-center gap-3 transition hover:opacity-90" aria-label="STBC Home">
         <img :src="stbcLogo" alt="STBC Clinic Logo" class="h-10 w-auto rounded-sm object-contain" />
         <div class="hidden leading-tight sm:block">
-          <p :class="!isScrolled ? 'text-brand-darker' : 'text-white'" class="text-xs font-semibold tracking-wide lg:text-sm">
+          <p :class="!isScrolled ? 'text-brand-darker' : 'text-white'"
+            class="text-xs font-semibold tracking-wide lg:text-sm">
             ST. BENEDICT'S BLOOD CLINIC
           </p>
           <p :class="!isScrolled ? 'text-brand-dark/80' : 'text-white/75'" class="text-xs">
@@ -107,8 +108,7 @@ function navigateTo(link: string) {
         </Button>
       </div>
 
-      <button
-        type="button"
+      <button type="button"
         class="inline-flex items-center rounded-md border px-3 py-2 text-xs font-semibold transition md:hidden"
         :class="!isScrolled ? 'border-brand-light text-brand-dark hover:bg-brand-lighter/30' : 'border-white/30 text-white hover:bg-white/10'"
         @click="isMobileMenuOpen = !isMobileMenuOpen">
@@ -119,8 +119,7 @@ function navigateTo(link: string) {
     <div v-if="isMobileMenuOpen" class="border-t border-brand-light/20 bg-white/95 px-4 py-3 backdrop-blur md:hidden">
       <ul class="space-y-2">
         <li v-for="navItem in navItems" :key="navItem.id">
-          <button
-            type="button"
+          <button type="button"
             class="w-full rounded-md bg-brand-lighter/20 px-3 py-2 text-left text-sm font-medium text-brand-dark transition hover:bg-brand-lighter/35"
             @click="navigateTo(navItem.link)">
             {{ navItem.title }}
