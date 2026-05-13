@@ -52,9 +52,10 @@ const goToLogin = (): void => {
             <span class="text-xs font-semibold uppercase tracking-[0.12em] text-brand-dark/80">Or</span>
             <span class="h-px flex-1 bg-brand-dark/50"></span>
           </div>
-          <Button type="button" variant="outline" size="sm" class="max-w-full" @click="goToLogin">
-            Login
-          </Button>
+          <p class="text-sm">Already have an account? <RouterLink to="/login" class="text-brand-dark/55 font-bold">Sign
+              In!
+            </RouterLink>
+          </p>
         </div>
       </form>
     </section>

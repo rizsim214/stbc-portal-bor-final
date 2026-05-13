@@ -49,6 +49,11 @@ const goToForgotPassword = (): void => {
           </button>
         </div>
         <Button type="submit" class="bg-brand-dark hover:bg-brand-darker">Submit</Button>
+        <p class="text-sm text-center">Don't have an account yet? <RouterLink to="/register"
+            class="text-brand-dark/55 font-bold">
+            Register
+            Now!</RouterLink>
+        </p>
       </form>
     </section>
   </main>
