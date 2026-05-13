@@ -3,7 +3,30 @@ export interface LoginForm {
   password: string;
 }
 
+export interface LoginPayload extends LoginForm {
+  device_name?: string;
+}
+
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  role?: {
+    id: number;
+    name: string;
+  } | null;
+}
+
+export interface LoginResponse {
+  message: string;
+  data: {
+    token: string;
+    user: AuthUser;
+  };
+}
+
 export interface RegisterForm {
+  name: string;
   email: string;
   password: string;
   passwordConfirm: string;

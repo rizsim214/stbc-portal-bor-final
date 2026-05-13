@@ -2,7 +2,10 @@
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { useRouter } from "vue-router";
+import { ref } from "vue";
 import { useAuthForms } from "../composables/useAuthForm";
+import { useAuthStore } from "../stores/useAuthStore";
+import { handleAuthApiError } from "../utils/authError";
 
 const {
   loginForm,
@@ -10,15 +13,41 @@ const {
   validateLogin
 } = useAuthForms();
 
-const onSubmit = (): void => {
-  if (validateLogin()) {
-    // Submitted Here
-    console.log("Login submit ", { ...loginForm });
-    console.log("validate login ", validateLogin());
+const authStore = useAuthStore();
+const submitError = ref("");
+const router = useRouter();
+
+function clearLoginError(field: "email" | "password"): void {
+  loginErrors[field] = "";
+}
+
+const onSubmit = async (): Promise<void> => {
+  submitError.value = "";
+
+  if (!validateLogin()) {
+    return;
+  }
+
+  try {
+    await authStore.login({
+      email: loginForm.email,
+      password: loginForm.password,
+    });
+
+    const redirect = (router.currentRoute.value.query.redirect as string) || authStore.getDashboardPath();
+    await router.push(redirect);
+  } catch (error: unknown) {
+    const message = handleAuthApiError<"email" | "password">({
+      error,
+      fallbackMessage: "Login failed. Please try again.",
+      setFieldError: (field, message) => {
+        loginErrors[field] = message;
+      },
+    });
+
+    submitError.value = loginErrors.email || loginErrors.password ? "" : message;
   }
 };
-
-const router = useRouter();
 
 const goToForgotPassword = (): void => {
   router.push("/forgot-password"); // change path to your route
@@ -36,10 +65,10 @@ const goToForgotPassword = (): void => {
 
       <form class="mt-6 space-y-4" @submit.prevent="onSubmit">
         <Input id="email" v-model="loginForm.email" :error="loginErrors.email" type="email" label="Email"
-          placeholder="you@example.com" autocomplete="email" />
+          placeholder="you@example.com" autocomplete="email" @clear-error="clearLoginError('email')" />
 
         <Input id="password" v-model="loginForm.password" :error="loginErrors.password" type="password" label="Password"
-          placeholder="Enter your password" autocomplete="current-password" />
+          placeholder="Enter your password" autocomplete="current-password" @clear-error="clearLoginError('password')" />
 
         <div class="flex justify-end">
           <button type="button"
@@ -48,7 +77,10 @@ const goToForgotPassword = (): void => {
             Forgot password?
           </button>
         </div>
-        <Button type="submit" class="bg-brand-dark hover:bg-brand-darker">Submit</Button>
+        <p v-if="submitError" class="text-sm text-red-500">{{ submitError }}</p>
+        <Button type="submit" class="bg-brand-dark hover:bg-brand-darker" :loading="authStore.isLoading">
+          Sign In
+        </Button>
         <p class="text-sm text-center">Don't have an account yet? <RouterLink to="/register"
             class="text-brand-dark/55 font-bold">
             Register
