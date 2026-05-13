@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { useAuthForms } from "../composables/useAuthForm";
+import { authApi } from "../api/authApi";
+import { useAuthStore } from "../stores/useAuthStore";
+import { handleAuthApiError } from "../utils/authError";
 
-const router = useRouter();
 
 const {
   registerForm,
@@ -12,19 +15,58 @@ const {
   validateRegister
 } = useAuthForms();
 
-const onSubmit = (): void => {
-  // Submit registration to API here
-  if (validateRegister()) {
-    console.log("Register Submit", { ...registerForm });
-    console.log("validate login ", validateRegister());
+const router = useRouter();
+const authStore = useAuthStore();
+const isSubmitting = ref(false);
+const submitError = ref("");
+
+function clearRegisterError(field: "name" | "email" | "password" | "passwordConfirm"): void {
+  registerErrors[field] = "";
+}
+
+function onPasswordInput(): void {
+  clearRegisterError("password");
+  if (registerForm.passwordConfirm === registerForm.password) {
+    clearRegisterError("passwordConfirm");
+  }
+}
+
+const onSubmit = async (): Promise<void> => {
+  submitError.value = "";
+
+  if (!validateRegister()) {
+    return;
+  }
+
+  isSubmitting.value = true;
+
+  try {
+    const { data } = await authApi.register(registerForm);
+    authStore.setSession(data.data.token, data.data.user);
+    await router.push(authStore.getDashboardPath());
+  } catch (error: unknown) {
+    const message = handleAuthApiError<"name" | "email" | "password" | "passwordConfirm">({
+      error,
+      fallbackMessage: "Registration failed. Please try again.",
+      fieldMap: {
+        password_confirmation: "passwordConfirm",
+      },
+      setFieldError: (field, message) => {
+        registerErrors[field] = message;
+      },
+    });
+
+    submitError.value =
+      registerErrors.name ||
+      registerErrors.email ||
+      registerErrors.password ||
+      registerErrors.passwordConfirm
+        ? ""
+        : message;
+  } finally {
+    isSubmitting.value = false;
   }
 };
-
-const goToLogin = (): void => {
-  router.push("/login");
-};
-
-
 
 </script>
 
@@ -37,14 +79,19 @@ const goToLogin = (): void => {
       <p class="mt-2 text-sm text-brand-dark">Sign up to create a user account.</p>
 
       <form class="mt-6 space-y-4" @submit.prevent="onSubmit">
+        <Input id="name" v-model="registerForm.name" :error="registerErrors.name" type="text" label="Name"
+          placeholder="John Doe" autocomplete="name" @clear-error="clearRegisterError('name')" />
         <Input id="email" v-model="registerForm.email" :error="registerErrors.email" type="email" label="Email"
-          placeholder="you@example.com" autocomplete="email" />
+          placeholder="you@example.com" autocomplete="email" @clear-error="clearRegisterError('email')" />
         <Input id="password" v-model="registerForm.password" :error="registerErrors.password" type="password"
-          label="Password" placeholder="Enter your password" autocomplete="current-password" />
+          label="Password" placeholder="Enter your password" autocomplete="current-password"
+          @clear-error="onPasswordInput" />
         <Input id="passwordConfirm" v-model="registerForm.passwordConfirm" :error="registerErrors.passwordConfirm"
-          type="password" label="Confirm Password" placeholder="Enter password again" />
+          type="password" label="Confirm Password" placeholder="Enter password again"
+          @clear-error="clearRegisterError('passwordConfirm')" />
 
-        <Button type="submit" class="bg-brand-dark hover:bg-brand-darker">Register</Button>
+        <p v-if="submitError" class="text-sm text-red-500">{{ submitError }}</p>
+        <Button type="submit" class="bg-brand-dark hover:bg-brand-darker" :loading="isSubmitting">Register</Button>
 
         <div class="flex flex-col items-center gap-3 pt-1">
           <div class="flex w-80 items-center gap-3">

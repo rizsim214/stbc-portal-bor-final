@@ -17,6 +17,7 @@ export function useAuthForms() {
   });
 
   const registerForm = reactive<RegisterForm>({
+    name: "",
     email: "",
     password: "",
     passwordConfirm: "",
@@ -46,6 +47,8 @@ export function useAuthForms() {
 
   const validateRegister = (): boolean => {
     clearErrors(registerErrors);
+    if (!registerForm.name.trim())
+      registerErrors.name = "Please enter your name.";
     if (!emailRegex.test(registerForm.email))
       registerErrors.email = "Email address is invalid.";
     if (registerForm.password.length < 8)
@@ -54,6 +57,7 @@ export function useAuthForms() {
       registerErrors.passwordConfirm = "Passwords do not match";
     }
     return (
+      !registerErrors.name &&
       !registerErrors.email &&
       !registerErrors.password &&
       !registerErrors.passwordConfirm

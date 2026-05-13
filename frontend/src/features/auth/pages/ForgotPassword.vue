@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { useAuthForms } from "../composables/useAuthForm";
+import { authApi } from "../api/authApi";
+import { handleAuthApiError } from "../utils/authError";
 
 const router = useRouter();
 
@@ -12,10 +15,39 @@ const {
   validateForgot
 } = useAuthForms();
 
-const onSubmit = (): void => {
-  // API is submitted here
-  if (validateForgot()) {
-    console.log("Forgot Password Submit", { ...forgotForm });
+const isSubmitting = ref(false);
+const submitError = ref("");
+const submitSuccess = ref("");
+
+function clearForgotError(): void {
+  forgotErrors.email = "";
+}
+
+const onSubmit = async (): Promise<void> => {
+  submitError.value = "";
+  submitSuccess.value = "";
+
+  if (!validateForgot()) {
+    return;
+  }
+
+  isSubmitting.value = true;
+
+  try {
+    await authApi.forgotPassword(forgotForm);
+    submitSuccess.value = "If the account exists, password reset instructions were sent to your email.";
+  } catch (error: unknown) {
+    const message = handleAuthApiError<"email">({
+      error,
+      fallbackMessage: "Failed to submit forgot password request.",
+      setFieldError: (field, message) => {
+        forgotErrors[field] = message;
+      },
+    });
+
+    submitError.value = forgotErrors.email ? "" : message;
+  } finally {
+    isSubmitting.value = false;
   }
 };
 
@@ -35,9 +67,10 @@ const onCancel = (): void => {
 
       <form class="mt-6 space-y-4" @submit.prevent="onSubmit">
         <Input id="email" v-model="forgotForm.email" type="email" :error="forgotErrors.email" label="Retrieval Email"
-          placeholder="you@example.com" autocomplete="email" />
+          placeholder="you@example.com" autocomplete="email" @clear-error="clearForgotError" />
 
-        <Button type="submit" class="bg-brand-dark hover:bg-brand-darker">Submit</Button>
+        <p v-if="submitSuccess" class="text-sm text-green-700">{{ submitSuccess }}</p>
+        <Button type="submit" class="bg-brand-dark hover:bg-brand-darker" :loading="isSubmitting">Submit</Button>
         <Button type="button" variant="outline" @click="onCancel">Cancel</Button>
       </form>
     </section>

@@ -21,7 +21,13 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: string): void
+  (e: "clear-error"): void
 }>()
+
+function onInput(event: Event) {
+  emit("update:modelValue", (event.target as HTMLInputElement).value);
+  emit("clear-error");
+}
 
 </script>
 
@@ -34,7 +40,7 @@ const emit = defineEmits<{
 
     <!-- Input -->
     <input :id="id" :name="name" :type="type" :value="modelValue" :placeholder="placeholder" :disabled="disabled"
-      :autocomplete="autocomplete" @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)" :class="cn(
+      :autocomplete="autocomplete" @input="onInput" :class="cn(
         'flex h-10 w-full rounded-md border border-brand-light/50 px-3 py-2 text-sm text-brand-darker transition',
         'placeholder:text-brand-dark/60 focus:outline-none focus:ring-2 focus:ring-brand-highlight/40 focus:border-brand-highlight',
         'disabled:cursor-not-allowed disabled:opacity-50',

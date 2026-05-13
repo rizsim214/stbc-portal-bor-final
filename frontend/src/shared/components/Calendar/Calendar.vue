@@ -3,7 +3,21 @@ import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 import type { CalendarOptions, DateSelectArg, EventClickArg } from "@fullcalendar/core";
+import { useAuthStore } from "@/features/auth/stores/useAuthStore";
+
+const router = useRouter();
+const authStore = useAuthStore();
+const guestNotice = ref("");
+
+function redirectToLogin(): void {
+  router.push({
+    path: "/login",
+    query: { redirect: "/appointments" },
+  });
+}
 
 const calendarOptions: CalendarOptions = {
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
@@ -34,6 +48,13 @@ const calendarOptions: CalendarOptions = {
     },
   ],
   select(selectionInfo: DateSelectArg) {
+    if (!authStore.isAuthenticated) {
+      guestNotice.value =
+        "You can browse schedules as a guest. Please log in to confirm a booking.";
+      return;
+    }
+
+    guestNotice.value = "";
     globalThis.alert(`Selected: ${selectionInfo.startStr} to ${selectionInfo.endStr}`);
   },
   eventClick(clickInfo: EventClickArg) {
@@ -46,6 +67,12 @@ const calendarOptions: CalendarOptions = {
   <main class="p-3 sm:p-4">
     <div class="stbc-calendar mx-auto w-full max-w-4xl rounded-lg border border-brand-light/30 bg-white p-2 shadow-sm sm:p-3">
       <FullCalendar :options="calendarOptions" />
+      <div v-if="guestNotice" class="mt-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+        <p>{{ guestNotice }}</p>
+        <button type="button" class="mt-2 font-semibold underline" @click="redirectToLogin">
+          Log in to continue booking
+        </button>
+      </div>
     </div>
   </main>
 </template>
