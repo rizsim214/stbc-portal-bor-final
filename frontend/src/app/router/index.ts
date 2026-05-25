@@ -7,8 +7,16 @@ import LoginPage from "@/features/auth/pages/LoginPage.vue";
 import RegisterPage from "@/features/auth/pages/RegisterPage.vue";
 import ForgotPassword from "@/features/auth/pages/ForgotPassword.vue";
 import { useAuthStore } from "@/features/auth/stores/useAuthStore";
-import { DASHBOARD_PATHS } from "@/features/auth/constants";
-import RoleDashboardPage from "@/pages/private/RoleDashboardPage.vue";
+import DashboardLayout from "@/app/layouts/DashboardLayout.vue";
+import DashboardOverviewPage from "@/pages/dashboard/DashboardOverviewPage.vue";
+import PatientListPage from "@/pages/dashboard/PatientListPage.vue";
+import PatientRecordsPage from "@/pages/dashboard/PatientRecordsPage.vue";
+import CalendarAvailabilityPage from "@/pages/dashboard/CalendarAvailabilityPage.vue";
+import AppointmentRequestsPage from "@/pages/dashboard/AppointmentRequestsPage.vue";
+import AppointmentHistoryPage from "@/pages/dashboard/AppointmentHistoryPage.vue";
+import MyResultsPage from "@/pages/dashboard/MyResultsPage.vue";
+import ResultReleasesPage from "@/pages/dashboard/ResultReleasesPage.vue";
+import UserManagementPage from "@/pages/dashboard/UserManagementPage.vue";
 
 const routes = [
   {
@@ -51,26 +59,79 @@ const routes = [
   },
   {
     path: "/dashboard",
-    redirect: DASHBOARD_PATHS.patient,
+    name: "dashboard",
+    component: DashboardLayout,
     meta: { requiresAuth: true },
-  },
-  {
-    path: DASHBOARD_PATHS.admin,
-    name: "adminDashboard",
-    component: RoleDashboardPage,
-    meta: { requiresAuth: true, role: "admin" },
-  },
-  {
-    path: DASHBOARD_PATHS.staff,
-    name: "staffDashboard",
-    component: RoleDashboardPage,
-    meta: { requiresAuth: true, role: "staff" },
-  },
-  {
-    path: DASHBOARD_PATHS.patient,
-    name: "patientDashboard",
-    component: RoleDashboardPage,
-    meta: { requiresAuth: true, role: "patient" },
+    children: [
+      {
+        path: "",
+        name: "dashboardOverview",
+        component: DashboardOverviewPage,
+      },
+      {
+        path: "patient",
+        name: "patientDashboard",
+        component: DashboardOverviewPage,
+        meta: { role: "patient" },
+      },
+      {
+        path: "staff",
+        name: "staffDashboard",
+        component: DashboardOverviewPage,
+        meta: { role: "staff" },
+      },
+      {
+        path: "admin",
+        name: "adminDashboard",
+        component: DashboardOverviewPage,
+        meta: { role: "admin" },
+      },
+      {
+        path: "patients/list",
+        name: "patientList",
+        component: PatientListPage,
+        meta: { roles: ["staff", "admin"] },
+      },
+      {
+        path: "patients/records",
+        name: "patientRecords",
+        component: PatientRecordsPage,
+        meta: { roles: ["staff", "admin"] },
+      },
+      {
+        path: "appointments/calendar",
+        name: "appointmentCalendar",
+        component: CalendarAvailabilityPage,
+      },
+      {
+        path: "appointments/requests",
+        name: "appointmentRequests",
+        component: AppointmentRequestsPage,
+        meta: { roles: ["staff", "admin"] },
+      },
+      {
+        path: "appointments/history",
+        name: "appointmentHistory",
+        component: AppointmentHistoryPage,
+      },
+      {
+        path: "results/my-results",
+        name: "myResults",
+        component: MyResultsPage,
+      },
+      {
+        path: "results/releases",
+        name: "resultReleases",
+        component: ResultReleasesPage,
+        meta: { roles: ["staff", "admin"] },
+      },
+      {
+        path: "users/manage",
+        name: "userManagement",
+        component: UserManagementPage,
+        meta: { role: "admin" },
+      },
+    ],
   },
 ];
 
@@ -99,10 +160,15 @@ router.beforeEach(async (to) => {
     return { path: authStore.getDashboardPath() };
   }
 
-  if (isAuthed && typeof to.meta.role === "string") {
-    const expectedPath = authStore.getDashboardPath();
-    if (to.path !== expectedPath) {
-      return { path: expectedPath };
+  if (isAuthed && (typeof to.meta.role === "string" || Array.isArray(to.meta.roles))) {
+    const currentRole = authStore.user?.role?.name?.toLowerCase() ?? "patient";
+
+    if (typeof to.meta.role === "string" && to.meta.role !== currentRole) {
+      return { path: authStore.getDashboardPath() };
+    }
+
+    if (Array.isArray(to.meta.roles) && !to.meta.roles.includes(currentRole)) {
+      return { path: authStore.getDashboardPath() };
     }
   }
 
