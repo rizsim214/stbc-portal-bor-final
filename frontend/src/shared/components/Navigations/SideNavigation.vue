@@ -179,7 +179,7 @@ function closeMobileNav(): void {
     aria-label="Close menu overlay" @click="closeMobileNav" />
 
   <aside :class="isMobileNavOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
-    class="fixed inset-y-0 left-0 z-40 w-70 border-r border-brand-light/30 bg-linear-to-b from-white via-brand-lighter/20 to-white p-5 transition-transform duration-300 md:sticky md:top-0 md:h-screen md:w-auto md:self-start md:overflow-y-auto md:p-6">
+    class="fixed inset-y-0 left-0 z-50 w-70 border-r border-brand-light/30 bg-white p-5 transition-transform duration-300 md:sticky md:top-0 md:h-screen md:w-auto md:self-start md:overflow-y-auto md:p-6">
     <button type="button"
       class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-md text-brand-dark/75 transition hover:bg-brand-lighter/35 md:hidden"
       aria-label="Close menu" @click="closeMobileNav">
