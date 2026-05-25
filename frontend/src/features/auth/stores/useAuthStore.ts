@@ -59,20 +59,17 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    async fetchMe(): Promise<void> {
-      const { data } = await authApi.me();
-      this.user = data.data;
-      localStorage.setItem(AUTH_STORAGE_KEYS.user, JSON.stringify(this.user));
-    },
-
     async initializeAuth(): Promise<void> {
-      if (!this.token) return;
-
       this.isBootstrapping = true;
       try {
-        await this.fetchMe();
-      } catch {
-        this.clearSession();
+        if (!this.token) {
+          return;
+        }
+
+        // Keep session on refresh using persisted user data.
+        if (!this.user) {
+          this.clearSession();
+        }
       } finally {
         this.isBootstrapping = false;
       }

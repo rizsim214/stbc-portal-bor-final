@@ -13,24 +13,13 @@ import stbcLogo from "@/assets/resources/stbc-logo.jpg";
 
 const router = useRouter();
 const authStore = useAuthStore();
-const isScrolled = ref(false);
 const isMobileMenuOpen = ref(false);
 const isUserMenuOpen = ref(false);
 const desktopUserMenuRef = ref<HTMLElement | null>(null);
 const mobileUserMenuRef = ref<HTMLElement | null>(null);
 
-const headerClass = computed(() =>
-  isScrolled.value
-    ? "border-white/10 bg-brand-darker text-white"
-    : "border-brand-light/30 bg-white/95 backdrop-blur"
-
-);
-
-const linkClass = computed(() =>
-  isScrolled.value
-    ? "text-white/90 hover:bg-white/10 hover:text-white"
-    : "text-brand-dark hover:bg-brand-lighter/30 hover:text-brand-darker"
-);
+const headerClass = "border-brand-light/30 bg-white/95 backdrop-blur";
+const linkClass = "text-brand-dark hover:bg-brand-lighter/30 hover:text-brand-darker";
 
 const homeLink = computed(() =>
   authStore.isAuthenticated ? authStore.getDashboardPath() : "/"
@@ -42,11 +31,7 @@ const userInitials = computed(() => {
   return email.slice(0, 1).toUpperCase();
 });
 
-const avatarClass = computed(() =>
-  isScrolled.value
-    ? "bg-white text-brand-darker hover:bg-brand-lighter"
-    : "bg-brand-highlight text-white hover:bg-brand-dark"
-);
+const avatarClass = "bg-brand-highlight text-white hover:bg-brand-dark";
 
 type UserMenuAction = "profile" | "settings" | "logout";
 
@@ -61,10 +46,6 @@ const userMenuItems: UserMenuItem[] = [
   { id: "settings", label: "Settings" },
   { id: "logout", label: "Logout", danger: true },
 ];
-
-function onScroll() {
-  isScrolled.value = globalThis.scrollY > 12;
-}
 
 function onDocumentClick(event: MouseEvent) {
   if (!isUserMenuOpen.value) return;
@@ -84,13 +65,10 @@ function onDocumentClick(event: MouseEvent) {
 }
 
 onMounted(() => {
-  onScroll();
-  globalThis.addEventListener("scroll", onScroll, { passive: true });
   globalThis.addEventListener("click", onDocumentClick);
 });
 
 onBeforeUnmount(() => {
-  globalThis.removeEventListener("scroll", onScroll);
   globalThis.removeEventListener("click", onDocumentClick);
 });
 
@@ -151,16 +129,15 @@ function onUserMenuAction(action: UserMenuAction) {
 </script>
 
 <template>
-  <header :class="headerClass" class="sticky top-0 z-50 border-b transition-colors duration-300">
-    <nav class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+  <header :class="headerClass" class="z-50 border-b transition-colors duration-300">
+    <nav class="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
       <RouterLink :to="homeLink" class="flex items-center gap-3 transition hover:opacity-90" aria-label="STBC Home">
         <img :src="stbcLogo" alt="STBC Clinic Logo" class="h-10 w-auto rounded-sm object-contain" />
         <div class="hidden leading-tight sm:block">
-          <p :class="!isScrolled ? 'text-brand-darker' : 'text-white'"
-            class="text-xs font-semibold tracking-wide lg:text-sm">
+          <p class="text-xs font-semibold tracking-wide text-brand-darker lg:text-sm">
             ST. BENEDICT'S BLOOD CLINIC
           </p>
-          <p :class="!isScrolled ? 'text-brand-dark/80' : 'text-white/75'" class="text-xs">
+          <p class="text-xs text-brand-dark/80">
             Trusted Care, Clear Results
           </p>
         </div>
@@ -182,8 +159,8 @@ function onUserMenuAction(action: UserMenuAction) {
 
       <div class="hidden items-center gap-2 md:flex">
         <template v-if="authStore.isAuthenticated">
-          <button type="button" class="rounded-md px-2 py-1 text-sm font-medium transition"
-            :class="!isScrolled ? 'text-brand-dark hover:bg-brand-lighter/30' : 'text-white/90 hover:bg-white/10'"
+          <button type="button"
+            class="rounded-md px-2 py-1 text-sm font-medium text-brand-dark transition hover:bg-brand-lighter/30"
             @click="router.push(authStore.getDashboardPath())">
             Dashboard
           </button>
@@ -207,14 +184,11 @@ function onUserMenuAction(action: UserMenuAction) {
           </div>
         </template>
         <template v-else>
-          <Button variant="outline" size="sm"
-            :class="!isScrolled ? 'border-brand-light text-brand-dark hover:bg-brand-lighter/30' : 'border-white/40 text-white hover:bg-white/10'"
+          <Button variant="outline" size="sm" class="border-brand-light text-brand-dark hover:bg-brand-lighter/30"
             @click="router.push('/login')">
             Login
           </Button>
-          <Button size="sm"
-            :class="!isScrolled ? 'bg-brand-highlight text-white hover:bg-brand-dark' : 'bg-white text-brand-darker hover:bg-brand-lighter'"
-            @click="router.push('/register')">
+          <Button size="sm" class="bg-brand-highlight text-white hover:bg-brand-dark" @click="router.push('/register')">
             Register
           </Button>
         </template>
@@ -240,8 +214,7 @@ function onUserMenuAction(action: UserMenuAction) {
       </div>
 
       <button type="button" v-if="!authStore.isAuthenticated"
-        class="inline-flex items-center rounded-md border px-3 py-2 text-xs font-semibold transition md:hidden"
-        :class="!isScrolled ? 'border-brand-light text-brand-dark hover:bg-brand-lighter/30' : 'border-white/30 text-white hover:bg-white/10'"
+        class="inline-flex items-center rounded-md border border-brand-light px-3 py-2 text-xs font-semibold text-brand-dark transition hover:bg-brand-lighter/30 md:hidden"
         @click="isMobileMenuOpen = !isMobileMenuOpen">
         {{ isMobileMenuOpen ? "Close" : "Menu" }}
       </button>

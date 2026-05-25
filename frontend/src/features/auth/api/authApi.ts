@@ -2,15 +2,9 @@ import { http } from "@/shared/api/http";
 import type {
   LoginPayload,
   LoginResponse,
-  AuthUser,
   RegisterForm,
   ForgotForm,
 } from "../types";
-
-interface MeResponse {
-  message?: string;
-  data: AuthUser;
-}
 
 interface LogoutResponse {
   message: string;
@@ -31,10 +25,6 @@ interface ForgotPayload {
 export const authApi = {
   login(payload: LoginPayload) {
     return http.post<LoginResponse>("/auth/login", payload);
-  },
-
-  me() {
-    return http.get<MeResponse>("/auth/me");
   },
 
   logout() {
