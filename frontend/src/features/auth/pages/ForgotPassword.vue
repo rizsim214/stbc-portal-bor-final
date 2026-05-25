@@ -70,6 +70,7 @@ const onCancel = (): void => {
           placeholder="you@example.com" autocomplete="email" @clear-error="clearForgotError" />
 
         <p v-if="submitSuccess" class="text-sm text-green-700">{{ submitSuccess }}</p>
+        <p v-if="submitError" class="text-sm text-red-500">{{ submitError }}</p>
         <Button type="submit" class="bg-brand-dark hover:bg-brand-darker" :loading="isSubmitting">Submit</Button>
         <Button type="button" variant="outline" @click="onCancel">Cancel</Button>
       </form>
