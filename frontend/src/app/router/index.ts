@@ -8,7 +8,7 @@ import RegisterPage from "@/features/auth/pages/RegisterPage.vue";
 import ForgotPassword from "@/features/auth/pages/ForgotPassword.vue";
 import { useAuthStore } from "@/features/auth/stores/useAuthStore";
 import { DASHBOARD_PATHS } from "@/features/auth/constants";
-import RoleDashboardPage from "@/pages/RoleDashboardPage.vue";
+import RoleDashboardPage from "@/pages/private/RoleDashboardPage.vue";
 
 const routes = [
   {
