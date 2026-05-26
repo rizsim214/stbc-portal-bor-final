@@ -131,9 +131,10 @@ function onUserMenuAction(action: UserMenuAction) {
 <template>
   <header :class="headerClass" class="z-50 border-b transition-colors duration-300">
     <nav class="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-      <RouterLink :to="homeLink" class="flex items-center gap-3 transition hover:opacity-90" aria-label="STBC Home">
+      <RouterLink v-if="!authStore.isAuthenticated" :to="homeLink" class="flex items-center gap-3 transition hover:opacity-90"
+        aria-label="STBC Home">
         <img :src="stbcLogo" alt="STBC Clinic Logo" class="h-10 w-auto rounded-sm object-contain" />
-        <div class="hidden leading-tight sm:block">
+        <div class="leading-tight">
           <p class="text-xs font-semibold tracking-wide text-brand-darker lg:text-sm">
             ST. BENEDICT'S BLOOD CLINIC
           </p>
@@ -157,13 +158,10 @@ function onUserMenuAction(action: UserMenuAction) {
         </NavigationMenuList>
       </NavigationMenuRoot>
 
+      <div v-if="authStore.isAuthenticated" class="flex-1" />
+
       <div class="hidden items-center gap-2 md:flex">
         <template v-if="authStore.isAuthenticated">
-          <button type="button"
-            class="rounded-md px-2 py-1 text-sm font-medium text-brand-dark transition hover:bg-brand-lighter/30"
-            @click="router.push(authStore.getDashboardPath())">
-            Dashboard
-          </button>
           <div ref="desktopUserMenuRef" class="relative">
             <button type="button"
               class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition"

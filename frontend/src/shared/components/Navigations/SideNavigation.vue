@@ -13,6 +13,7 @@ import {
   FileText,
   FlaskConical,
   History,
+  House,
   Menu,
   ShieldCheck,
   TestTube2,
@@ -26,6 +27,7 @@ import type { Component } from "vue";
 import { useRoute } from "vue-router";
 import type { RouteLocationRaw } from "vue-router";
 import { useAuthStore } from "@/features/auth/stores/useAuthStore";
+import stbcLogo from "@/assets/resources/stbc-logo.jpg";
 
 type SubItem = {
   id: string;
@@ -163,6 +165,21 @@ function getLinkClass(routeName: string): string {
     : "text-brand-dark/85 hover:bg-brand-lighter/30 hover:text-brand-darker";
 }
 
+function getDashboardLinkClass(): string {
+  const dashboardRouteNames = [
+    "dashboard",
+    "dashboardOverview",
+    "patientDashboard",
+    "staffDashboard",
+    "adminDashboard",
+  ];
+  const isActive =
+    typeof route.name === "string" && dashboardRouteNames.includes(route.name);
+  return isActive
+    ? "bg-brand-lighter/45 text-brand-darker"
+    : "text-brand-dark/85 hover:bg-brand-lighter/30 hover:text-brand-darker";
+}
+
 function closeMobileNav(): void {
   isMobileNavOpen.value = false;
 }
@@ -185,8 +202,24 @@ function closeMobileNav(): void {
       aria-label="Close menu" @click="closeMobileNav">
       <X class="h-4 w-4" />
     </button>
-    <p class="mb-4 text-lg font-semibold tracking-wide text-brand-darker">Dashboard</p>
+
+    <div v-if="authStore.isAuthenticated" class="mb-4 flex items-center gap-3">
+      <img :src="stbcLogo" alt="STBC Clinic Logo" class="h-10 w-auto rounded-sm object-contain" />
+      <div class="leading-tight">
+        <p class="text-xs font-semibold tracking-wide text-brand-darker">
+          ST. BENEDICT'S BLOOD CLINIC
+        </p>
+        <p class="text-xs text-brand-dark/80">
+          Trusted Care, Clear Results
+        </p>
+      </div>
+    </div>
     <p class="mb-5 text-xs uppercase tracking-[0.12em] text-brand-dark/65">Navigation</p>
+    <RouterLink :to="authStore.getDashboardPath()" :class="getDashboardLinkClass()" @click="closeMobileNav"
+      class="mb-3 flex items-center gap-2 rounded-md px-2 py-2 text-sm font-semibold transition">
+      <House class="h-4 w-4 shrink-0" />
+      <span>Dashboard</span>
+    </RouterLink>
 
     <AccordionRoot class="w-full" type="multiple">
       <AccordionItem v-for="item in visibleGroups" :key="item.value" :value="item.value"
