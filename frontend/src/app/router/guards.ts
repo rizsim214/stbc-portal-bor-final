@@ -18,6 +18,10 @@ export function installAuthGuards(router: Router) {
       return { path: "/login", query: { redirect: to.fullPath } };
     }
 
+    if (to.path === "/" && isAuthed) {
+      return { path: authStore.getDashboardPath() };
+    }
+
     if (to.path === "/dashboard" && isAuthed) {
       return { path: authStore.getDashboardPath() };
     }

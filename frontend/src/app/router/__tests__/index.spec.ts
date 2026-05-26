@@ -87,6 +87,15 @@ describe("router guards", () => {
     expect(router.currentRoute.value.path).toBe("/dashboard/admin");
   });
 
+  it("redirects / to role dashboard path when authenticated", async () => {
+    setStore("staff", true);
+    const router = await loadRouter();
+
+    await router.push("/");
+
+    expect(router.currentRoute.value.path).toBe("/dashboard/staff");
+  });
+
   it("redirects non-admin away from admin-only route", async () => {
     setStore("staff", true);
     const router = await loadRouter();
