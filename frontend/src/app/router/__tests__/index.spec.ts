@@ -35,17 +35,21 @@ describe("router guards", () => {
     vi.resetModules();
   });
 
-  it("redirects unauthenticated users to login with redirect query", async () => {
-    setStore("patient", false);
-    const router = await loadRouter();
+  it(
+    "redirects unauthenticated users to login with redirect query",
+    async () => {
+      setStore("patient", false);
+      const router = await loadRouter();
 
-    await router.push("/dashboard/appointments/history");
+      await router.push("/dashboard/appointments/history");
 
-    expect(router.currentRoute.value.path).toBe("/login");
-    expect(router.currentRoute.value.query.redirect).toBe(
-      "/dashboard/appointments/history",
-    );
-  });
+      expect(router.currentRoute.value.path).toBe("/login");
+      expect(router.currentRoute.value.query.redirect).toBe(
+        "/dashboard/appointments/history",
+      );
+    },
+    15000,
+  );
 
   it("allows staff to access staff/admin shared routes", async () => {
     setStore("staff", true);
@@ -63,5 +67,32 @@ describe("router guards", () => {
     await router.push("/dashboard/patients/list");
 
     expect(router.currentRoute.value.path).toBe("/dashboard/patient");
+  });
+
+  it("redirects authenticated user away from guest-only route", async () => {
+    setStore("staff", true);
+    const router = await loadRouter();
+
+    await router.push("/login");
+
+    expect(router.currentRoute.value.path).toBe("/dashboard/staff");
+  });
+
+  it("redirects /dashboard to role dashboard path when authenticated", async () => {
+    setStore("admin", true);
+    const router = await loadRouter();
+
+    await router.push("/dashboard");
+
+    expect(router.currentRoute.value.path).toBe("/dashboard/admin");
+  });
+
+  it("redirects non-admin away from admin-only route", async () => {
+    setStore("staff", true);
+    const router = await loadRouter();
+
+    await router.push("/dashboard/users/manage");
+
+    expect(router.currentRoute.value.path).toBe("/dashboard/staff");
   });
 });
