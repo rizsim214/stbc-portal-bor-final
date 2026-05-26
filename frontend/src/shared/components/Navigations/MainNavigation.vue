@@ -5,6 +5,7 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
 } from "radix-vue";
+import { Menu, X } from "lucide-vue-next";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { Button } from "@/shared/ui/button";
@@ -42,7 +43,7 @@ type UserMenuItem = {
 };
 
 const userMenuItems: UserMenuItem[] = [
-  { id: "profile", label: "Profile" },
+  { id: "profile", label: "Profile" }, // purpose: updating user related info (e.g name, password, phone, etc... )
   { id: "settings", label: "Settings" },
   { id: "logout", label: "Logout", danger: true },
 ];
@@ -131,8 +132,8 @@ function onUserMenuAction(action: UserMenuAction) {
 <template>
   <header :class="headerClass" class="z-50 border-b transition-colors duration-300">
     <nav class="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-      <RouterLink v-if="!authStore.isAuthenticated" :to="homeLink" class="flex items-center gap-3 transition hover:opacity-90"
-        aria-label="STBC Home">
+      <RouterLink v-if="!authStore.isAuthenticated" :to="homeLink"
+        class="flex items-center gap-3 transition hover:opacity-90" aria-label="STBC Home">
         <img :src="stbcLogo" alt="STBC Clinic Logo" class="h-10 w-auto rounded-sm object-contain" />
         <div class="leading-tight">
           <p class="text-xs font-semibold tracking-wide text-brand-darker lg:text-sm">
@@ -213,8 +214,10 @@ function onUserMenuAction(action: UserMenuAction) {
 
       <button type="button" v-if="!authStore.isAuthenticated"
         class="inline-flex items-center rounded-md border border-brand-light px-3 py-2 text-xs font-semibold text-brand-dark transition hover:bg-brand-lighter/30 md:hidden"
+        :aria-label="isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'"
         @click="isMobileMenuOpen = !isMobileMenuOpen">
-        {{ isMobileMenuOpen ? "Close" : "Menu" }}
+        <Menu v-if="!isMobileMenuOpen" class="h-5 w-5" aria-hidden="true" />
+        <X v-else class="h-5 w-5" aria-hidden="true" />
       </button>
     </nav>
 

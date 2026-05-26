@@ -8,6 +8,7 @@ import {
 } from "radix-vue";
 import {
   CalendarDays,
+  CalendarSearch,
   ChevronDown,
   ClipboardList,
   FileText,
@@ -57,8 +58,8 @@ const currentRole = computed<"admin" | "staff" | "patient">(() => {
 
 const accordionItems: SideNavGroup[] = [
   {
-    value: "patients",
-    title: "Patients",
+    value: "patient-related",
+    title: "Patient Related",
     icon: Users,
     items: [
       {
@@ -70,12 +71,12 @@ const accordionItems: SideNavGroup[] = [
         roles: ["staff", "admin"],
       },
       {
-        id: "patient-records",
-        label: "Medical Records",
-        to: { name: "patientRecords" },
-        routeName: "patientRecords",
+        id: "my-medical-record",
+        label: "My Medical Records",
+        to: { name: "patientMedicalRecord" },
+        routeName: "patientMedicalRecord",
         icon: ClipboardList,
-        roles: ["staff", "admin"],
+        roles: ["patient"],
       },
     ],
   },
@@ -86,14 +87,15 @@ const accordionItems: SideNavGroup[] = [
     items: [
       {
         id: "appointment-calendar",
-        label: "Calendar Availability",
+        label: "Appointment Calendar",
         to: { name: "appointmentCalendar" },
         routeName: "appointmentCalendar",
-        icon: CalendarDays,
+        icon: CalendarSearch,
+        roles: ["patient"],
       },
       {
         id: "appointment-requests",
-        label: "Requests Queue",
+        label: "Appointment Requests",
         to: { name: "appointmentRequests" },
         routeName: "appointmentRequests",
         icon: ClipboardList,
@@ -119,10 +121,11 @@ const accordionItems: SideNavGroup[] = [
         to: { name: "myResults" },
         routeName: "myResults",
         icon: FileText,
+        roles: ["patient"],
       },
       {
         id: "lab-released",
-        label: "Release Workflow",
+        label: "Releasing Lab Results",
         to: { name: "resultReleases" },
         routeName: "resultReleases",
         icon: TestTube2,
