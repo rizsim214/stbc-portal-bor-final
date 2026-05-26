@@ -3,8 +3,8 @@ import Calendar from '@/shared/components/Calendar/Calendar.vue';
 </script>
 
 <template>
-  <main class="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-    <div class="grid grid-cols-1 gap-4 lg:grid-cols-[0.9fr_1.6fr]">
+  <main class="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+    <div class="grid grid-cols-1 gap-4 lg:min-h-[calc(100vh-10rem)] lg:grid-cols-[0.7fr_2.3fr]">
       <section class="rounded-lg border border-brand-light/30 bg-brand-lighter/20 p-4 sm:p-5">
         <h1 class="text-2xl font-bold text-brand-darker">Set Up an Appointment</h1>
         <p class="mt-2 text-sm text-brand-dark">
@@ -20,7 +20,7 @@ import Calendar from '@/shared/components/Calendar/Calendar.vue';
         </p>
       </section>
 
-      <section class="min-h-0 overflow-x-auto rounded-lg border border-brand-light/20 bg-white p-2 sm:p-3">
+      <section class="min-h-0 overflow-x-auto rounded-lg border border-brand-light/20 bg-white p-2 sm:p-3 lg:h-full">
         <Calendar />
       </section>
     </div>

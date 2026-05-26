@@ -33,7 +33,7 @@ return new class extends Migration {
         if (DB::getDriverName() === 'pgsql') {
             DB::statement('CREATE EXTENSION IF NOT EXISTS btree_gist');
             DB::statement(
-                "ALTER TABLE resource_bookings ADD CONSTRAINT resource_bookings_no_overlap EXCLUDE USING gist (resource_id WITH =, tstzrange(start_time, end_time, '[)') WITH &&)"
+                "ALTER TABLE resource_bookings ADD CONSTRAINT resource_bookings_no_overlap EXCLUDE USING gist (resource_id WITH =, tsrange(start_time, end_time, '[)') WITH &&)"
             );
         }
     }
