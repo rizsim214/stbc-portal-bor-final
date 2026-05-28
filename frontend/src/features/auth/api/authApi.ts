@@ -24,11 +24,15 @@ interface ForgotPayload {
 
 export const authApi = {
   login(payload: LoginPayload) {
-    return http.post<LoginResponse>("/auth/login", payload);
+    return http.post<LoginResponse>("/auth/login", payload, {
+      headers: { "X-Skip-Global-Loading": "true" },
+    });
   },
 
   logout() {
-    return http.post<LogoutResponse>("/auth/logout");
+    return http.post<LogoutResponse>("/auth/logout", undefined, {
+      headers: { "X-Skip-Global-Loading": "true" },
+    });
   },
 
   register(form: RegisterForm) {
@@ -39,11 +43,15 @@ export const authApi = {
       password_confirmation: form.passwordConfirm,
       device_name: "web",
     };
-    return http.post<LoginResponse>("/auth/register", payload);
+    return http.post<LoginResponse>("/auth/register", payload, {
+      headers: { "X-Skip-Global-Loading": "true" },
+    });
   },
 
   forgotPassword(form: ForgotForm) {
     const payload: ForgotPayload = { email: form.email };
-    return http.post("/auth/forgot-password", payload);
+    return http.post("/auth/forgot-password", payload, {
+      headers: { "X-Skip-Global-Loading": "true" },
+    });
   },
 };

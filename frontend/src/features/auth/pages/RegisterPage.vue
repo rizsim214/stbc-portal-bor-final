@@ -18,6 +18,7 @@ const {
 const router = useRouter();
 const authStore = useAuthStore();
 const submitError = ref("");
+const isSubmitting = ref(false);
 
 function clearRegisterError(field: "name" | "email" | "password" | "passwordConfirm"): void {
   registerErrors[field] = "";
@@ -38,6 +39,7 @@ const onSubmit = async (): Promise<void> => {
   }
 
   try {
+    isSubmitting.value = true;
     const { data } = await authApi.register(registerForm);
     authStore.setSession(data.data.token, data.data.user);
     await router.push(authStore.getDashboardPath());
@@ -60,6 +62,8 @@ const onSubmit = async (): Promise<void> => {
       registerErrors.passwordConfirm
         ? ""
         : message;
+  } finally {
+    isSubmitting.value = false;
   }
 };
 
@@ -86,7 +90,7 @@ const onSubmit = async (): Promise<void> => {
           @clear-error="clearRegisterError('passwordConfirm')" />
 
         <p v-if="submitError" class="text-sm text-red-500">{{ submitError }}</p>
-        <Button type="submit" class="bg-brand-dark hover:bg-brand-darker">Register</Button>
+        <Button type="submit" :loading="isSubmitting" class="bg-brand-dark hover:bg-brand-darker">Register</Button>
 
         <div class="flex flex-col items-center gap-3 pt-1">
           <div class="flex w-80 items-center gap-3">

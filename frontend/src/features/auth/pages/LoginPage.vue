@@ -78,7 +78,7 @@ const goToForgotPassword = (): void => {
           </button>
         </div>
         <p v-if="submitError" class="text-sm text-red-500">{{ submitError }}</p>
-        <Button type="submit" class="bg-brand-dark hover:bg-brand-darker">
+        <Button type="submit" :loading="authStore.isLoading" class="bg-brand-dark hover:bg-brand-darker">
           Sign In
         </Button>
         <p class="text-sm text-center">Don't have an account yet? <RouterLink to="/register"

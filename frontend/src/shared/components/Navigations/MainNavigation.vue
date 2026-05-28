@@ -75,6 +75,11 @@ onBeforeUnmount(() => {
 
 const navItems = [
   {
+    id: 'home',
+    title: 'Home',
+    link: "/"
+  },
+  {
     id: 'about',
     title: 'About',
     link: "/about"
@@ -83,11 +88,6 @@ const navItems = [
     id: 'services',
     title: 'Services',
     link: "/services"
-  },
-  {
-    id: 'appointments',
-    title: 'Appointments',
-    link: "/appointments"
   },
 ];
 

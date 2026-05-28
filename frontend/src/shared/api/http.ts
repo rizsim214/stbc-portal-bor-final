@@ -10,24 +10,36 @@ export const http = axios.create({
 });
 
 http.interceptors.request.use((config) => {
-  startApiLoading();
+  const skipGlobalLoading = config.headers?.["X-Skip-Global-Loading"] === "true";
+  if (!skipGlobalLoading) {
+    startApiLoading();
+  }
   const token = localStorage.getItem(AUTH_STORAGE_KEYS.token);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 }, (error) => {
-  stopApiLoading();
+  const skipGlobalLoading = error?.config?.headers?.["X-Skip-Global-Loading"] === "true";
+  if (!skipGlobalLoading) {
+    stopApiLoading();
+  }
   return Promise.reject(error);
 });
 
 http.interceptors.response.use(
   (response) => {
-    stopApiLoading();
+    const skipGlobalLoading = response.config.headers?.["X-Skip-Global-Loading"] === "true";
+    if (!skipGlobalLoading) {
+      stopApiLoading();
+    }
     return response;
   },
   (error) => {
-    stopApiLoading();
+    const skipGlobalLoading = error?.config?.headers?.["X-Skip-Global-Loading"] === "true";
+    if (!skipGlobalLoading) {
+      stopApiLoading();
+    }
     if (error?.response?.status === 401) {
       localStorage.removeItem(AUTH_STORAGE_KEYS.token);
       localStorage.removeItem(AUTH_STORAGE_KEYS.user);
