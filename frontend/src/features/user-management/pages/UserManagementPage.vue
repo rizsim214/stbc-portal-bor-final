@@ -1,7 +1,38 @@
 <script setup lang="ts">
-import DataTable from '@/shared/components/DataTable/DataTable.vue';
+import DataTable from '@/features/user-management/components/UserDataTable/UserDataTable.vue';
+import UserTableFilters from "@/features/user-management/components/UserTableFilters/UserTableFilters.vue";
 import { Button } from "@/shared/ui/button";
 import { Plus } from "lucide-vue-next";
+import { computed, ref } from "vue";
+
+const users = [
+  { name: 'Alice Johnson', email: 'alice.johnson@stbc.com', role: 'Doctor' },
+  { name: 'Brian Cruz', email: 'brian.cruz@stbc.com', role: 'Doctor' },
+  { name: 'Carla Santos', email: 'carla.santos@stbc.com', role: 'Radiologist' },
+  { name: 'Santos Lee', email: 'santos.lee@stbc.com', role: 'Nurse' },
+  { name: 'Daniel Cruz', email: 'daniel.cruz@stbc.com', role: 'Nurse' },
+  { name: 'Brian Lee', email: 'brian.lee@stbc.com', role: 'Doctor' },
+  { name: 'Elaine Cruz', email: 'elaine.cruz@stbc.com', role: 'Secretary' },
+  { name: 'Francis Tan', email: 'francis.tan@stbc.com', role: 'Lab Operator' },
+];
+
+const searchTerm = ref("");
+const searchField = ref<"name" | "email" | "role">("name");
+const positionFilter = ref("all");
+
+const availablePositions = computed(() =>
+  Array.from(new Set(users.map((user) => user.role))),
+);
+
+const filteredUsers = computed(() => {
+  const query = searchTerm.value.trim().toLowerCase();
+
+  return users.filter((user) => {
+    const matchesQuery = !query || user[searchField.value].toLowerCase().includes(query);
+    const matchesPosition = positionFilter.value === "all" || user.role === positionFilter.value;
+    return matchesQuery && matchesPosition;
+  });
+});
 </script>
 
 <template>
@@ -16,7 +47,9 @@ import { Plus } from "lucide-vue-next";
         Add User
       </Button>
     </div>
-    <!-- Create Search Bar & Filters here  -->
-    <DataTable />
+    <UserTableFilters :search-term="searchTerm" :search-field="searchField" :position-filter="positionFilter"
+      :available-positions="availablePositions" @update:search-term="searchTerm = $event"
+      @update:search-field="searchField = $event" @update:position-filter="positionFilter = $event" />
+    <DataTable :users="filteredUsers" />
   </section>
 </template>
