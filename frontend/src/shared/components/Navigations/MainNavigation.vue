@@ -137,7 +137,7 @@ function onUserMenuAction(action: UserMenuAction) {
         <img :src="stbcLogo" alt="STBC Clinic Logo" class="h-10 w-auto rounded-sm object-contain" />
         <div class="leading-tight">
           <p class="text-xs font-semibold tracking-wide text-brand-darker lg:text-sm">
-            ST. BENEDICT'S BLOOD CLINIC
+            ST. BENEDICT'S CLINIC
           </p>
           <p class="text-xs text-brand-dark/80">
             Trusted Care, Clear Results
