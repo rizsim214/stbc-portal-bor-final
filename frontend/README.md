@@ -1,5 +1,21 @@
-# Vue 3 + TypeScript + Vite
+# Frontend README (STBC)
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Frontend app is built with Vue 3 + TypeScript + Vite.
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## Auth Flow
+
+Authentication is login/logout only.
+
+- Available guest auth route:
+  - `/login`
+- Removed/disabled:
+  - `/register`
+  - `/forgot-password`
+
+Auth API usage in frontend:
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+
+Session behavior:
+- On successful login, token/user are stored in localStorage.
+- Logout clears session and revokes the current token server-side.

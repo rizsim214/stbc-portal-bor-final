@@ -49,10 +49,6 @@ const onSubmit = async (): Promise<void> => {
   }
 };
 
-const goToForgotPassword = (): void => {
-  router.push("/forgot-password"); // change path to your route
-};
-
 </script>
 
 <template>
@@ -70,22 +66,10 @@ const goToForgotPassword = (): void => {
         <Input id="password" v-model="loginForm.password" :error="loginErrors.password" type="password" label="Password"
           placeholder="Enter your password" autocomplete="current-password" @clear-error="clearLoginError('password')" />
 
-        <div class="flex justify-end">
-          <button type="button"
-            class="text-sm font-medium text-brand-highlight transition hover:text-brand-darker hover:underline"
-            @click="goToForgotPassword">
-            Forgot password?
-          </button>
-        </div>
         <p v-if="submitError" class="text-sm text-red-500">{{ submitError }}</p>
         <Button type="submit" :loading="authStore.isLoading" class="bg-brand-dark hover:bg-brand-darker">
           Sign In
         </Button>
-        <p class="text-sm text-center">Don't have an account yet? <RouterLink to="/register"
-            class="text-brand-dark/55 font-bold">
-            Register
-            Now!</RouterLink>
-        </p>
       </form>
     </section>
   </main>

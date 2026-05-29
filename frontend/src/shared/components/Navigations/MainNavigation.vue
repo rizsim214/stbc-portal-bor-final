@@ -187,9 +187,6 @@ function onUserMenuAction(action: UserMenuAction) {
             @click="router.push('/login')">
             Login
           </Button>
-          <Button size="sm" class="bg-brand-highlight text-white hover:bg-brand-dark" @click="router.push('/register')">
-            Register
-          </Button>
         </template>
       </div>
 
@@ -232,13 +229,10 @@ function onUserMenuAction(action: UserMenuAction) {
           </button>
         </li>
       </ul>
-      <div class="mt-3 grid grid-cols-2 gap-2">
+      <div class="mt-3 grid grid-cols-1 gap-2">
         <Button variant="outline" size="sm" class="border-brand-light text-brand-dark hover:bg-brand-lighter/30"
           @click="navigateTo('/login')">
           Login
-        </Button>
-        <Button size="sm" class="bg-brand-highlight text-white hover:bg-brand-dark" @click="navigateTo('/register')">
-          Register
         </Button>
       </div>
     </div>
