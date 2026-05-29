@@ -8,7 +8,6 @@ import {
 } from "radix-vue";
 import {
   ChevronDown,
-  ClipboardList,
   House,
   Menu,
   ShieldCheck,
@@ -64,14 +63,6 @@ const accordionItems: SideNavGroup[] = [
         icon: UserRoundSearch,
         roles: ["staff", "admin"],
       },
-      {
-        id: "my-medical-record",
-        label: "My Medical Records",
-        to: { name: "patientMedicalRecord" },
-        routeName: "patientMedicalRecord",
-        icon: ClipboardList,
-        roles: ["patient"],
-      },
     ],
   },
   {
@@ -81,7 +72,7 @@ const accordionItems: SideNavGroup[] = [
     items: [
       {
         id: "users-admin",
-        label: "User Management",
+        label: "User Administration",
         to: { name: "userManagement" },
         routeName: "userManagement",
         icon: UserSquare2,

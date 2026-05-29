@@ -1,12 +1,20 @@
 <script setup lang="ts">
 import {
+  AvatarFallback,
+  AvatarImage,
+  AvatarRoot,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuRoot,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
   NavigationMenuRoot,
   NavigationMenuList,
   NavigationMenuItem,
   NavigationMenuLink,
 } from "radix-vue";
 import { Menu, X } from "lucide-vue-next";
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { Button } from "@/shared/ui/button";
 import { useAuthStore } from "@/features/auth/stores/useAuthStore";
@@ -15,9 +23,6 @@ import stbcLogo from "@/assets/resources/stbc-logo.jpg";
 const router = useRouter();
 const authStore = useAuthStore();
 const isMobileMenuOpen = ref(false);
-const isUserMenuOpen = ref(false);
-const desktopUserMenuRef = ref<HTMLElement | null>(null);
-const mobileUserMenuRef = ref<HTMLElement | null>(null);
 
 const headerClass = "border-brand-light/30 bg-white/95 backdrop-blur";
 const linkClass = "text-brand-dark hover:bg-brand-lighter/30 hover:text-brand-darker";
@@ -38,6 +43,16 @@ const userDisplayName = computed(() => {
   return authStore.user?.email ?? "User";
 });
 
+const userAvatarUrl = computed(() => {
+  const user = authStore.user as Record<string, unknown> | null;
+  const avatarValue =
+    user?.avatar_url ??
+    user?.avatarUrl ??
+    user?.profile_photo_url ??
+    user?.profilePhotoUrl;
+  return typeof avatarValue === "string" ? avatarValue : "";
+});
+
 const avatarClass = "bg-brand-highlight text-white hover:bg-brand-dark";
 
 type UserMenuAction = "profile" | "settings" | "logout";
@@ -53,31 +68,6 @@ const userMenuItems: UserMenuItem[] = [
   { id: "settings", label: "Settings" },
   { id: "logout", label: "Logout", danger: true },
 ];
-
-function onDocumentClick(event: MouseEvent) {
-  if (!isUserMenuOpen.value) return;
-  const target = event.target as Node | null;
-  const insideDesktop =
-    Boolean(target) &&
-    Boolean(desktopUserMenuRef.value) &&
-    desktopUserMenuRef.value!.contains(target as Node);
-  const insideMobile =
-    Boolean(target) &&
-    Boolean(mobileUserMenuRef.value) &&
-    mobileUserMenuRef.value!.contains(target as Node);
-
-  if (!insideDesktop && !insideMobile) {
-    isUserMenuOpen.value = false;
-  }
-}
-
-onMounted(() => {
-  globalThis.addEventListener("click", onDocumentClick);
-});
-
-onBeforeUnmount(() => {
-  globalThis.removeEventListener("click", onDocumentClick);
-});
 
 const navItems = [
   {
@@ -103,14 +93,12 @@ function navigateTo(link: string) {
 }
 
 async function onLogout() {
-  isUserMenuOpen.value = false;
   await authStore.logout();
   router.push("/login");
   isMobileMenuOpen.value = false;
 }
 
 function navigateIfRouteExists(path: string, missingMessage: string) {
-  isUserMenuOpen.value = false;
   const target = router.resolve(path);
   if (target.matched.length) {
     router.push(path);
@@ -169,27 +157,35 @@ function onUserMenuAction(action: UserMenuAction) {
 
       <div class="hidden items-center gap-2 md:flex">
         <template v-if="authStore.isAuthenticated">
-          <div ref="desktopUserMenuRef" class="relative">
+          <DropdownMenuRoot>
             <div class="flex items-center gap-2">
               <span class="max-w-40 truncate text-xs font-semibold text-brand-darker">{{ userDisplayName }}</span>
-              <button type="button"
-                class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition"
-                :class="avatarClass" @click="isUserMenuOpen = !isUserMenuOpen">
-                {{ userInitials }}
-              </button>
-            </div>
-            <div v-if="isUserMenuOpen"
-              class="absolute right-0 z-50 mt-2 w-44 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg">
-              <template v-for="item in userMenuItems" :key="item.id">
-                <hr v-if="item.id === 'logout'" class="my-1 border-brand-light/40">
-                <button type="button" class="w-full rounded px-3 py-2 text-left text-sm transition" :class="item.danger
-                  ? 'text-red-600 hover:bg-red-50'
-                  : 'text-brand-dark hover:bg-brand-lighter/30'" @click="onUserMenuAction(item.id)">
-                  {{ item.label }}
+              <DropdownMenuTrigger as-child>
+                <button type="button"
+                  class="flex items-center justify-center text-sm font-semibold transition"
+                  aria-label="Open user menu">
+                  <AvatarRoot class="h-9 w-9 overflow-hidden rounded-full" :class="avatarClass">
+                    <AvatarImage class="h-full w-full object-cover" :src="userAvatarUrl" :alt="userDisplayName" />
+                    <AvatarFallback class="flex h-full w-full items-center justify-center">
+                      {{ userInitials }}
+                    </AvatarFallback>
+                  </AvatarRoot>
                 </button>
-              </template>
+              </DropdownMenuTrigger>
             </div>
-          </div>
+            <DropdownMenuContent
+              class="z-50 mt-2 w-44 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg outline-none"
+              align="end" :side-offset="8">
+              <template v-for="item in userMenuItems" :key="item.id">
+                <DropdownMenuSeparator v-if="item.id === 'logout'" class="my-1 h-px bg-brand-light/40" />
+                <DropdownMenuItem class="w-full cursor-pointer rounded px-3 py-2 text-left text-sm outline-none" :class="item.danger
+                  ? 'text-red-600 focus:bg-red-50'
+                  : 'text-brand-dark focus:bg-brand-lighter/30'" @select="onUserMenuAction(item.id)">
+                  {{ item.label }}
+                </DropdownMenuItem>
+              </template>
+            </DropdownMenuContent>
+          </DropdownMenuRoot>
         </template>
         <template v-else>
           <Button variant="outline" size="sm" class="border-brand-light text-brand-dark hover:bg-brand-lighter/30"
@@ -199,26 +195,36 @@ function onUserMenuAction(action: UserMenuAction) {
         </template>
       </div>
 
-      <div v-if="authStore.isAuthenticated" ref="mobileUserMenuRef" class="relative md:hidden">
-        <div class="flex items-center gap-2">
-          <span class="max-w-28 truncate text-xs font-semibold text-brand-darker">{{ userDisplayName }}</span>
-          <button type="button"
-            class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition"
-            :class="avatarClass" @click="isUserMenuOpen = !isUserMenuOpen">
-            {{ userInitials }}
-          </button>
-        </div>
-        <div v-if="isUserMenuOpen"
-          class="absolute right-0 z-50 mt-2 w-44 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg">
-          <template v-for="item in userMenuItems" :key="item.id">
-            <hr v-if="item.id === 'logout'" class="my-1 border-brand-light/40">
-            <button type="button" class="w-full rounded px-3 py-2 text-left text-sm transition" :class="item.danger
-              ? 'text-red-600 hover:bg-red-50'
-              : 'text-brand-dark hover:bg-brand-lighter/30'" @click="onUserMenuAction(item.id)">
-              {{ item.label }}
-            </button>
-          </template>
-        </div>
+      <div v-if="authStore.isAuthenticated" class="md:hidden">
+        <DropdownMenuRoot>
+          <div class="flex items-center gap-2">
+            <span class="max-w-28 truncate text-xs font-semibold text-brand-darker">{{ userDisplayName }}</span>
+            <DropdownMenuTrigger as-child>
+              <button type="button"
+                class="flex items-center justify-center text-sm font-semibold transition"
+                aria-label="Open user menu">
+                <AvatarRoot class="h-9 w-9 overflow-hidden rounded-full" :class="avatarClass">
+                  <AvatarImage class="h-full w-full object-cover" :src="userAvatarUrl" :alt="userDisplayName" />
+                  <AvatarFallback class="flex h-full w-full items-center justify-center">
+                    {{ userInitials }}
+                  </AvatarFallback>
+                </AvatarRoot>
+              </button>
+            </DropdownMenuTrigger>
+          </div>
+          <DropdownMenuContent
+            class="z-50 mt-2 w-44 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg outline-none"
+            align="end" :side-offset="8">
+            <template v-for="item in userMenuItems" :key="item.id">
+              <DropdownMenuSeparator v-if="item.id === 'logout'" class="my-1 h-px bg-brand-light/40" />
+              <DropdownMenuItem class="w-full cursor-pointer rounded px-3 py-2 text-left text-sm outline-none" :class="item.danger
+                ? 'text-red-600 focus:bg-red-50'
+                : 'text-brand-dark focus:bg-brand-lighter/30'" @select="onUserMenuAction(item.id)">
+                {{ item.label }}
+              </DropdownMenuItem>
+            </template>
+          </DropdownMenuContent>
+        </DropdownMenuRoot>
       </div>
 
       <button type="button" v-if="!authStore.isAuthenticated"
