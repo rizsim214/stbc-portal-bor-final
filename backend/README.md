@@ -51,17 +51,13 @@ This keeps controllers simple and business rules testable.
 ### Auth (`app/Modules/Auth`)
 
 Endpoints:
-- `POST /api/auth/register`
 - `POST /api/auth/login`
 - `POST /api/auth/logout` (auth required)
-- `POST /api/auth/forgot-password`
-- `GET /api/auth/reset-password/{token}` (helper JSON response for frontend flow)
 
 Key rules:
-- Register always creates/uses `patient` role.
+- Public self-registration is disabled.
 - Login uses email/password and returns Sanctum token.
 - Logout deletes current access token only.
-- Forgot password uses Laravel password broker mail flow.
 
 ### Users + Roles (`app/Modules/Users`)
 

@@ -7,17 +7,10 @@ import {
   AccordionTrigger,
 } from "radix-vue";
 import {
-  CalendarDays,
-  CalendarSearch,
   ChevronDown,
-  ClipboardList,
-  FileText,
-  FlaskConical,
-  History,
   House,
   Menu,
   ShieldCheck,
-  TestTube2,
   UserRoundSearch,
   UserSquare2,
   Users,
@@ -58,8 +51,8 @@ const currentRole = computed<"admin" | "staff" | "patient">(() => {
 
 const accordionItems: SideNavGroup[] = [
   {
-    value: "patient-related",
-    title: "Patient Related",
+    value: "patients",
+    title: "Patients",
     icon: Users,
     items: [
       {
@@ -68,67 +61,6 @@ const accordionItems: SideNavGroup[] = [
         to: { name: "patientList" },
         routeName: "patientList",
         icon: UserRoundSearch,
-        roles: ["staff", "admin"],
-      },
-      {
-        id: "my-medical-record",
-        label: "My Medical Records",
-        to: { name: "patientMedicalRecord" },
-        routeName: "patientMedicalRecord",
-        icon: ClipboardList,
-        roles: ["patient"],
-      },
-    ],
-  },
-  {
-    value: "appointments",
-    title: "Appointments",
-    icon: CalendarDays,
-    items: [
-      {
-        id: "appointment-calendar",
-        label: "Appointment Calendar",
-        to: { name: "appointmentCalendar" },
-        routeName: "appointmentCalendar",
-        icon: CalendarSearch,
-        roles: ["patient"],
-      },
-      {
-        id: "appointment-requests",
-        label: "Appointment Requests",
-        to: { name: "appointmentRequests" },
-        routeName: "appointmentRequests",
-        icon: ClipboardList,
-        roles: ["staff", "admin"],
-      },
-      {
-        id: "appointment-history",
-        label: "History",
-        to: { name: "appointmentHistory" },
-        routeName: "appointmentHistory",
-        icon: History,
-      },
-    ],
-  },
-  {
-    value: "lab-results",
-    title: "Lab Results",
-    icon: FlaskConical,
-    items: [
-      {
-        id: "lab-my-results",
-        label: "My Results",
-        to: { name: "myResults" },
-        routeName: "myResults",
-        icon: FileText,
-        roles: ["patient"],
-      },
-      {
-        id: "lab-released",
-        label: "Releasing Lab Results",
-        to: { name: "resultReleases" },
-        routeName: "resultReleases",
-        icon: TestTube2,
         roles: ["staff", "admin"],
       },
     ],
@@ -140,7 +72,7 @@ const accordionItems: SideNavGroup[] = [
     items: [
       {
         id: "users-admin",
-        label: "User Management",
+        label: "User Administration",
         to: { name: "userManagement" },
         routeName: "userManagement",
         icon: UserSquare2,
@@ -210,7 +142,7 @@ function closeMobileNav(): void {
       <img :src="stbcLogo" alt="STBC Clinic Logo" class="h-10 w-auto rounded-sm object-contain" />
       <div class="leading-tight">
         <p class="text-xs font-semibold tracking-wide text-brand-darker">
-          ST. BENEDICT'S BLOOD CLINIC
+          ST. BENEDICT'S CLINIC
         </p>
         <p class="text-xs text-brand-dark/80">
           Trusted Care, Clear Results

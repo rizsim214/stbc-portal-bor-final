@@ -4,7 +4,8 @@ export const userRoutes: AppRoute[] = [
   {
     path: "users/manage",
     name: "userManagement",
-    component: () => import("@/features/users/pages/UserManagementPage.vue"),
+    component: () =>
+      import("@/features/user-management/pages/UserManagementPage.vue"),
     meta: { roles: ["admin"] },
   },
 ];

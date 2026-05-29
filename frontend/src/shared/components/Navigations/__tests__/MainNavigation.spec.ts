@@ -54,20 +54,18 @@ describe("MainNavigation behavior", () => {
     vi.stubGlobal("alert", vi.fn());
   });
 
-  it("shows unauthenticated actions and routes to login/register", async () => {
+  it("shows unauthenticated action and routes to login", async () => {
     mockAuthState = {
       isAuthenticated: false,
       user: null,
-      getDashboardPath: () => "/dashboard/patient",
+      getDashboardPath: () => "/dashboard/staff",
       logout,
     };
     renderMainNavigation();
 
     await userEvent.click(screen.getByRole("button", { name: /login/i }));
-    await userEvent.click(screen.getByRole("button", { name: /register/i }));
 
     expect(push).toHaveBeenCalledWith("/login");
-    expect(push).toHaveBeenCalledWith("/register");
   });
 
   it("logs out authenticated user and redirects to login", async () => {

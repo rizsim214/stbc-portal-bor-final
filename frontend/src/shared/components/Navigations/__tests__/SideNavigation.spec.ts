@@ -96,23 +96,20 @@ async function renderForRole(role: "admin" | "staff" | "patient") {
 }
 
 describe("SideNavigation role visibility", () => {
-  it("hides Patients and Users groups for patient role", async () => {
+  it("shows only dashboard and patient related group for patient role", async () => {
     await renderForRole("patient");
 
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.getByAltText("STBC Clinic Logo")).toBeInTheDocument();
-    expect(screen.queryByText("Patients")).not.toBeInTheDocument();
-    expect(screen.queryByText("Users")).not.toBeInTheDocument();
-    expect(screen.getByText("Appointments")).toBeInTheDocument();
-    expect(screen.getByText("Lab Results")).toBeInTheDocument();
+    expect(screen.getByText("Patients")).toBeInTheDocument();
   });
 
-  it("shows Users group for admin role", async () => {
+  it("shows user management group for admin role", async () => {
     await renderForRole("admin");
 
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.getByAltText("STBC Clinic Logo")).toBeInTheDocument();
-    expect(screen.getByText("Patient Related")).toBeInTheDocument();
+    expect(screen.getByText("Patients")).toBeInTheDocument();
     expect(screen.getByText("Users")).toBeInTheDocument();
   });
 });

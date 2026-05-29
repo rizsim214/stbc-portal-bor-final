@@ -5,6 +5,15 @@ Full-stack setup with:
 - `backend`: Laravel 13 + PHP-FPM
 - `docker`: Nginx + PHP + Postgres + MinIO orchestration
 
+## Auth Model
+
+- Authentication is `login/logout` only.
+- Public registration is disabled.
+- Forgot-password flow is disabled.
+- Main auth endpoints:
+  - `POST /api/auth/login`
+  - `POST /api/auth/logout`
+
 ## Quick Start
 
 1. Copy root env:
