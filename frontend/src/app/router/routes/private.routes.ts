@@ -1,8 +1,6 @@
 import DashboardLayout from "@/app/layouts/DashboardLayout.vue";
 import type { AppRoute } from "../types";
-import { appointmentRoutes } from "./modules/appointments.routes";
 import { patientRoutes } from "./modules/patient.routes";
-import { resultRoutes } from "./modules/results.routes";
 import { userRoutes } from "./modules/users.routes";
 
 export const privateRoutes: AppRoute[] = [
@@ -36,8 +34,6 @@ export const privateRoutes: AppRoute[] = [
         meta: { roles: ["admin"] },
       },
       ...patientRoutes,
-      ...appointmentRoutes,
-      ...resultRoutes,
       ...userRoutes,
     ],
   },

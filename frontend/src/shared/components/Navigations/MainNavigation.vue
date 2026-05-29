@@ -32,6 +32,12 @@ const userInitials = computed(() => {
   return email.slice(0, 1).toUpperCase();
 });
 
+const userDisplayName = computed(() => {
+  const name = authStore.user?.name?.trim();
+  if (name) return name;
+  return authStore.user?.email ?? "User";
+});
+
 const avatarClass = "bg-brand-highlight text-white hover:bg-brand-dark";
 
 type UserMenuAction = "profile" | "settings" | "logout";
@@ -164,11 +170,14 @@ function onUserMenuAction(action: UserMenuAction) {
       <div class="hidden items-center gap-2 md:flex">
         <template v-if="authStore.isAuthenticated">
           <div ref="desktopUserMenuRef" class="relative">
-            <button type="button"
-              class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition"
-              :class="avatarClass" @click="isUserMenuOpen = !isUserMenuOpen">
-              {{ userInitials }}
-            </button>
+            <div class="flex items-center gap-2">
+              <span class="max-w-40 truncate text-xs font-semibold text-brand-darker">{{ userDisplayName }}</span>
+              <button type="button"
+                class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition"
+                :class="avatarClass" @click="isUserMenuOpen = !isUserMenuOpen">
+                {{ userInitials }}
+              </button>
+            </div>
             <div v-if="isUserMenuOpen"
               class="absolute right-0 z-50 mt-2 w-44 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg">
               <template v-for="item in userMenuItems" :key="item.id">
@@ -191,11 +200,14 @@ function onUserMenuAction(action: UserMenuAction) {
       </div>
 
       <div v-if="authStore.isAuthenticated" ref="mobileUserMenuRef" class="relative md:hidden">
-        <button type="button"
-          class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition"
-          :class="avatarClass" @click="isUserMenuOpen = !isUserMenuOpen">
-          {{ userInitials }}
-        </button>
+        <div class="flex items-center gap-2">
+          <span class="max-w-28 truncate text-xs font-semibold text-brand-darker">{{ userDisplayName }}</span>
+          <button type="button"
+            class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition"
+            :class="avatarClass" @click="isUserMenuOpen = !isUserMenuOpen">
+            {{ userInitials }}
+          </button>
+        </div>
         <div v-if="isUserMenuOpen"
           class="absolute right-0 z-50 mt-2 w-44 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg">
           <template v-for="item in userMenuItems" :key="item.id">
