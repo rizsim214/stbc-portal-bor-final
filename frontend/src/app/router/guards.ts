@@ -3,7 +3,9 @@ import { useAuthStore } from "@/features/auth/stores/useAuthStore";
 
 let authInitialized = false;
 
-function getCurrentRoleName(authStore: ReturnType<typeof useAuthStore>): string {
+function getCurrentRoleName(
+  authStore: ReturnType<typeof useAuthStore>,
+): string {
   return authStore.user?.role?.name?.toLowerCase() ?? "user";
 }
 
@@ -54,7 +56,7 @@ function redirectForSelfOnlyRoute(
     currentRole === "user" &&
     currentUserId != null &&
     targetUserId != null &&
-    String(targetUserId) !== String(currentUserId)
+    targetUserId !== String(currentUserId)
   ) {
     return {
       name: to.name ?? "userMedicalRecord",
@@ -98,7 +100,11 @@ export function installAuthGuards(router: Router) {
       return selfOnlyRedirect;
     }
 
-    const guestOnlyRedirect = redirectForGuestOnlyRoute(to, isAuthed, authStore);
+    const guestOnlyRedirect = redirectForGuestOnlyRoute(
+      to,
+      isAuthed,
+      authStore,
+    );
     if (guestOnlyRedirect) {
       return guestOnlyRedirect;
     }

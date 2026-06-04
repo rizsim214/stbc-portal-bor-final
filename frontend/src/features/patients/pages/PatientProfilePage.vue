@@ -26,7 +26,7 @@ const profile = computed(() => {
 
     <div class="mt-6 grid gap-4 md:grid-cols-2">
       <div class="rounded-lg border border-brand-light/25 bg-brand-lighter/10 p-4">
-        <p class="text-xs uppercase tracking-[0.1em] text-brand-dark/65">Contact</p>
+        <p class="text-xs uppercase tracking-widest text-brand-dark/65">Contact</p>
         <dl class="mt-3 space-y-2 text-sm text-brand-darker">
           <div class="flex justify-between gap-4">
             <dt class="text-brand-dark/70">Email</dt>
@@ -40,7 +40,7 @@ const profile = computed(() => {
       </div>
 
       <div class="rounded-lg border border-brand-light/25 bg-brand-lighter/10 p-4">
-        <p class="text-xs uppercase tracking-[0.1em] text-brand-dark/65">Status</p>
+        <p class="text-xs uppercase tracking-widest text-brand-dark/65">Status</p>
         <dl class="mt-3 space-y-2 text-sm text-brand-darker">
           <div class="flex justify-between gap-4">
             <dt class="text-brand-dark/70">Account State</dt>
