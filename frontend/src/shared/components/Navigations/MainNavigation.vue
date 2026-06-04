@@ -13,7 +13,7 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
 } from "radix-vue";
-import { Menu, X } from "lucide-vue-next";
+import { Menu, CircleUser, X } from "lucide-vue-next";
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { Button } from "@/shared/ui/button";
@@ -161,8 +161,7 @@ function onUserMenuAction(action: UserMenuAction) {
             <div class="flex items-center gap-2">
               <span class="max-w-40 truncate text-xs font-semibold text-brand-darker">{{ userDisplayName }}</span>
               <DropdownMenuTrigger as-child>
-                <button type="button"
-                  class="flex items-center justify-center text-sm font-semibold transition"
+                <button type="button" class="flex items-center justify-center text-sm font-semibold transition"
                   aria-label="Open user menu">
                   <AvatarRoot class="h-9 w-9 overflow-hidden rounded-full" :class="avatarClass">
                     <AvatarImage class="h-full w-full object-cover" :src="userAvatarUrl" :alt="userDisplayName" />
@@ -190,7 +189,10 @@ function onUserMenuAction(action: UserMenuAction) {
         <template v-else>
           <Button variant="outline" size="sm" class="border-brand-light text-brand-dark hover:bg-brand-lighter/30"
             @click="router.push('/login')">
-            Login
+            <span class="inline-flex items-center gap-2 leading-none">
+              <CircleUser class="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>Login</span>
+            </span>
           </Button>
         </template>
       </div>
@@ -200,8 +202,7 @@ function onUserMenuAction(action: UserMenuAction) {
           <div class="flex items-center gap-2">
             <span class="max-w-28 truncate text-xs font-semibold text-brand-darker">{{ userDisplayName }}</span>
             <DropdownMenuTrigger as-child>
-              <button type="button"
-                class="flex items-center justify-center text-sm font-semibold transition"
+              <button type="button" class="flex items-center justify-center text-sm font-semibold transition"
                 aria-label="Open user menu">
                 <AvatarRoot class="h-9 w-9 overflow-hidden rounded-full" :class="avatarClass">
                   <AvatarImage class="h-full w-full object-cover" :src="userAvatarUrl" :alt="userDisplayName" />
@@ -250,7 +251,10 @@ function onUserMenuAction(action: UserMenuAction) {
       <div class="mt-3 grid grid-cols-1 gap-2">
         <Button variant="outline" size="sm" class="border-brand-light text-brand-dark hover:bg-brand-lighter/30"
           @click="navigateTo('/login')">
-          Login
+          <span class="inline-flex items-center gap-2 leading-none">
+            <CircleUser class="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>Login</span>
+          </span>
         </Button>
       </div>
     </div>

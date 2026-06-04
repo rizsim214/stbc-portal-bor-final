@@ -82,6 +82,7 @@ describe("useAuthStore", () => {
 
     expect(store.token).toBe("");
     expect(store.user).toBeNull();
+    expect(store.isLoggingOut).toBe(false);
     expect(localStorage.getItem(AUTH_STORAGE_KEYS.token)).toBeNull();
   });
 });
