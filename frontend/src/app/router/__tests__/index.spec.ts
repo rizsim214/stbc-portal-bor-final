@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-type MockRole = "admin" | "staff" | "patient";
+type MockRole = "admin" | "user";
 
 type MockStore = {
   isAuthenticated: boolean;
-  user: { role?: { name: string } | null } | null;
+  user: { id: number; role?: { name: string } | null } | null;
   initializeAuth: () => Promise<void>;
   getDashboardPath: () => string;
 };
@@ -20,11 +20,11 @@ async function loadRouter() {
   return module.router;
 }
 
-function setStore(role: MockRole, authenticated = true) {
+function setStore(role: MockRole, authenticated = true, userId = role === "admin" ? 1 : 42) {
   const dashboardPath = `/dashboard/${role}`;
   mockStore = {
     isAuthenticated: authenticated,
-    user: authenticated ? { role: { name: role } } : null,
+    user: authenticated ? { id: userId, role: { name: role } } : null,
     initializeAuth: vi.fn().mockResolvedValue(undefined),
     getDashboardPath: vi.fn(() => dashboardPath),
   };
@@ -38,44 +38,64 @@ describe("router guards", () => {
   it(
     "redirects unauthenticated users to login with redirect query",
     async () => {
-      setStore("patient", false);
+      setStore("user", false);
       const router = await loadRouter();
 
-      await router.push("/dashboard/appointments/history");
+      await router.push("/dashboard/users/record");
 
       expect(router.currentRoute.value.path).toBe("/login");
       expect(router.currentRoute.value.query.redirect).toBe(
-        "/dashboard/appointments/history",
+        "/dashboard/users/record",
       );
     },
     15000,
   );
 
-  it("allows staff to access staff/admin shared routes", async () => {
-    setStore("staff", true);
+  it("allows user to access user record route", async () => {
+    setStore("user", true);
     const router = await loadRouter();
 
-    await router.push("/dashboard/patients/list");
+    await router.push("/dashboard/users/record");
 
-    expect(router.currentRoute.value.name).toBe("patientList");
+    expect(router.currentRoute.value.name).toBe("userMedicalRecord");
   });
 
-  it("redirects patient away from restricted staff route", async () => {
-    setStore("patient", true);
+  it("redirects a user to their own profile route when targeting another patient", async () => {
+    setStore("user", true, 42);
     const router = await loadRouter();
 
-    await router.push("/dashboard/patients/list");
+    await router.push("/dashboard/users/101/profile");
 
-    expect(router.currentRoute.value.path).toBe("/dashboard/patient");
+    expect(router.currentRoute.value.name).toBe("userProfileView");
+    expect(router.currentRoute.value.params.userId).toBe("42");
+  });
+
+  it("allows an admin to access another patient's record route", async () => {
+    setStore("admin", true, 1);
+    const router = await loadRouter();
+
+    await router.push("/dashboard/users/101/records");
+
+    expect(router.currentRoute.value.name).toBe("userRecordsView");
+    expect(router.currentRoute.value.params.userId).toBe("101");
+  });
+
+  it("redirects user away from restricted admin route", async () => {
+    setStore("user", true);
+    const router = await loadRouter();
+
+    await router.push("/dashboard/users/list");
+
+    expect(router.currentRoute.value.path).toBe("/dashboard/user");
   });
 
   it("redirects authenticated user away from guest-only route", async () => {
-    setStore("staff", true);
+    setStore("user", true);
     const router = await loadRouter();
 
     await router.push("/login");
 
-    expect(router.currentRoute.value.path).toBe("/dashboard/staff");
+    expect(router.currentRoute.value.path).toBe("/dashboard/user");
   });
 
   it("redirects /dashboard to role dashboard path when authenticated", async () => {
@@ -88,20 +108,20 @@ describe("router guards", () => {
   });
 
   it("redirects / to role dashboard path when authenticated", async () => {
-    setStore("staff", true);
+    setStore("user", true);
     const router = await loadRouter();
 
     await router.push("/");
 
-    expect(router.currentRoute.value.path).toBe("/dashboard/staff");
+    expect(router.currentRoute.value.path).toBe("/dashboard/user");
   });
 
   it("redirects non-admin away from admin-only route", async () => {
-    setStore("staff", true);
+    setStore("user", true);
     const router = await loadRouter();
 
     await router.push("/dashboard/users/manage");
 
-    expect(router.currentRoute.value.path).toBe("/dashboard/staff");
+    expect(router.currentRoute.value.path).toBe("/dashboard/user");
   });
 });

@@ -58,7 +58,7 @@ describe("MainNavigation behavior", () => {
     mockAuthState = {
       isAuthenticated: false,
       user: null,
-      getDashboardPath: () => "/dashboard/staff",
+      getDashboardPath: () => "/dashboard/user",
       logout,
     };
     renderMainNavigation();
@@ -73,13 +73,13 @@ describe("MainNavigation behavior", () => {
     mockAuthState = {
       isAuthenticated: true,
       user: { email: "test@example.com" },
-      getDashboardPath: () => "/dashboard/staff",
+      getDashboardPath: () => "/dashboard/user",
       logout,
     };
     renderMainNavigation();
 
-    await userEvent.click(screen.getAllByRole("button", { name: "T" })[0]);
-    await userEvent.click(screen.getAllByRole("button", { name: /logout/i })[0]);
+    await userEvent.click(screen.getAllByRole("button", { name: /open user menu/i })[0]);
+    await userEvent.click(screen.getByRole("menuitem", { name: /logout/i }));
 
     expect(logout).toHaveBeenCalledTimes(1);
     expect(push).toHaveBeenCalledWith("/login");
@@ -90,13 +90,13 @@ describe("MainNavigation behavior", () => {
     mockAuthState = {
       isAuthenticated: true,
       user: { email: "test@example.com" },
-      getDashboardPath: () => "/dashboard/staff",
+      getDashboardPath: () => "/dashboard/user",
       logout,
     };
     renderMainNavigation();
 
-    await userEvent.click(screen.getAllByRole("button", { name: "T" })[0]);
-    await userEvent.click(screen.getAllByRole("button", { name: /profile/i })[0]);
+    await userEvent.click(screen.getAllByRole("button", { name: /open user menu/i })[0]);
+    await userEvent.click(screen.getByRole("menuitem", { name: /profile/i }));
 
     expect(resolve).toHaveBeenCalledWith("/profile");
     expect(globalThis.alert).toHaveBeenCalledWith(

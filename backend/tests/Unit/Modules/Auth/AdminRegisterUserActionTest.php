@@ -12,22 +12,20 @@ class AdminRegisterUserActionTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_execute_creates_medical_staff_with_default_available_status(): void
+    public function test_execute_creates_user_with_role(): void
     {
-        $doctorRoleId = (int) DB::table('roles')->insertGetId([
-            'name' => 'doctor',
+        $userRoleId = (int) DB::table('roles')->insertGetId([
+            'name' => 'user',
         ]);
 
         $action = new AdminRegisterUserAction();
         $user = $action->execute(new AdminRegisterUserDTO(
-            name: 'Dr. Alice',
-            email: 'dr.alice@example.com',
+            name: 'Jane Doe',
+            email: 'jane.doe@example.com',
             password: 'secret-123',
-            roleId: $doctorRoleId,
-            staffStatus: null,
+            roleId: $userRoleId,
         ));
 
-        $this->assertSame('doctor', $user->role?->name);
-        $this->assertSame('available', $user->staff_status);
+        $this->assertSame('user', $user->role?->name);
     }
 }

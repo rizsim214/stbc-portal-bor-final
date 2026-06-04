@@ -21,7 +21,7 @@ const props = defineProps<{
 const columns = [
   { key: "name", label: "Name" },
   { key: "email", label: "Email Address" },
-  { key: "role", label: "Position" },
+  { key: "role", label: "Role" },
   { key: "actions", label: "Options", align: "right" as const },
 ];
 </script>
@@ -44,14 +44,15 @@ const columns = [
           </DropdownMenuTrigger>
         </div>
         <DropdownMenuContent
-          class="z-50 min-w-32 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg outline-none"
-          align="end" :side-offset="8">
+          class="z-50 flex min-w-32 flex-col gap-1 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg outline-none"
+          align="end"
+          :side-offset="8">
           <DropdownMenuItem
-            class="cursor-pointer rounded px-3 py-2 text-sm text-brand-dark outline-none focus:bg-brand-lighter/30">
+            class="flex w-full cursor-pointer rounded px-3 py-2 text-left text-sm text-brand-dark outline-none focus:bg-brand-lighter/30">
             Edit
           </DropdownMenuItem>
           <DropdownMenuItem
-            class="cursor-pointer rounded px-3 py-2 text-sm text-red-600 outline-none focus:bg-red-50">
+            class="flex w-full cursor-pointer rounded px-3 py-2 text-left text-sm text-red-600 outline-none focus:bg-red-50">
             Deactivate
           </DropdownMenuItem>
         </DropdownMenuContent>

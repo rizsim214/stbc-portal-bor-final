@@ -18,8 +18,8 @@ use Laravel\Sanctum\HasApiTokens;
  * @property int $id
  */
 
-#[Fillable(['name', 'email', 'password', 'role_id', 'staff_status'])]
-#[Hidden(['password', 'remember_token'])]
+#[Fillable(['name', 'email', 'password', 'role_id'])]
+#[Hidden(['password', 'remember_token', 'staff_status'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -41,6 +41,11 @@ class User extends Authenticatable
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role?->name === 'admin';
     }
 
     public function hasRole(string $role): bool
