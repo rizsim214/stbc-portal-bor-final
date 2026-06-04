@@ -1,32 +1,44 @@
 <script setup lang="ts">
 import servicesOffered from "@/assets/resources/services offered.jpg";
 
-const featuredServices = [
+type ServiceHighlight = {
+  name: string;
+  description: string;
+};
+
+type LabSection = {
+  title: string;
+  description: string;
+  tests: string[];
+};
+
+const serviceHighlights: ServiceHighlight[] = [
   {
     name: "Medical Check-up",
-    tooltip: "General physician assessment for symptoms, vitals, and initial care plan.",
+    description: "General consultation for symptoms, vitals, and next-step care guidance.",
   },
   {
     name: "Clinical Laboratory Tests",
-    tooltip: "Core diagnostic lab tests for blood, urine, stool, and infection screening.",
+    description: "Blood, urine, stool, and infection screening for common health concerns.",
   },
   {
     name: "2D-Echo",
-    tooltip: "Ultrasound-based heart scan to evaluate structure and pumping function.",
+    description: "Ultrasound scan of the heart to check structure and pumping function.",
   },
   {
     name: "ECG",
-    tooltip: "Records heart rhythm and electrical activity to detect cardiac abnormalities.",
+    description: "Records the heart's electrical activity to help detect rhythm issues.",
   },
   {
     name: "Drug Testing",
-    tooltip: "Screening test for common substances, often used for employment requirements.",
+    description: "Substance screening commonly used for employment or compliance requirements.",
   },
 ];
 
-const laboratorySections = [
+const laboratorySections: LabSection[] = [
   {
     title: "Chemistry",
+    description: "Tests that help assess blood sugar, kidney function, liver function, and electrolytes.",
     tests: [
       "FBS/RBS",
       "75g OGTT",
@@ -46,26 +58,22 @@ const laboratorySections = [
   },
   {
     title: "Hematology",
-    tests: [
-      "CBC",
-      "Hematocrit",
-      "Hemoglobin",
-      "Platelet Count",
-      "WBC Differential Count",
-      "Blood Typing",
-      "RH Typing",
-    ],
+    description: "Tests that focus on blood cells, clotting, and blood typing.",
+    tests: ["CBC", "Hematocrit", "Hemoglobin", "Platelet Count", "WBC Differential Count", "Blood Typing", "RH Typing"],
   },
   {
     title: "Clinical Microscopy",
+    description: "Common urine and stool tests for infection, parasites, and digestive concerns.",
     tests: ["Urinalysis", "UCG", "Fecalysis", "FOBT", "Kato Katz"],
   },
   {
     title: "Serology",
+    description: "Screening tests for infections and immune response markers.",
     tests: ["HBsAg", "Anti-HCV", "VDRL / RPR", "Typhidot", "H. pylori test", "Dengue Rapid Test"],
   },
   {
-    title: "Special Examination",
+    title: "Special Examinations",
+    description: "Additional tests ordered for deeper assessment of specific conditions.",
     tests: ["HbA1c", "TSH", "T3", "T4", "Troponin I"],
   },
 ];
@@ -85,13 +93,22 @@ const bloodChemistryHighlights = [
   "HbA1c",
 ];
 
-const homeServices = ["Phlebotomy / Blood Extraction", "ECG"];
+const homeServices = [
+  {
+    name: "Phlebotomy / Blood Extraction",
+    description: "At-home blood collection for requested laboratory tests.",
+  },
+  {
+    name: "ECG",
+    description: "At-home heart rhythm recording for basic cardiac screening.",
+  },
+];
 
 const clinicInfo = {
   address: "Sabate Bldg, Real St., Brgy. Songco, Borongan City, Eastern Samar",
   page: "ST.BENEDICTMEDICALPH",
-  homeServiceContact: "09171164346",
-  clinicContact: "0953-241-5158",
+  homeServiceContact: "(+63) 917-116-4346",
+  clinicContact: "(+63) 953-241-5158",
 };
 
 const labTestTooltips: Record<string, string> = {
@@ -134,9 +151,6 @@ const labTestTooltips: Record<string, string> = {
   "Troponin I": "Cardiac marker used to detect heart muscle injury.",
 };
 
-const getLabTestTooltip = (test: string): string =>
-  labTestTooltips[test] ?? "Laboratory diagnostic test for clinical assessment.";
-
 const bloodChemistryTooltips: Record<string, string> = {
   "Fasting Blood Sugar": "Checks current blood glucose level after fasting.",
   "Lipid Profile (Total Cholesterol, HDL, LDL, Triglycerides)":
@@ -155,67 +169,92 @@ const bloodChemistryTooltips: Record<string, string> = {
   HbA1c: "Shows average blood sugar over roughly the last 2 to 3 months.",
 };
 
-const homeServiceTooltips: Record<string, string> = {
-  "Phlebotomy / Blood Extraction":
-    "At-home blood sample collection for requested laboratory tests.",
-  ECG: "At-home heart rhythm recording for basic cardiac screening.",
-};
+const getLabTestTooltip = (test: string): string =>
+  labTestTooltips[test] ?? "Laboratory diagnostic test for clinical assessment.";
 
 const getBloodChemistryTooltip = (item: string): string =>
   bloodChemistryTooltips[item] ?? "Blood chemistry test for diagnostic assessment.";
 
-const getHomeServiceTooltip = (service: string): string =>
-  homeServiceTooltips[service] ?? "Home-based clinical support service.";
 </script>
 
 <template>
   <main class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
     <section
-      class="rounded-2xl border border-brand-light/30 bg-linear-to-r from-white via-brand-lighter/15 to-white p-5 shadow-sm sm:p-8">
-      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-brand-highlight sm:text-sm sm:tracking-[0.18em]">STBC Medical Care</p>
-      <h1 class="mt-3 text-2xl font-semibold tracking-tight text-brand-darker sm:text-4xl">Services</h1>
-      <p class="mt-4 max-w-3xl text-sm leading-7 text-brand-dark sm:text-lg">
-        Updated service information based on STBC service posters. Browse general services, complete laboratory test
-        menu,
-        blood chemistry offerings, and available home services.
-      </p>
-    </section>
+      class="overflow-hidden rounded-2xl border border-brand-light/30 bg-linear-to-r from-white via-brand-lighter/15 to-white shadow-sm">
+      <div class="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+        <div class="p-5 sm:p-8">
+          <p
+            class="text-xs font-semibold uppercase tracking-[0.14em] text-brand-highlight sm:text-sm sm:tracking-[0.18em]">
+            St. Benedict Medical Care
+          </p>
+          <h1 class="mt-3 text-2xl font-semibold tracking-tight text-brand-darker sm:text-4xl">
+            Our Services
+          </h1>
+          <p class="mt-4 max-w-3xl text-sm leading-7 text-brand-dark sm:text-lg">
+            Review the clinic's principal services, arrange laboratory tests through a more efficient process, and
+            access laboratory results online without an unnecessary return visit.
+          </p>
 
-    <section class="mt-8 grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-      <article
-        class="overflow-hidden rounded-2xl border border-brand-light/30 bg-white shadow-[0_12px_28px_-14px_rgba(21,5,120,0.35)]">
-        <div class="bg-linear-to-r from-brand-lighter/20 via-white to-brand-lighter/20 p-3 sm:p-4">
-          <img :src="servicesOffered" alt="Services offered poster" class="w-full rounded-xl object-contain"
-            loading="lazy" />
+          <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="rounded-xl border border-brand-light/25 bg-white/80 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.12em] text-brand-dark/70">Start here</p>
+              <p class="mt-1 text-sm font-semibold text-brand-darker">Initial consultation</p>
+            </div>
+            <div class="rounded-xl border border-brand-light/25 bg-white/80 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.12em] text-brand-dark/70">Most used</p>
+              <p class="mt-1 text-sm font-semibold text-brand-darker">Laboratory tests and blood work</p>
+            </div>
+            <div class="rounded-xl border border-brand-light/25 bg-white/80 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.12em] text-brand-dark/70">Need help</p>
+              <p class="mt-1 text-sm font-semibold text-brand-darker">Home services and contact details</p>
+            </div>
+            <div class="rounded-xl border border-brand-light/25 bg-white/80 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.12em] text-brand-dark/70">Online results</p>
+              <p class="mt-1 text-sm font-semibold text-brand-darker">Online laboratory result release</p>
+            </div>
+          </div>
         </div>
-      </article>
 
-      <article
-        class="rounded-2xl border border-brand-light/25 bg-white p-5 shadow-[0_8px_24px_-16px_rgba(21,5,120,0.45)] sm:p-6">
-        <h2 class="text-xl font-semibold text-brand-darker sm:text-2xl">General Services Offered</h2>
-        <ul class="mt-4 grid gap-2 text-brand-dark">
-          <li v-for="service in featuredServices" :key="service.name"
-            class="group relative rounded-lg bg-brand-lighter/10 px-3 py-2 text-sm sm:text-base">
-            {{ service.name }}
-            <span
-              class="pointer-events-none absolute left-3 top-full z-10 mt-2 hidden w-64 rounded-md bg-brand-darker px-3 py-2 text-xs text-white shadow-lg sm:group-hover:block">
-              {{ service.tooltip }}
-            </span>
-          </li>
-        </ul>
-      </article>
+        <div class="bg-linear-to-b from-brand-lighter/20 to-white p-5 sm:p-8">
+          <img :src="servicesOffered" alt="Services offered poster"
+            class="w-full rounded-xl border border-brand-light/20 object-contain shadow-md" loading="lazy" />
+        </div>
+      </div>
     </section>
 
     <section
       class="mt-8 rounded-2xl border border-brand-light/25 bg-white p-5 shadow-[0_8px_24px_-16px_rgba(21,5,120,0.45)] sm:p-6">
-      <h2 class="text-2xl font-semibold text-brand-darker">Clinical Laboratory Tests</h2>
-      <p class="mt-2 text-sm text-brand-dark/90 sm:text-base">Laboratory menu grouped by category from the clinic
-        materials.</p>
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 class="text-xl font-semibold text-brand-darker sm:text-2xl">General Services</h2>
+          <p class="mt-1 text-sm text-brand-dark/90 sm:text-base">
+            A concise overview of the services most frequently requested by patients.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <article v-for="service in serviceHighlights" :key="service.name"
+          class="rounded-xl border border-brand-light/25 bg-brand-lighter/10 p-4 transition hover:-translate-y-0.5 hover:bg-brand-lighter/20">
+          <h3 class="text-base font-semibold text-brand-darker">{{ service.name }}</h3>
+          <p class="mt-2 text-sm leading-6 text-brand-dark/90">{{ service.description }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section
+      class="mt-8 rounded-2xl border border-brand-light/25 bg-white p-5 shadow-[0_8px_24px_-16px_rgba(21,5,120,0.45)] sm:p-6">
+        <h2 class="text-xl font-semibold text-brand-darker sm:text-2xl">Laboratory Tests</h2>
+        <p class="mt-2 text-sm text-brand-dark/90 sm:text-base">
+          Tests are grouped by category for easier reference.
+        </p>
+
       <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <article v-for="section in laboratorySections" :key="section.title"
           class="rounded-xl border border-brand-light/25 bg-brand-lighter/10 p-4">
           <h3 class="text-lg font-semibold text-brand-darker">{{ section.title }}</h3>
-          <ul class="mt-3 space-y-1 text-sm text-brand-dark sm:text-base">
+          <p class="mt-2 text-sm leading-6 text-brand-dark/80">{{ section.description }}</p>
+          <ul class="mt-4 space-y-1 text-sm text-brand-dark sm:text-base">
             <li v-for="test in section.tests" :key="test"
               class="group relative rounded-md px-2 py-1 transition hover:bg-brand-lighter/20">
               {{ test }}
@@ -232,9 +271,10 @@ const getHomeServiceTooltip = (service: string): string =>
     <section class="mt-8 grid gap-6 md:grid-cols-2">
       <article
         class="rounded-2xl border border-brand-light/25 bg-white p-5 shadow-[0_8px_24px_-16px_rgba(21,5,120,0.45)] sm:p-6">
-        <h2 class="text-2xl font-semibold text-brand-darker">Blood Chemistry Services</h2>
-        <p class="mt-2 text-sm text-brand-dark/90 sm:text-base">Highlighted blood chemistry tests currently promoted by
-          the clinic.</p>
+        <h2 class="text-xl font-semibold text-brand-darker sm:text-2xl">Blood Chemistry Highlights</h2>
+        <p class="mt-2 text-sm text-brand-dark/90 sm:text-base">
+          Common chemistry tests used to assess blood sugar, kidney function, liver function, and electrolyte balance.
+        </p>
         <ul class="mt-4 space-y-2 text-sm text-brand-dark sm:text-base">
           <li v-for="item in bloodChemistryHighlights" :key="item"
             class="group relative rounded-md px-2 py-1 transition hover:bg-brand-lighter/20">
@@ -249,25 +289,35 @@ const getHomeServiceTooltip = (service: string): string =>
 
       <article
         class="rounded-2xl border border-brand-light/25 bg-white p-5 shadow-[0_8px_24px_-16px_rgba(21,5,120,0.45)] sm:p-6">
-        <h2 class="text-2xl font-semibold text-brand-darker">Home Service</h2>
-        <p class="mt-2 text-sm text-brand-dark/90 sm:text-base">Available services for at-home support:</p>
-        <ul class="mt-4 space-y-2 text-sm text-brand-dark sm:text-base">
-          <li v-for="service in homeServices" :key="service"
-            class="group relative rounded-md px-2 py-1 transition hover:bg-brand-lighter/20">
-            {{ service }}
-            <span
-              class="pointer-events-none absolute left-2 top-full z-10 mt-2 hidden w-72 rounded-md bg-brand-darker px-3 py-2 text-xs text-white shadow-lg sm:group-hover:block">
-              {{ getHomeServiceTooltip(service) }}
-            </span>
-          </li>
-        </ul>
+        <h2 class="text-xl font-semibold text-brand-darker sm:text-2xl">Home Services</h2>
+        <p class="mt-2 text-sm text-brand-dark/90 sm:text-base">
+          Services that may be arranged for patients who require care at home.
+        </p>
+        <div class="mt-4 space-y-3">
+          <article v-for="service in homeServices" :key="service.name"
+            class="rounded-xl border border-brand-light/25 bg-brand-lighter/10 p-4">
+            <h3 class="text-base font-semibold text-brand-darker">{{ service.name }}</h3>
+            <p class="mt-2 text-sm leading-6 text-brand-dark/90">{{ service.description }}</p>
+          </article>
+        </div>
 
         <div class="mt-6 rounded-xl bg-brand-lighter/15 p-4 text-sm text-brand-dark sm:text-base">
-          <p><span class="font-semibold text-brand-darker">Home Service Contact:</span> {{ clinicInfo.homeServiceContact
-            }}</p>
-          <p class="mt-1"><span class="font-semibold text-brand-darker">Clinic Contact:</span> {{
-            clinicInfo.clinicContact }}</p>
-          <p class="mt-1"><span class="font-semibold text-brand-darker">Facebook:</span> {{ clinicInfo.page }}</p>
+          <p>
+            <span class="font-semibold text-brand-darker">Home Service Contact:</span>
+            {{ clinicInfo.homeServiceContact }}
+          </p>
+          <p class="mt-1">
+            <span class="font-semibold text-brand-darker">Clinic Contact:</span>
+            {{ clinicInfo.clinicContact }}
+          </p>
+          <p class="mt-1">
+            <span class="font-semibold text-brand-darker">Facebook:</span>
+            {{ clinicInfo.page }}
+          </p>
+          <p class="mt-1">
+            <span class="font-semibold text-brand-darker">Address:</span>
+            {{ clinicInfo.address }}
+          </p>
         </div>
       </article>
     </section>

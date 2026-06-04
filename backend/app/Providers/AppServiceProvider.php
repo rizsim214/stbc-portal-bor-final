@@ -23,33 +23,31 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::define('manage-users', function (User $user): bool {
-            return $user->role?->name === 'admin';
+            return $user->isAdmin();
         });
 
         Gate::define('manage-roles', function (User $user): bool {
-            return $user->role?->name === 'admin';
+            return $user->isAdmin();
         });
 
-        Gate::define('update-own-staff-status', function (User $user): bool {
-            return \in_array($user->role?->name, ['doctor', 'radiologist', 'lab_technologist', 'staff'], true);
+        Gate::define('book-appointments', function (User $user): bool {
+            return $user->hasRole('user');
         });
 
         Gate::define('upload-lab-results', function (User $user): bool {
-            return \in_array($user->role?->name, ['admin', 'staff', 'lab_technologist', 'radiologist', 'doctor'], true);
+            return $user->isAdmin();
         });
 
         Gate::define('release-lab-results', function (User $user): bool {
-            return \in_array($user->role?->name, ['admin', 'staff', 'lab_technologist', 'radiologist', 'doctor'], true);
+            return $user->isAdmin();
         });
 
         Gate::define('view-lab-result', function (User $user, LabResult $labResult): bool {
-            $role = $user->role?->name;
-
-            if (\in_array($role, ['admin', 'staff', 'lab_technologist', 'radiologist', 'doctor'], true)) {
+            if ($user->isAdmin()) {
                 return true;
             }
 
-            if ($role === 'patient') {
+            if ($user->hasRole('user')) {
                 return (int) $labResult->appointment?->user_id === (int) $user->id
                     && $labResult->released_at !== null;
             }

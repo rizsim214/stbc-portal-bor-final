@@ -9,6 +9,7 @@ import {
 import { EllipsisVertical } from "lucide-vue-next";
 
 type PatientRow = {
+  id: number;
   name: string;
   email: string;
   status: string;
@@ -20,7 +21,7 @@ const props = defineProps<{
 }>();
 
 const columns = [
-  { key: "name", label: "Patient Name" },
+  { key: "name", label: "User Name" },
   { key: "email", label: "Email Address" },
   { key: "status", label: "Status" },
   { key: "lastVisit", label: "Last Visit" },
@@ -41,24 +42,28 @@ const columns = [
         <div class="text-right">
           <DropdownMenuTrigger as-child>
             <button type="button" class="rounded-md p-1 text-brand-dark transition hover:bg-brand-lighter/35"
-              aria-label="Open patient actions menu">
+              aria-label="Open user actions menu">
               <EllipsisVertical class="h-4 w-4" />
             </button>
           </DropdownMenuTrigger>
         </div>
         <DropdownMenuContent
-          class="z-50 min-w-36 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg outline-none"
-          align="end" :side-offset="8">
-          <DropdownMenuItem
-            class="cursor-pointer rounded px-3 py-2 text-sm text-brand-dark outline-none focus:bg-brand-lighter/30">
-            View Profile
+          class="z-50 flex min-w-36 flex-col gap-1 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg outline-none"
+          align="end"
+          :side-offset="8">
+          <DropdownMenuItem as-child
+            class="flex w-full cursor-pointer rounded px-3 py-2 text-left text-sm text-brand-dark outline-none focus:bg-brand-lighter/30">
+            <RouterLink :to="{ name: 'userProfileView', params: { userId: String(row.id) } }">
+              View Profile
+            </RouterLink>
           </DropdownMenuItem>
-          <DropdownMenuItem
-            class="cursor-pointer rounded px-3 py-2 text-sm text-brand-dark outline-none focus:bg-brand-lighter/30">
-            View Records
+          <DropdownMenuItem as-child
+            class="flex w-full cursor-pointer rounded px-3 py-2 text-left text-sm text-brand-dark outline-none focus:bg-brand-lighter/30">
+            <RouterLink :to="{ name: 'userRecordsView', params: { userId: String(row.id) } }">
+              View Records
+            </RouterLink>
           </DropdownMenuItem>
-          <DropdownMenuItem
-            class="cursor-pointer rounded px-3 py-2 text-sm text-red-600 outline-none focus:bg-red-50">
+          <DropdownMenuItem class="flex w-full cursor-pointer rounded px-3 py-2 text-left text-sm text-red-600 outline-none focus:bg-red-50">
             Deactivate
           </DropdownMenuItem>
         </DropdownMenuContent>

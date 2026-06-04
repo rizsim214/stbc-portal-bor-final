@@ -10,5 +10,3 @@ final readonly class AssignRoleDTO
     ) {
     }
 }
-
-

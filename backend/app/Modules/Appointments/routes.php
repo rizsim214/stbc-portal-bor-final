@@ -6,5 +6,6 @@ use App\Modules\Appointments\Controllers\AppointmentController;
 Route::prefix('appointments')
     ->middleware('auth:sanctum')
     ->group(function () {
-        Route::post('/', [AppointmentController::class, 'store']);
+        Route::post('/', [AppointmentController::class, 'store'])
+            ->middleware('can:book-appointments');
     });

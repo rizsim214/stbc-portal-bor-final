@@ -6,14 +6,10 @@ import { Plus } from "lucide-vue-next";
 import { computed, ref } from "vue";
 
 const users = [
-  { name: 'Alice Johnson', email: 'alice.johnson@stbc.com', role: 'Doctor' },
-  { name: 'Brian Cruz', email: 'brian.cruz@stbc.com', role: 'Doctor' },
-  { name: 'Carla Santos', email: 'carla.santos@stbc.com', role: 'Radiologist' },
-  { name: 'Santos Lee', email: 'santos.lee@stbc.com', role: 'Nurse' },
-  { name: 'Daniel Cruz', email: 'daniel.cruz@stbc.com', role: 'Nurse' },
-  { name: 'Brian Lee', email: 'brian.lee@stbc.com', role: 'Doctor' },
-  { name: 'Elaine Cruz', email: 'elaine.cruz@stbc.com', role: 'Secretary' },
-  { name: 'Francis Tan', email: 'francis.tan@stbc.com', role: 'Lab Operator' },
+  { name: 'System Admin', email: 'admin@stbc.com', role: 'Admin' },
+  { name: 'Jane Doe', email: 'jane.doe@stbc.com', role: 'User' },
+  { name: 'Mark Cruz', email: 'mark.cruz@stbc.com', role: 'User' },
+  { name: 'Anna Lee', email: 'anna.lee@stbc.com', role: 'User' },
 ];
 
 const searchTerm = ref("");
@@ -40,7 +36,7 @@ const filteredUsers = computed(() => {
     <div class="mb-4 flex items-center justify-between">
       <div>
         <h2 class="text-lg font-semibold text-brand-darker">User Administration</h2>
-        <p class="text-xs text-brand-dark/80">Manage staff and admin access.</p>
+        <p class="text-xs text-brand-dark/80">Manage user and admin access.</p>
       </div>
       <Button class="w-auto bg-brand-dark hover:bg-brand-darker">
         <Plus class="mr-1 h-4 w-4" />

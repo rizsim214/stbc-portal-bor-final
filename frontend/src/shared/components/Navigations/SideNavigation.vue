@@ -29,7 +29,7 @@ type SubItem = {
   to: RouteLocationRaw;
   routeName: string;
   icon: Component;
-  roles?: Array<"admin" | "staff" | "patient">;
+  roles?: Array<"admin" | "user">;
 };
 
 type SideNavGroup = {
@@ -43,31 +43,39 @@ const route = useRoute();
 const authStore = useAuthStore();
 const isMobileNavOpen = ref(false);
 
-const currentRole = computed<"admin" | "staff" | "patient">(() => {
+const currentRole = computed<"admin" | "user">(() => {
   const role = authStore.user?.role?.name?.toLowerCase();
-  if (role === "admin" || role === "staff") return role;
-  return "patient";
+  if (role === "admin") return role;
+  return "user";
 });
 
 const accordionItems: SideNavGroup[] = [
   {
-    value: "patients",
-    title: "Patients",
+    value: "records",
+    title: "Records",
     icon: Users,
     items: [
       {
-        id: "patient-list",
-        label: "Patient List",
-        to: { name: "patientList" },
-        routeName: "patientList",
+        id: "user-records",
+        label: "User Records",
+        to: { name: "userList" },
+        routeName: "userList",
         icon: UserRoundSearch,
-        roles: ["staff", "admin"],
+        roles: ["admin"],
+      },
+      {
+        id: "my-record",
+        label: "My Record",
+        to: { name: "userMedicalRecord" },
+        routeName: "userMedicalRecord",
+        icon: UserRoundSearch,
+        roles: ["user"],
       },
     ],
   },
   {
-    value: "users",
-    title: "Users",
+    value: "administration",
+    title: "Administration",
     icon: ShieldCheck,
     items: [
       {
@@ -104,8 +112,7 @@ function getDashboardLinkClass(): string {
   const dashboardRouteNames = [
     "dashboard",
     "dashboardOverview",
-    "patientDashboard",
-    "staffDashboard",
+    "userDashboard",
     "adminDashboard",
   ];
   const isActive =

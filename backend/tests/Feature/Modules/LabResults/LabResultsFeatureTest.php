@@ -14,13 +14,13 @@ class LabResultsFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_staff_can_create_lab_result(): void
+    public function test_admin_can_create_lab_result(): void
     {
-        $staff = $this->createUserWithRole('staff');
-        $patient = $this->createUserWithRole('patient');
-        $appointmentId = $this->createAppointmentForPatient($patient->id);
+        $admin = $this->createUserWithRole('admin');
+        $user = $this->createUserWithRole('user');
+        $appointmentId = $this->createAppointmentForUser($user->id);
 
-        Sanctum::actingAs($staff);
+        Sanctum::actingAs($admin);
 
         $response = $this->postJson('/api/lab-results', [
             'appointment_id' => $appointmentId,
@@ -37,12 +37,12 @@ class LabResultsFeatureTest extends TestCase
         ]);
     }
 
-    public function test_patient_cannot_create_lab_result(): void
+    public function test_user_cannot_create_lab_result(): void
     {
-        $patient = $this->createUserWithRole('patient');
-        $appointmentId = $this->createAppointmentForPatient($patient->id);
+        $user = $this->createUserWithRole('user');
+        $appointmentId = $this->createAppointmentForUser($user->id);
 
-        Sanctum::actingAs($patient);
+        Sanctum::actingAs($user);
 
         $this->postJson('/api/lab-results', [
             'appointment_id' => $appointmentId,
@@ -50,31 +50,31 @@ class LabResultsFeatureTest extends TestCase
         ])->assertStatus(403);
     }
 
-    public function test_patient_can_view_own_released_lab_result(): void
+    public function test_user_can_view_own_released_lab_result(): void
     {
-        $patient = $this->createUserWithRole('patient');
-        $appointmentId = $this->createAppointmentForPatient($patient->id);
+        $user = $this->createUserWithRole('user');
+        $appointmentId = $this->createAppointmentForUser($user->id);
         $labResultId = $this->createLabResult($appointmentId, now()->toDateTimeString());
 
-        Sanctum::actingAs($patient);
+        Sanctum::actingAs($user);
 
         $this->getJson("/api/lab-results/{$labResultId}")
             ->assertOk()
             ->assertJsonPath('data.id', $labResultId);
     }
 
-    public function test_patient_cannot_view_unreleased_or_other_users_lab_results(): void
+    public function test_user_cannot_view_unreleased_or_other_users_lab_results(): void
     {
-        $patient = $this->createUserWithRole('patient');
-        $otherPatient = $this->createUserWithRole('patient');
+        $user = $this->createUserWithRole('user');
+        $otherUser = $this->createUserWithRole('user');
 
-        $ownUnreleasedAppointment = $this->createAppointmentForPatient($patient->id);
-        $otherReleasedAppointment = $this->createAppointmentForPatient($otherPatient->id);
+        $ownUnreleasedAppointment = $this->createAppointmentForUser($user->id);
+        $otherReleasedAppointment = $this->createAppointmentForUser($otherUser->id);
 
         $ownUnreleasedResultId = $this->createLabResult($ownUnreleasedAppointment, null);
         $otherReleasedResultId = $this->createLabResult($otherReleasedAppointment, now()->toDateTimeString());
 
-        Sanctum::actingAs($patient);
+        Sanctum::actingAs($user);
 
         $this->getJson("/api/lab-results/{$ownUnreleasedResultId}")
             ->assertStatus(403);
@@ -83,14 +83,14 @@ class LabResultsFeatureTest extends TestCase
             ->assertStatus(403);
     }
 
-    public function test_staff_can_release_lab_result(): void
+    public function test_admin_can_release_lab_result(): void
     {
-        $staff = $this->createUserWithRole('staff');
-        $patient = $this->createUserWithRole('patient');
-        $appointmentId = $this->createAppointmentForPatient($patient->id);
+        $admin = $this->createUserWithRole('admin');
+        $user = $this->createUserWithRole('user');
+        $appointmentId = $this->createAppointmentForUser($user->id);
         $labResultId = $this->createLabResult($appointmentId, null);
 
-        Sanctum::actingAs($staff);
+        Sanctum::actingAs($admin);
 
         $this->patchJson("/api/lab-results/{$labResultId}/release")
             ->assertOk()
@@ -101,20 +101,20 @@ class LabResultsFeatureTest extends TestCase
         ]);
     }
 
-    public function test_patient_list_only_shows_own_released_results(): void
+    public function test_user_list_only_shows_own_released_results(): void
     {
-        $patient = $this->createUserWithRole('patient');
-        $otherPatient = $this->createUserWithRole('patient');
+        $user = $this->createUserWithRole('user');
+        $otherUser = $this->createUserWithRole('user');
 
-        $ownReleasedAppointment = $this->createAppointmentForPatient($patient->id);
-        $ownUnreleasedAppointment = $this->createAppointmentForPatient($patient->id);
-        $otherReleasedAppointment = $this->createAppointmentForPatient($otherPatient->id);
+        $ownReleasedAppointment = $this->createAppointmentForUser($user->id);
+        $ownUnreleasedAppointment = $this->createAppointmentForUser($user->id);
+        $otherReleasedAppointment = $this->createAppointmentForUser($otherUser->id);
 
         $ownReleasedResultId = $this->createLabResult($ownReleasedAppointment, now()->toDateTimeString());
         $this->createLabResult($ownUnreleasedAppointment, null);
         $this->createLabResult($otherReleasedAppointment, now()->toDateTimeString());
 
-        Sanctum::actingAs($patient);
+        Sanctum::actingAs($user);
 
         $response = $this->getJson('/api/lab-results');
 
@@ -123,11 +123,11 @@ class LabResultsFeatureTest extends TestCase
             ->assertJsonPath('data.0.id', $ownReleasedResultId);
     }
 
-    public function test_staff_can_generate_signed_upload_url_for_lab_result_file(): void
+    public function test_admin_can_generate_signed_upload_url_for_lab_result_file(): void
     {
-        $staff = $this->createUserWithRole('staff');
-        $patient = $this->createUserWithRole('patient');
-        $appointmentId = $this->createAppointmentForPatient($patient->id);
+        $admin = $this->createUserWithRole('admin');
+        $user = $this->createUserWithRole('user');
+        $appointmentId = $this->createAppointmentForUser($user->id);
 
         $this->mock(LabResultFileUrlService::class, function (MockInterface $mock): void {
             $mock
@@ -139,7 +139,7 @@ class LabResultsFeatureTest extends TestCase
                 ]);
         });
 
-        Sanctum::actingAs($staff);
+        Sanctum::actingAs($admin);
 
         $response = $this->postJson('/api/lab-results/upload-url', [
             'appointment_id' => $appointmentId,
@@ -153,12 +153,12 @@ class LabResultsFeatureTest extends TestCase
             ->assertJsonPath('data.file_key', fn (string $value): bool => str_starts_with($value, "lab-results/{$appointmentId}/"));
     }
 
-    public function test_patient_cannot_generate_signed_upload_url_for_lab_result_file(): void
+    public function test_user_cannot_generate_signed_upload_url_for_lab_result_file(): void
     {
-        $patient = $this->createUserWithRole('patient');
-        $appointmentId = $this->createAppointmentForPatient($patient->id);
+        $user = $this->createUserWithRole('user');
+        $appointmentId = $this->createAppointmentForUser($user->id);
 
-        Sanctum::actingAs($patient);
+        Sanctum::actingAs($user);
 
         $this->postJson('/api/lab-results/upload-url', [
             'appointment_id' => $appointmentId,
@@ -168,10 +168,10 @@ class LabResultsFeatureTest extends TestCase
         ])->assertStatus(403);
     }
 
-    public function test_patient_can_get_signed_download_url_for_own_released_lab_result(): void
+    public function test_user_can_get_signed_download_url_for_own_released_lab_result(): void
     {
-        $patient = $this->createUserWithRole('patient');
-        $appointmentId = $this->createAppointmentForPatient($patient->id);
+        $user = $this->createUserWithRole('user');
+        $appointmentId = $this->createAppointmentForUser($user->id);
         $labResultId = $this->createLabResult($appointmentId, now()->toDateTimeString());
 
         $this->mock(LabResultFileUrlService::class, function (MockInterface $mock): void {
@@ -181,20 +181,20 @@ class LabResultsFeatureTest extends TestCase
                 ->andReturn('https://example-s3/download');
         });
 
-        Sanctum::actingAs($patient);
+        Sanctum::actingAs($user);
 
         $this->getJson("/api/lab-results/{$labResultId}/file-url")
             ->assertOk()
             ->assertJsonPath('data.download_url', 'https://example-s3/download');
     }
 
-    public function test_patient_cannot_get_signed_download_url_for_unreleased_lab_result(): void
+    public function test_user_cannot_get_signed_download_url_for_unreleased_lab_result(): void
     {
-        $patient = $this->createUserWithRole('patient');
-        $appointmentId = $this->createAppointmentForPatient($patient->id);
+        $user = $this->createUserWithRole('user');
+        $appointmentId = $this->createAppointmentForUser($user->id);
         $labResultId = $this->createLabResult($appointmentId, null);
 
-        Sanctum::actingAs($patient);
+        Sanctum::actingAs($user);
 
         $this->getJson("/api/lab-results/{$labResultId}/file-url")
             ->assertStatus(403);
@@ -214,7 +214,7 @@ class LabResultsFeatureTest extends TestCase
         ]);
     }
 
-    private function createAppointmentForPatient(int $patientId): int
+    private function createAppointmentForUser(int $userId): int
     {
         $appointmentTypeId = (int) DB::table('appointment_types')->insertGetId([
             'name' => 'Lab Exam',
@@ -223,7 +223,7 @@ class LabResultsFeatureTest extends TestCase
         ]);
 
         return (int) DB::table('appointments')->insertGetId([
-            'user_id' => $patientId,
+            'user_id' => $userId,
             'appointment_type_id' => $appointmentTypeId,
             'start_time' => now()->addDay(),
             'end_time' => now()->addDay()->addHour(),

@@ -13,13 +13,8 @@ function buildRouter() {
     routes: [
       { path: "/dashboard", name: "dashboard", component: DummyPage },
       {
-        path: "/dashboard/patient",
-        name: "patientDashboard",
-        component: DummyPage,
-      },
-      {
-        path: "/dashboard/staff",
-        name: "staffDashboard",
+        path: "/dashboard/user",
+        name: "userDashboard",
         component: DummyPage,
       },
       {
@@ -28,13 +23,13 @@ function buildRouter() {
         component: DummyPage,
       },
       {
-        path: "/dashboard/patients/list",
-        name: "patientList",
+        path: "/dashboard/users/list",
+        name: "userList",
         component: DummyPage,
       },
       {
-        path: "/dashboard/patients/record",
-        name: "patientMedicalRecord",
+        path: "/dashboard/users/record",
+        name: "userMedicalRecord",
         component: DummyPage,
       },
       {
@@ -71,7 +66,7 @@ function buildRouter() {
   });
 }
 
-async function renderForRole(role: "admin" | "staff" | "patient") {
+async function renderForRole(role: "admin" | "user") {
   const pinia = createPinia();
   setActivePinia(pinia);
 
@@ -96,12 +91,12 @@ async function renderForRole(role: "admin" | "staff" | "patient") {
 }
 
 describe("SideNavigation role visibility", () => {
-  it("shows only dashboard and patient related group for patient role", async () => {
-    await renderForRole("patient");
+  it("shows only dashboard and user related group for user role", async () => {
+    await renderForRole("user");
 
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.getByAltText("STBC Clinic Logo")).toBeInTheDocument();
-    expect(screen.getByText("Patients")).toBeInTheDocument();
+    expect(screen.getByText("Records")).toBeInTheDocument();
   });
 
   it("shows user management group for admin role", async () => {
@@ -109,7 +104,7 @@ describe("SideNavigation role visibility", () => {
 
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.getByAltText("STBC Clinic Logo")).toBeInTheDocument();
-    expect(screen.getByText("Patients")).toBeInTheDocument();
-    expect(screen.getByText("Users")).toBeInTheDocument();
+    expect(screen.getByText("Records")).toBeInTheDocument();
+    expect(screen.getByText("Administration")).toBeInTheDocument();
   });
 });
