@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import { Input } from "@/shared/ui/input";
-
-type SearchField = "name" | "email" | "role";
+import type { UserManagementSearchField } from "@/features/user-management/types";
 
 defineProps<{
   searchTerm: string;
-  searchField: SearchField;
+  searchField: UserManagementSearchField;
   positionFilter: string;
   availablePositions: string[];
 }>();
 
 const emit = defineEmits<{
   (e: "update:searchTerm", value: string): void;
-  (e: "update:searchField", value: SearchField): void;
+  (e: "update:searchField", value: UserManagementSearchField): void;
   (e: "update:positionFilter", value: string): void;
 }>();
 </script>
@@ -32,7 +31,7 @@ const emit = defineEmits<{
         id="search-field"
         :value="searchField"
         class="flex h-10 w-full rounded-md border border-brand-light/50 px-3 py-2 text-sm text-brand-darker transition placeholder:text-brand-dark/60 focus:border-brand-highlight focus:outline-none focus:ring-2 focus:ring-brand-highlight/40"
-        @change="emit('update:searchField', ($event.target as HTMLSelectElement).value as SearchField)"
+        @change="emit('update:searchField', ($event.target as HTMLSelectElement).value as UserManagementSearchField)"
       >
         <option value="name">Name</option>
         <option value="email">Email</option>
@@ -47,7 +46,7 @@ const emit = defineEmits<{
         class="flex h-10 w-full rounded-md border border-brand-light/50 px-3 py-2 text-sm text-brand-darker transition placeholder:text-brand-dark/60 focus:border-brand-highlight focus:outline-none focus:ring-2 focus:ring-brand-highlight/40"
         @change="emit('update:positionFilter', ($event.target as HTMLSelectElement).value)"
       >
-        <option value="all">All positions</option>
+        <option value="all">All roles</option>
         <option v-for="position in availablePositions" :key="position" :value="position">{{ position }}</option>
       </select>
     </div>
