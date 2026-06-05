@@ -25,70 +25,37 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div
-    v-if="isOpen"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"
-    role="presentation"
-    @click.self="emit('close')"
-  >
-    <div class="w-full max-w-2xl rounded-xl border border-brand-light/30 bg-white p-5 shadow-2xl">
+  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"
+    @click.self="emit('close')">
+    <dialog class="w-full max-w-2xl rounded-xl border border-brand-light/30 bg-white p-5 shadow-2xl" aria-modal="true"
+      aria-labelledby="user-create-modal-title" aria-describedby="user-create-modal-description" tabindex="-1">
       <div class="mb-4 flex items-start justify-between gap-4">
         <div>
-          <h3 class="text-base font-semibold text-brand-darker">Add user</h3>
-          <p class="text-sm text-brand-dark/80">
+          <h3 id="user-create-modal-title" class="text-base font-semibold text-brand-darker">Add user</h3>
+          <p id="user-create-modal-description" class="text-sm text-brand-dark/80">
             Create a new admin or patient account and assign a role immediately.
           </p>
         </div>
-        <button
-          type="button"
+        <button type="button"
           class="rounded-md px-2 py-1 text-sm text-brand-dark/70 transition hover:bg-brand-lighter/30 hover:text-brand-darker"
-          aria-label="Close add user modal"
-          @click="emit('close')"
-        >
+          aria-label="Close add user modal" @click="emit('close')">
           Close
         </button>
       </div>
 
       <form class="grid gap-4 md:grid-cols-2" @submit.prevent="emit('submit')">
-        <Input
-          v-model="form.name"
-          label="Full name"
-          placeholder="Jane Doe"
-          :error="formErrors.name"
-          autocomplete="name"
-        />
-        <Input
-          v-model="form.email"
-          label="Email address"
-          type="email"
-          placeholder="jane@example.com"
-          :error="formErrors.email"
-          autocomplete="email"
-        />
-        <Input
-          v-model="form.password"
-          label="Password"
-          type="password"
-          placeholder="Enter password"
-          :error="formErrors.password"
-          autocomplete="new-password"
-        />
-        <Input
-          v-model="form.passwordConfirmation"
-          label="Confirm password"
-          type="password"
-          placeholder="Repeat password"
-          :error="formErrors.password_confirmation"
-          autocomplete="new-password"
-        />
+        <Input v-model="form.name" label="Full name" placeholder="Jane Doe" :error="formErrors.name" />
+        <Input v-model="form.email" label="Email address" type="email" placeholder="jane@example.com"
+          :error="formErrors.email" autocomplete="email" />
+        <Input v-model="form.password" label="Password" type="password" placeholder="Enter password"
+          :error="formErrors.password" autocomplete="new-password" />
+        <Input v-model="form.passwordConfirmation" label="Confirm password" type="password"
+          placeholder="Repeat password" :error="formErrors.password_confirmation" autocomplete="new-password" />
 
         <div class="space-y-1 md:col-span-2">
           <label for="role_id" class="text-sm font-medium text-brand-darker">Role</label>
-          <select
-            id="role_id"
-            v-model="form.roleId"
-            class="flex h-10 w-full rounded-md border border-brand-light/50 px-3 py-2 text-sm text-brand-darker transition placeholder:text-brand-dark/60 focus:border-brand-highlight focus:outline-none focus:ring-2 focus:ring-brand-highlight/40"
-          >
+          <select id="role_id" v-model="form.roleId"
+            class="flex h-10 w-full rounded-md border border-brand-light/50 px-3 py-2 text-sm text-brand-darker transition placeholder:text-brand-dark/60 focus:border-brand-highlight focus:outline-none focus:ring-2 focus:ring-brand-highlight/40">
             <option value="" disabled>Select a role</option>
             <option v-for="role in roles" :key="role.id" :value="String(role.id)">
               {{ role.name }}
@@ -113,6 +80,6 @@ const emit = defineEmits<{
           </div>
         </div>
       </form>
-    </div>
+    </dialog>
   </div>
 </template>
