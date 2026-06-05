@@ -9,9 +9,6 @@ final readonly class AdminRegisterUserDTO
         public string $email,
         public string $password,
         public int $roleId,
-        public ?string $staffStatus = null,
     ) {
     }
 }
-
-

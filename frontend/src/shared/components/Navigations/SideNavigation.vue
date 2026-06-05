@@ -7,17 +7,10 @@ import {
   AccordionTrigger,
 } from "radix-vue";
 import {
-  CalendarDays,
-  CalendarSearch,
   ChevronDown,
-  ClipboardList,
-  FileText,
-  FlaskConical,
-  History,
   House,
   Menu,
   ShieldCheck,
-  TestTube2,
   UserRoundSearch,
   UserSquare2,
   Users,
@@ -36,7 +29,7 @@ type SubItem = {
   to: RouteLocationRaw;
   routeName: string;
   icon: Component;
-  roles?: Array<"admin" | "staff" | "patient">;
+  roles?: Array<"admin" | "user">;
 };
 
 type SideNavGroup = {
@@ -50,97 +43,44 @@ const route = useRoute();
 const authStore = useAuthStore();
 const isMobileNavOpen = ref(false);
 
-const currentRole = computed<"admin" | "staff" | "patient">(() => {
+const currentRole = computed<"admin" | "user">(() => {
   const role = authStore.user?.role?.name?.toLowerCase();
-  if (role === "admin" || role === "staff") return role;
-  return "patient";
+  if (role === "admin") return role;
+  return "user";
 });
 
 const accordionItems: SideNavGroup[] = [
   {
-    value: "patient-related",
-    title: "Patient Related",
+    value: "records",
+    title: "Records",
     icon: Users,
     items: [
       {
-        id: "patient-list",
-        label: "Patient List",
-        to: { name: "patientList" },
-        routeName: "patientList",
+        id: "user-records",
+        label: "User Records",
+        to: { name: "userList" },
+        routeName: "userList",
         icon: UserRoundSearch,
-        roles: ["staff", "admin"],
+        roles: ["admin"],
       },
       {
-        id: "my-medical-record",
-        label: "My Medical Records",
-        to: { name: "patientMedicalRecord" },
-        routeName: "patientMedicalRecord",
-        icon: ClipboardList,
-        roles: ["patient"],
+        id: "my-record",
+        label: "My Record",
+        to: { name: "userMedicalRecord" },
+        routeName: "userMedicalRecord",
+        icon: UserRoundSearch,
+        roles: ["user"],
       },
     ],
   },
   {
-    value: "appointments",
-    title: "Appointments",
-    icon: CalendarDays,
-    items: [
-      {
-        id: "appointment-calendar",
-        label: "Appointment Calendar",
-        to: { name: "appointmentCalendar" },
-        routeName: "appointmentCalendar",
-        icon: CalendarSearch,
-        roles: ["patient"],
-      },
-      {
-        id: "appointment-requests",
-        label: "Appointment Requests",
-        to: { name: "appointmentRequests" },
-        routeName: "appointmentRequests",
-        icon: ClipboardList,
-        roles: ["staff", "admin"],
-      },
-      {
-        id: "appointment-history",
-        label: "History",
-        to: { name: "appointmentHistory" },
-        routeName: "appointmentHistory",
-        icon: History,
-      },
-    ],
-  },
-  {
-    value: "lab-results",
-    title: "Lab Results",
-    icon: FlaskConical,
-    items: [
-      {
-        id: "lab-my-results",
-        label: "My Results",
-        to: { name: "myResults" },
-        routeName: "myResults",
-        icon: FileText,
-        roles: ["patient"],
-      },
-      {
-        id: "lab-released",
-        label: "Releasing Lab Results",
-        to: { name: "resultReleases" },
-        routeName: "resultReleases",
-        icon: TestTube2,
-        roles: ["staff", "admin"],
-      },
-    ],
-  },
-  {
-    value: "users",
-    title: "Users",
+    value: "administration",
+    title: "Administration",
     icon: ShieldCheck,
     items: [
       {
         id: "users-admin",
-        label: "User Management",
+        label: "User Administration",
         to: { name: "userManagement" },
         routeName: "userManagement",
         icon: UserSquare2,
@@ -172,8 +112,7 @@ function getDashboardLinkClass(): string {
   const dashboardRouteNames = [
     "dashboard",
     "dashboardOverview",
-    "patientDashboard",
-    "staffDashboard",
+    "userDashboard",
     "adminDashboard",
   ];
   const isActive =
@@ -210,7 +149,7 @@ function closeMobileNav(): void {
       <img :src="stbcLogo" alt="STBC Clinic Logo" class="h-10 w-auto rounded-sm object-contain" />
       <div class="leading-tight">
         <p class="text-xs font-semibold tracking-wide text-brand-darker">
-          ST. BENEDICT'S BLOOD CLINIC
+          ST. BENEDICT'S CLINIC
         </p>
         <p class="text-xs text-brand-dark/80">
           Trusted Care, Clear Results

@@ -54,20 +54,18 @@ describe("MainNavigation behavior", () => {
     vi.stubGlobal("alert", vi.fn());
   });
 
-  it("shows unauthenticated actions and routes to login/register", async () => {
+  it("shows unauthenticated action and routes to login", async () => {
     mockAuthState = {
       isAuthenticated: false,
       user: null,
-      getDashboardPath: () => "/dashboard/patient",
+      getDashboardPath: () => "/dashboard/user",
       logout,
     };
     renderMainNavigation();
 
     await userEvent.click(screen.getByRole("button", { name: /login/i }));
-    await userEvent.click(screen.getByRole("button", { name: /register/i }));
 
     expect(push).toHaveBeenCalledWith("/login");
-    expect(push).toHaveBeenCalledWith("/register");
   });
 
   it("logs out authenticated user and redirects to login", async () => {
@@ -75,13 +73,13 @@ describe("MainNavigation behavior", () => {
     mockAuthState = {
       isAuthenticated: true,
       user: { email: "test@example.com" },
-      getDashboardPath: () => "/dashboard/staff",
+      getDashboardPath: () => "/dashboard/user",
       logout,
     };
     renderMainNavigation();
 
-    await userEvent.click(screen.getAllByRole("button", { name: "T" })[0]);
-    await userEvent.click(screen.getAllByRole("button", { name: /logout/i })[0]);
+    await userEvent.click(screen.getAllByRole("button", { name: /open user menu/i })[0]);
+    await userEvent.click(screen.getByRole("menuitem", { name: /logout/i }));
 
     expect(logout).toHaveBeenCalledTimes(1);
     expect(push).toHaveBeenCalledWith("/login");
@@ -92,13 +90,13 @@ describe("MainNavigation behavior", () => {
     mockAuthState = {
       isAuthenticated: true,
       user: { email: "test@example.com" },
-      getDashboardPath: () => "/dashboard/staff",
+      getDashboardPath: () => "/dashboard/user",
       logout,
     };
     renderMainNavigation();
 
-    await userEvent.click(screen.getAllByRole("button", { name: "T" })[0]);
-    await userEvent.click(screen.getAllByRole("button", { name: /profile/i })[0]);
+    await userEvent.click(screen.getAllByRole("button", { name: /open user menu/i })[0]);
+    await userEvent.click(screen.getByRole("menuitem", { name: /profile/i }));
 
     expect(resolve).toHaveBeenCalledWith("/profile");
     expect(globalThis.alert).toHaveBeenCalledWith(

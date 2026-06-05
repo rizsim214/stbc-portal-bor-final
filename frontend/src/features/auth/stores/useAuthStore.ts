@@ -21,6 +21,7 @@ export const useAuthStore = defineStore("auth", {
     user: safeParseUser(localStorage.getItem(AUTH_STORAGE_KEYS.user)),
     isLoading: false,
     isBootstrapping: false,
+    isLoggingOut: false,
   }),
 
   getters: {
@@ -76,10 +77,12 @@ export const useAuthStore = defineStore("auth", {
     },
 
     async logout(): Promise<void> {
+      this.isLoggingOut = true;
       try {
         if (this.token) await authApi.logout();
       } finally {
         this.clearSession();
+        this.isLoggingOut = false;
       }
     },
   },
