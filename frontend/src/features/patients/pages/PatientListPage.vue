@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import PatientDataTable from "@/features/patients/components/PatientDataTable/PatientDataTable.vue";
 import PatientTableFilters from "@/features/patients/components/PatientTableFilters/PatientTableFilters.vue";
+import PageHeader from "@/shared/components/PageHeader/PageHeader.vue";
+import ListMeta from "@/shared/components/ListMeta/ListMeta.vue";
 import { computed, ref } from "vue";
 
 const users = [
@@ -34,8 +36,11 @@ const filteredUsers = computed(() => {
 
 <template>
   <section class="rounded-xl border border-brand-light/30 bg-white p-6">
-    <h1 class="text-2xl font-semibold text-brand-darker">User List</h1>
-    <p class="mt-2 text-sm text-brand-dark">User directory and quick actions.</p>
+    <PageHeader
+      title="User List"
+      subtitle="User directory and quick actions."
+      heading-tag="h1"
+    />
     <div class="mt-5">
       <PatientTableFilters
         :search-term="searchTerm"
@@ -45,6 +50,11 @@ const filteredUsers = computed(() => {
         @update:search-term="searchTerm = $event"
         @update:search-field="searchField = $event"
         @update:status-filter="statusFilter = $event"
+      />
+      <ListMeta
+        :shown-count="filteredUsers.length"
+        :total-count="users.length"
+        label="users"
       />
       <PatientDataTable :patients="filteredUsers" />
     </div>
