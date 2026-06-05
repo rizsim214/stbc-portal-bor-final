@@ -1,8 +1,6 @@
 import DashboardLayout from "@/app/layouts/DashboardLayout.vue";
 import type { AppRoute } from "../types";
-import { appointmentRoutes } from "./modules/appointments.routes";
 import { patientRoutes } from "./modules/patient.routes";
-import { resultRoutes } from "./modules/results.routes";
 import { userRoutes } from "./modules/users.routes";
 
 export const privateRoutes: AppRoute[] = [
@@ -18,16 +16,10 @@ export const privateRoutes: AppRoute[] = [
         component: () => import("@/pages/dashboard/DashboardOverviewPage.vue"),
       },
       {
-        path: "patient",
-        name: "patientDashboard",
+        path: "user",
+        name: "userDashboard",
         component: () => import("@/pages/dashboard/DashboardOverviewPage.vue"),
-        meta: { roles: ["patient"] },
-      },
-      {
-        path: "staff",
-        name: "staffDashboard",
-        component: () => import("@/pages/dashboard/DashboardOverviewPage.vue"),
-        meta: { roles: ["staff"] },
+        meta: { roles: ["user"] },
       },
       {
         path: "admin",
@@ -36,8 +28,6 @@ export const privateRoutes: AppRoute[] = [
         meta: { roles: ["admin"] },
       },
       ...patientRoutes,
-      ...appointmentRoutes,
-      ...resultRoutes,
       ...userRoutes,
     ],
   },

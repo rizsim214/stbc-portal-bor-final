@@ -24,7 +24,7 @@ vi.mock("vue-router", async () => {
 });
 
 const loginMock = vi.fn();
-const getDashboardPathMock = vi.fn(() => "/patient/dashboard");
+const getDashboardPathMock = vi.fn(() => "/dashboard/user");
 
 vi.mock("../../stores/useAuthStore", () => ({
   useAuthStore: () => ({
@@ -65,15 +65,7 @@ describe("LoginPage integration", () => {
       email: "john@example.com",
       password: "password123",
     });
-    expect(push).toHaveBeenCalledWith("/patient/dashboard");
-  });
-
-  it("navigates to forgot password page", async () => {
-    renderLoginPage();
-
-    await userEvent.click(screen.getByRole("button", { name: /forgot password\?/i }));
-
-    expect(push).toHaveBeenCalledWith("/forgot-password");
+    expect(push).toHaveBeenCalledWith("/dashboard/user");
   });
 
   it("maps API field errors to login form fields", async () => {

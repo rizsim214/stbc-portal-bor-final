@@ -15,57 +15,53 @@ class AssignRoleActionTest extends TestCase
 
     public function test_execute_assigns_role_to_user(): void
     {
-        $staffRoleId = (int) DB::table('roles')->insertGetId([
-            'name' => 'staff',
+        $userRoleId = (int) DB::table('roles')->insertGetId([
+            'name' => 'user',
         ]);
-        $patientRoleId = (int) DB::table('roles')->insertGetId([
-            'name' => 'patient',
+        $adminRoleId = (int) DB::table('roles')->insertGetId([
+            'name' => 'admin',
         ]);
 
         $user = User::factory()->create([
-            'role_id' => $patientRoleId,
+            'role_id' => $adminRoleId,
         ]);
 
         $action = new AssignRoleAction();
         $result = $action->execute(new AssignRoleDTO(
             userId: $user->id,
-            roleId: $staffRoleId,
+            roleId: $userRoleId,
         ));
 
-        $this->assertSame('staff', $result->role?->name);
+        $this->assertSame('user', $result->role?->name);
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
-            'role_id' => $staffRoleId,
-            'staff_status' => 'available',
+            'role_id' => $userRoleId,
         ]);
     }
 
-    public function test_execute_clears_staff_status_for_non_medical_role(): void
+    public function test_execute_reassigns_user_to_admin_role(): void
     {
-        $staffRoleId = (int) DB::table('roles')->insertGetId([
-            'name' => 'staff',
+        $userRoleId = (int) DB::table('roles')->insertGetId([
+            'name' => 'user',
         ]);
-        $patientRoleId = (int) DB::table('roles')->insertGetId([
-            'name' => 'patient',
+        $adminRoleId = (int) DB::table('roles')->insertGetId([
+            'name' => 'admin',
         ]);
 
         $user = User::factory()->create([
-            'role_id' => $staffRoleId,
-            'staff_status' => 'on_duty',
+            'role_id' => $userRoleId,
         ]);
 
         $action = new AssignRoleAction();
         $result = $action->execute(new AssignRoleDTO(
             userId: $user->id,
-            roleId: $patientRoleId,
+            roleId: $adminRoleId,
         ));
 
-        $this->assertSame('patient', $result->role?->name);
-        $this->assertNull($result->staff_status);
+        $this->assertSame('admin', $result->role?->name);
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
-            'role_id' => $patientRoleId,
-            'staff_status' => null,
+            'role_id' => $adminRoleId,
         ]);
     }
 }

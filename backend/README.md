@@ -51,17 +51,13 @@ This keeps controllers simple and business rules testable.
 ### Auth (`app/Modules/Auth`)
 
 Endpoints:
-- `POST /api/auth/register`
 - `POST /api/auth/login`
 - `POST /api/auth/logout` (auth required)
-- `POST /api/auth/forgot-password`
-- `GET /api/auth/reset-password/{token}` (helper JSON response for frontend flow)
 
 Key rules:
-- Register always creates/uses `patient` role.
+- Public self-registration is disabled.
 - Login uses email/password and returns Sanctum token.
 - Logout deletes current access token only.
-- Forgot password uses Laravel password broker mail flow.
 
 ### Users + Roles (`app/Modules/Users`)
 
@@ -69,12 +65,10 @@ Endpoints (auth required):
 - `GET /api/roles` (`can:manage-roles`)
 - `POST /api/users` (`can:manage-users`)
 - `PATCH /api/users/{user}/role` (`can:manage-users`)
-- `PATCH /api/users/me/staff-status` (`can:update-own-staff-status`)
 
 Key rules:
-- `AdminRegisterUserAction` and request validation enforce that `staff_status` only applies to medical roles.
-- `AssignRoleAction` clears `staff_status` when moving to non-medical roles, or defaults it to `available` for medical roles.
-- Staff statuses are in `App\Modules\Users\Enums\StaffStatus`.
+- `AdminRegisterUserAction` and request validation enforce a simple role assignment flow.
+- `AssignRoleAction` updates the target user's role directly.
 
 ### Scheduling (`app/Modules/Scheduling`)
 
@@ -117,7 +111,7 @@ Flow:
 
 Key rules:
 - exactly one lab result per appointment (enforced in action logic)
-- patients only see released results tied to their own appointments
+- users only see released results tied to their own appointments
 - `file_path` is kept as DB column, but API now prefers input field name `file_key` (backward compatible)
 
 ## 5. Authorization Model
@@ -127,7 +121,6 @@ Authorization is gate-based in `app/Providers/AppServiceProvider.php`.
 Defined gates:
 - `manage-users`
 - `manage-roles`
-- `update-own-staff-status`
 - `upload-lab-results`
 - `release-lab-results`
 - `view-lab-result`
@@ -137,7 +130,7 @@ Role checks are string-based (`$user->role?->name`), so role seed data matters.
 ## 6. Data Model (Core Tables)
 
 Primary tables:
-- `users` (+ `role_id`, `staff_status`)
+- `users` (+ `role_id`)
 - `roles` (unique `name`)
 - `appointments`
 - `appointment_types`
@@ -235,8 +228,8 @@ Tests include module-focused feature/unit coverage under `tests/Feature/Modules`
 ## 11. Known Gotchas
 
 1. Role naming consistency is critical.
-Current gates reference roles like `doctor`, `radiologist`, and `lab_technologist`, but default `RoleSeeder` currently seeds only `admin`, `staff`, and `patient`.
-If those extra roles are expected, seed or create them before relying on those gates.
+Current backend access control now treats `admin` as the management role and `user` as the account used for booking and viewing results.
+Lab result management is admin-only, while users can view only their own released results.
 
 2. Lab result uniqueness is enforced in application logic, not DB unique index.
 Concurrent requests could still race in edge cases; DB-level unique on `lab_results.appointment_id` would make this stricter.

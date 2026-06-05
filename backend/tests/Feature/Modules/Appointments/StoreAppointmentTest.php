@@ -16,7 +16,7 @@ class StoreAppointmentTest extends TestCase
 
     public function test_authenticated_user_can_store_appointment(): void
     {
-        $user = User::factory()->create();
+        $user = $this->createUser();
         $appointmentTypeId = $this->createAppointmentType();
         $resourceId = $this->createResource();
         $this->createResourceSchedule($resourceId, 6, '08:00:00', '17:00:00');
@@ -49,22 +49,21 @@ class StoreAppointmentTest extends TestCase
 
     public function test_store_appointment_returns_422_for_overlapping_resource_booking(): void
     {
-        $user = User::factory()->create();
+        $user = $this->createUser();
         $appointmentTypeId = $this->createAppointmentType();
         $resourceId = $this->createResource();
         $this->createResourceSchedule($resourceId, 6, '08:00:00', '17:00:00');
         $start = CarbonImmutable::parse('2026-04-25 09:00:00');
         $end = $start->addHour();
 
-        $existingAppointment = Appointment::query()->create([
-            'user_id' => $user->id,
+        Sanctum::actingAs($user);
+
+        $this->postJson('/api/appointments', [
             'appointment_type_id' => $appointmentTypeId,
             'start_time' => $start->toDateTimeString(),
             'end_time' => $end->toDateTimeString(),
-        ]);
-        $existingAppointment->resources()->attach([$resourceId]);
-
-        Sanctum::actingAs($user);
+            'resource_ids' => [$resourceId],
+        ])->assertCreated();
 
         $response = $this->postJson('/api/appointments', [
             'appointment_type_id' => $appointmentTypeId,
@@ -80,7 +79,7 @@ class StoreAppointmentTest extends TestCase
 
     public function test_store_appointment_returns_422_when_request_is_outside_resource_schedule(): void
     {
-        $user = User::factory()->create();
+        $user = $this->createUser();
         $appointmentTypeId = $this->createAppointmentType();
         $resourceId = $this->createResource();
         $this->createResourceSchedule($resourceId, 6, '08:00:00', '17:00:00');
@@ -127,6 +126,17 @@ class StoreAppointmentTest extends TestCase
             'end_time' => $endTime,
             'created_at' => now(),
             'updated_at' => now(),
+        ]);
+    }
+
+    private function createUser(): User
+    {
+        $roleId = (int) DB::table('roles')->insertGetId([
+            'name' => 'user',
+        ]);
+
+        return User::factory()->create([
+            'role_id' => $roleId,
         ]);
     }
 }

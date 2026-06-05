@@ -49,10 +49,6 @@ const onSubmit = async (): Promise<void> => {
   }
 };
 
-const goToForgotPassword = (): void => {
-  router.push("/forgot-password"); // change path to your route
-};
-
 </script>
 
 <template>
@@ -60,32 +56,24 @@ const goToForgotPassword = (): void => {
     class="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl items-center justify-center px-4 py-6 sm:px-6 lg:px-8">
     <section
       class="w-full max-w-md rounded-2xl border border-brand-light/30 bg-white p-6 shadow-[0_12px_28px_-16px_rgba(21,5,120,0.45)] sm:p-8">
-      <h1 class="text-2xl font-semibold text-brand-darker">Sign In</h1>
-      <p class="mt-2 text-sm text-brand-dark">Sign in to continue to your account.</p>
+      <h1 class="text-2xl font-semibold text-brand-darker">Sign in to your account</h1>
+      <p class="mt-2 text-sm text-brand-dark">Enter your email below to login to your account</p>
+      <p class="mt-1 text-xs text-brand-dark/80">
+        Please use the email you used to book your appointment and the password sent to your email.
+      </p>
 
       <form class="mt-6 space-y-4" @submit.prevent="onSubmit">
         <Input id="email" v-model="loginForm.email" :error="loginErrors.email" type="email" label="Email"
           placeholder="you@example.com" autocomplete="email" @clear-error="clearLoginError('email')" />
 
         <Input id="password" v-model="loginForm.password" :error="loginErrors.password" type="password" label="Password"
-          placeholder="Enter your password" autocomplete="current-password" @clear-error="clearLoginError('password')" />
+          placeholder="Enter your password" autocomplete="current-password"
+          @clear-error="clearLoginError('password')" />
 
-        <div class="flex justify-end">
-          <button type="button"
-            class="text-sm font-medium text-brand-highlight transition hover:text-brand-darker hover:underline"
-            @click="goToForgotPassword">
-            Forgot password?
-          </button>
-        </div>
         <p v-if="submitError" class="text-sm text-red-500">{{ submitError }}</p>
-        <Button type="submit" class="bg-brand-dark hover:bg-brand-darker">
+        <Button type="submit" :loading="authStore.isLoading" class="bg-brand-dark hover:bg-brand-darker">
           Sign In
         </Button>
-        <p class="text-sm text-center">Don't have an account yet? <RouterLink to="/register"
-            class="text-brand-dark/55 font-bold">
-            Register
-            Now!</RouterLink>
-        </p>
       </form>
     </section>
   </main>
