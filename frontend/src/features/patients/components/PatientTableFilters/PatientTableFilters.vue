@@ -1,19 +1,18 @@
 <script setup lang="ts">
 import { Input } from "@/shared/ui/input";
-
-type SearchField = "name" | "email" | "status";
+import type { PatientListSearchField } from "@/features/patients/types";
 
 defineProps<{
   searchTerm: string;
-  searchField: SearchField;
-  statusFilter: string;
-  availableStatuses: string[];
+  searchField: PatientListSearchField;
+  roleFilter: string;
+  availableRoles: string[];
 }>();
 
 const emit = defineEmits<{
   (e: "update:searchTerm", value: string): void;
-  (e: "update:searchField", value: SearchField): void;
-  (e: "update:statusFilter", value: string): void;
+  (e: "update:searchField", value: PatientListSearchField): void;
+  (e: "update:roleFilter", value: string): void;
 }>();
 </script>
 
@@ -35,25 +34,27 @@ const emit = defineEmits<{
         id="search-field"
         :value="searchField"
         class="flex h-10 w-full rounded-md border border-brand-light/50 px-3 py-2 text-sm text-brand-darker transition placeholder:text-brand-dark/60 focus:border-brand-highlight focus:outline-none focus:ring-2 focus:ring-brand-highlight/40"
-        @change="emit('update:searchField', ($event.target as HTMLSelectElement).value as SearchField)"
+        @change="
+          emit('update:searchField', ($event.target as HTMLSelectElement).value as PatientListSearchField)
+        "
       >
         <option value="name">Name</option>
         <option value="email">Email</option>
-        <option value="status">Status</option>
+        <option value="role">Role</option>
       </select>
     </div>
 
     <div class="space-y-1">
-      <label for="status-filter" class="text-sm font-medium text-brand-darker">Status</label>
+      <label for="role-filter" class="text-sm font-medium text-brand-darker">Role</label>
       <select
-        id="status-filter"
-        :value="statusFilter"
+        id="role-filter"
+        :value="roleFilter"
         class="flex h-10 w-full rounded-md border border-brand-light/50 px-3 py-2 text-sm text-brand-darker transition placeholder:text-brand-dark/60 focus:border-brand-highlight focus:outline-none focus:ring-2 focus:ring-brand-highlight/40"
-        @change="emit('update:statusFilter', ($event.target as HTMLSelectElement).value)"
+        @change="emit('update:roleFilter', ($event.target as HTMLSelectElement).value)"
       >
-        <option value="all">All statuses</option>
-        <option v-for="status in availableStatuses" :key="status" :value="status">
-          {{ status }}
+        <option value="all">All roles</option>
+        <option v-for="role in availableRoles" :key="role" :value="role">
+          {{ role }}
         </option>
       </select>
     </div>
