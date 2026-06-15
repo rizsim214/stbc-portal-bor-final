@@ -12,11 +12,19 @@ interface ApiResponse<T> {
 
 export const usersApi = {
   listUsers() {
-    return http.get<ApiResponse<ManagedUser[]>>("/users");
+    return http.get<ApiResponse<ManagedUser[]>>("/users", {
+      headers: {
+        "X-Skip-Global-Loading": "true",
+      },
+    });
   },
 
   listRoles() {
-    return http.get<ApiResponse<ManagedRole[]>>("/roles");
+    return http.get<ApiResponse<ManagedRole[]>>("/roles", {
+      headers: {
+        "X-Skip-Global-Loading": "true",
+      },
+    });
   },
 
   createUser(payload: UserFormPayload) {

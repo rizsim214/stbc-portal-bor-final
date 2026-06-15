@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import BaseDataTable from "@/shared/components/DataTable/BaseDataTable.vue";
+import type { PatientRow } from "@/features/patients/types";
 import {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -8,14 +9,6 @@ import {
 } from "radix-vue";
 import { EllipsisVertical } from "lucide-vue-next";
 
-type PatientRow = {
-  id: number;
-  name: string;
-  email: string;
-  status: string;
-  lastVisit: string;
-};
-
 const props = defineProps<{
   patients: PatientRow[];
 }>();
@@ -23,17 +16,23 @@ const props = defineProps<{
 const columns = [
   { key: "name", label: "User Name" },
   { key: "email", label: "Email Address" },
-  { key: "status", label: "Status" },
-  { key: "lastVisit", label: "Last Visit" },
+  { key: "role", label: "Role" },
+  { key: "registeredAt", label: "Registered At" },
   { key: "actions", label: "Options", align: "right" as const },
 ];
 </script>
 
 <template>
   <BaseDataTable :rows="props.patients as unknown as Record<string, unknown>[]" :columns="columns" :page-size="5">
-    <template #cell-status="{ row }">
+    <template #cell-role="{ row }">
       <span class="rounded-full bg-brand-lighter/50 px-2 py-1 text-xs font-medium text-brand-darker">
-        {{ row.status }}
+        {{ row.role }}
+      </span>
+    </template>
+
+    <template #cell-registeredAt="{ row }">
+      <span class="font-mono text-xs text-brand-dark/80">
+        {{ row.registeredAt }}
       </span>
     </template>
 
