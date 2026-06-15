@@ -23,7 +23,11 @@ const columns = [
 </script>
 
 <template>
-  <BaseDataTable :rows="props.users as unknown as Record<string, unknown>[]" :columns="columns" :page-size="5">
+  <BaseDataTable
+    :rows="props.users as unknown as Record<string, unknown>[]"
+    :columns="columns"
+    :page-size="15"
+  >
     <template #cell-id="{ row }">
       <span class="font-mono text-xs text-brand-dark/80">{{ row.id }}</span>
     </template>
