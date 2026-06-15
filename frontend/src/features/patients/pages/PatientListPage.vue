@@ -1,62 +1,75 @@
 <script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
 import PatientDataTable from "@/features/patients/components/PatientDataTable/PatientDataTable.vue";
 import PatientTableFilters from "@/features/patients/components/PatientTableFilters/PatientTableFilters.vue";
+import { usePatientListData } from "@/features/patients/composables/usePatientListData";
+import type { PatientListSearchField } from "@/features/patients/types";
 import PageHeader from "@/shared/components/PageHeader/PageHeader.vue";
 import ListMeta from "@/shared/components/ListMeta/ListMeta.vue";
-import { computed, ref } from "vue";
+import StatusBanner from "@/shared/components/StatusBanner/StatusBanner.vue";
 
-const users = [
-  { id: 101, name: "Maria Dela Cruz", email: "maria.delacruz@example.com", status: "Active", lastVisit: "2026-05-12" },
-  { id: 102, name: "John Reyes", email: "john.reyes@example.com", status: "Active", lastVisit: "2026-05-09" },
-  { id: 103, name: "Patricia Gomez", email: "patricia.gomez@example.com", status: "Pending", lastVisit: "2026-04-30" },
-  { id: 104, name: "Ramon Santos", email: "ramon.santos@example.com", status: "Inactive", lastVisit: "2026-03-22" },
-  { id: 105, name: "Leah Navarro", email: "leah.navarro@example.com", status: "Active", lastVisit: "2026-05-02" },
-  { id: 106, name: "Simon Tan", email: "simon.tan@example.com", status: "Pending", lastVisit: "2026-04-18" },
-];
+const { patients, isLoadingPatients, dataError, loadPatients, clearDataError } = usePatientListData();
 
 const searchTerm = ref("");
-const searchField = ref<"name" | "email" | "status">("name");
-const statusFilter = ref("all");
+const searchField = ref<PatientListSearchField>("name");
+const roleFilter = ref("all");
 
-const availableStatuses = computed(() =>
-  Array.from(new Set(users.map((user) => user.status))),
+const availableRoles = computed(() =>
+  Array.from(new Set(patients.value.map((patient) => patient.role))).filter(Boolean),
 );
 
-const filteredUsers = computed(() => {
+const filteredPatients = computed(() => {
   const query = searchTerm.value.trim().toLowerCase();
 
-  return users.filter((user) => {
-    const searchableValue = user[searchField.value].toLowerCase();
+  return patients.value.filter((patient) => {
+    const searchableValue = patient[searchField.value].toLowerCase();
     const matchesQuery = !query || searchableValue.includes(query);
-    const matchesStatus = statusFilter.value === "all" || user.status === statusFilter.value;
-    return matchesQuery && matchesStatus;
+    const matchesRole = roleFilter.value === "all" || patient.role === roleFilter.value;
+    return matchesQuery && matchesRole;
   });
+});
+
+function dismissStatusBanner(): void {
+  clearDataError();
+}
+
+onMounted(async () => {
+  await loadPatients();
 });
 </script>
 
 <template>
   <section class="rounded-xl border border-brand-light/30 bg-white p-6">
     <PageHeader
-      title="User List"
-      subtitle="User directory and quick actions."
+      title="Patient List"
+      subtitle="Live patient records from the database."
       heading-tag="h1"
     />
+
+    <StatusBanner
+      v-if="dataError"
+      :message="dataError"
+      tone="error"
+      @dismiss="dismissStatusBanner"
+    />
+
     <div class="mt-5">
       <PatientTableFilters
         :search-term="searchTerm"
         :search-field="searchField"
-        :status-filter="statusFilter"
-        :available-statuses="availableStatuses"
+        :role-filter="roleFilter"
+        :available-roles="availableRoles"
         @update:search-term="searchTerm = $event"
         @update:search-field="searchField = $event"
-        @update:status-filter="statusFilter = $event"
+        @update:role-filter="roleFilter = $event"
       />
       <ListMeta
-        :shown-count="filteredUsers.length"
-        :total-count="users.length"
-        label="users"
+        :shown-count="filteredPatients.length"
+        :total-count="patients.length"
+        label="patients"
+        :is-loading="isLoadingPatients"
       />
-      <PatientDataTable :patients="filteredUsers" />
+      <PatientDataTable :patients="filteredPatients" />
     </div>
   </section>
 </template>
