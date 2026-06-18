@@ -1,4 +1,5 @@
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import { useQuery } from "@tanstack/vue-query";
 import { patientsApi } from "../api/patientsApi";
 import type { BackendPatientUser, PatientRow } from "../types";
 
@@ -49,29 +50,44 @@ function toPatientRow(user: BackendPatientUser): PatientRow {
   };
 }
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return "Failed to load patients.";
+}
+
 export function usePatientListData() {
-  const patients = ref<PatientRow[]>([]);
-  const isLoadingPatients = ref(false);
-  const dataError = ref("");
+  const errorDismissed = ref(false);
 
-  async function loadPatients(): Promise<void> {
-    isLoadingPatients.value = true;
-    dataError.value = "";
-
-    try {
+  const patientsQuery = useQuery({
+    queryKey: ["patients", "list"],
+    queryFn: async () => {
       const { data } = await patientsApi.listPatients();
-      patients.value = unwrapUsersPayload(data)
+      return unwrapUsersPayload(data)
         .filter(isPatientUser)
         .map(toPatientRow);
-    } catch {
-      dataError.value = "Failed to load patients.";
-    } finally {
-      isLoadingPatients.value = false;
+    },
+  });
+
+  const patients = computed(() => patientsQuery.data.value ?? []);
+  const isLoadingPatients = computed(() => patientsQuery.isFetching.value || patientsQuery.isPending.value);
+  const dataError = computed(() => {
+    if (!patientsQuery.isError.value || errorDismissed.value) {
+      return "";
     }
+
+    return getErrorMessage(patientsQuery.error.value);
+  });
+
+  async function loadPatients(): Promise<void> {
+    errorDismissed.value = false;
+    await patientsQuery.refetch();
   }
 
   function clearDataError(): void {
-    dataError.value = "";
+    errorDismissed.value = true;
   }
 
   return {

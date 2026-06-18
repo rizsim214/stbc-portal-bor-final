@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/vue";
 import userEvent from "@testing-library/user-event";
+import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import PatientListPage from "../PatientListPage.vue";
 import { patientsApi } from "../../api/patientsApi";
@@ -11,6 +12,22 @@ vi.mock("../../api/patientsApi", () => ({
 }));
 
 const listPatientsMock = vi.mocked(patientsApi.listPatients);
+
+function renderPatientListPage() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+
+  return render(PatientListPage, {
+    global: {
+      plugins: [[VueQueryPlugin, { queryClient }]],
+    },
+  });
+}
 
 describe("PatientListPage", () => {
   beforeEach(() => {
@@ -44,7 +61,7 @@ describe("PatientListPage", () => {
   });
 
   it("loads patient users from the backend and filters the table", async () => {
-    render(PatientListPage);
+    renderPatientListPage();
 
     expect(await screen.findByText("Maria Dela Cruz")).toBeInTheDocument();
     expect(screen.getByText("John Reyes")).toBeInTheDocument();

@@ -27,8 +27,10 @@ type TableColumn = {
   align?: "left" | "right" | "center";
 };
 
+type TableRow = object;
+
 const props = withDefaults(defineProps<{
-  rows: Record<string, unknown>[];
+  rows: TableRow[];
   columns: TableColumn[];
   pageSize?: number;
 }>(), {
@@ -59,6 +61,10 @@ function alignmentClass(align?: "left" | "right" | "center"): string {
   return "text-left";
 }
 
+function getCellValue(row: TableRow, key: string): unknown {
+  return (row as Record<string, unknown>)[key];
+}
+
 watch(() => props.rows, () => {
   currentPage.value = 1;
 });
@@ -78,7 +84,7 @@ watch(() => props.rows, () => {
       <TableRow v-for="(row, rowIndex) in pagedRows" :key="rowIndex" class="hover:bg-brand-lighter/20">
         <TableCell v-for="column in columns" :key="`${rowIndex}-${column.key}`" :class="alignmentClass(column.align)">
           <slot :name="`cell-${column.key}`" :row="row">
-            {{ row[column.key] }}
+            {{ getCellValue(row, column.key) }}
           </slot>
         </TableCell>
       </TableRow>

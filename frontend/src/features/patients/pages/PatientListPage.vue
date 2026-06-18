@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, ref } from "vue";
 import PatientDataTable from "@/features/patients/components/PatientDataTable/PatientDataTable.vue";
 import PatientTableFilters from "@/features/patients/components/PatientTableFilters/PatientTableFilters.vue";
 import { usePatientListData } from "@/features/patients/composables/usePatientListData";
@@ -8,7 +8,7 @@ import PageHeader from "@/shared/components/PageHeader/PageHeader.vue";
 import ListMeta from "@/shared/components/ListMeta/ListMeta.vue";
 import StatusBanner from "@/shared/components/StatusBanner/StatusBanner.vue";
 
-const { patients, isLoadingPatients, dataError, loadPatients, clearDataError } = usePatientListData();
+const { patients, isLoadingPatients, dataError, clearDataError } = usePatientListData();
 
 const searchTerm = ref("");
 const searchField = ref<PatientListSearchField>("name");
@@ -32,10 +32,6 @@ const filteredPatients = computed(() => {
 function dismissStatusBanner(): void {
   clearDataError();
 }
-
-onMounted(async () => {
-  await loadPatients();
-});
 </script>
 
 <template>
