@@ -19,6 +19,8 @@ const {
   normalizedUsers,
   availableRoles,
   addUser,
+  toggleUserStatus,
+  isTogglingUserStatus,
 } = useUserManagementData();
 
 const { searchTerm, searchField, roleFilter, filteredUsers } = useUserManagementFilters(normalizedUsers);
@@ -66,7 +68,11 @@ function dismissStatusBanner(): void {
         :is-loading="isLoadingUsers" />
     </div>
 
-    <DataTable :users="filteredUsers" />
+    <DataTable
+      :users="filteredUsers"
+      :is-updating-status="isTogglingUserStatus"
+      @toggle-status="toggleUserStatus"
+    />
     <UserCreateModal :is-open="isCreateModalOpen" :roles="roles" :form="form" :form-errors="formErrors"
       :is-submitting="isSubmitting" :page-error="pageError" :page-message="pageMessage" @close="closeCreateModal"
       @submit="submitUser" />

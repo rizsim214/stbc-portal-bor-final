@@ -1,5 +1,5 @@
 import { computed, ref } from "vue";
-import { useQuery, useQueryClient } from "@tanstack/vue-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { usersApi } from "../api/usersApi";
 import type { ManagedUser, ManagedUserRow } from "../types";
 
@@ -14,6 +14,21 @@ function getErrorMessage(error: unknown, fallback: string): string {
 export function useUserManagementData() {
   const queryClient = useQueryClient();
   const errorDismissed = ref(false);
+  const toggleStatusMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const { data } = await usersApi.toggleUserStatus(userId);
+      return data.data;
+    },
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData<ManagedUser[]>(
+        ["users", "management", "list"],
+        (currentUsers = []) =>
+          currentUsers.map((currentUser) =>
+            currentUser.id === updatedUser.id ? updatedUser : currentUser,
+          ),
+      );
+    },
+  });
 
   const usersQuery = useQuery({
     queryKey: ["users", "management", "list"],
@@ -40,6 +55,13 @@ export function useUserManagementData() {
       return "";
     }
 
+    if (toggleStatusMutation.isError.value) {
+      return getErrorMessage(
+        toggleStatusMutation.error.value,
+        "Unable to update user status.",
+      );
+    }
+
     if (usersQuery.isError.value) {
       return getErrorMessage(usersQuery.error.value, "Failed to load users.");
     }
@@ -57,6 +79,9 @@ export function useUserManagementData() {
       name: user.name,
       email: user.email,
       role: user.role?.name ?? "unassigned",
+      status: (user.account_status ?? "active").trim().toLowerCase() === "inactive"
+        ? "inactive"
+        : "active",
     })),
   );
 
@@ -84,6 +109,7 @@ export function useUserManagementData() {
 
   function clearDataError(): void {
     errorDismissed.value = true;
+    toggleStatusMutation.reset();
   }
 
   function addUser(user: ManagedUser): void {
@@ -91,6 +117,10 @@ export function useUserManagementData() {
       ["users", "management", "list"],
       (currentUsers = []) => [user, ...currentUsers.filter((currentUser) => currentUser.id !== user.id)],
     );
+  }
+
+  async function toggleUserStatus(userId: number): Promise<void> {
+    await toggleStatusMutation.mutateAsync(userId);
   }
 
   return {
@@ -106,5 +136,7 @@ export function useUserManagementData() {
     loadInitialData,
     clearDataError,
     addUser,
+    toggleUserStatus,
+    isTogglingUserStatus: computed(() => toggleStatusMutation.isPending.value),
   };
 }

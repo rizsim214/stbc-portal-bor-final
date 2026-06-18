@@ -10,11 +10,13 @@ vi.mock("../../api/usersApi", () => ({
     listUsers: vi.fn(),
     listRoles: vi.fn(),
     createUser: vi.fn(),
+    toggleUserStatus: vi.fn(),
   },
 }));
 
 const listUsersMock = vi.mocked(usersApi.listUsers);
 const listRolesMock = vi.mocked(usersApi.listRoles);
+const toggleUserStatusMock = vi.mocked(usersApi.toggleUserStatus);
 
 function renderUserManagementPage() {
   const queryClient = new QueryClient({
@@ -42,12 +44,16 @@ describe("UserManagementPage", () => {
             name: "Maria Dela Cruz",
             email: "maria.delacruz@example.com",
             role: { id: 2, name: "user" },
+            created_at: "2026-05-12T00:00:00.000Z",
+            account_status: "active",
           },
           {
             id: 2,
             name: "John Reyes",
             email: "john.reyes@example.com",
             role: { id: 1, name: "admin" },
+            created_at: "2026-05-09T00:00:00.000Z",
+            account_status: "inactive",
           },
         ],
       },
@@ -69,16 +75,57 @@ describe("UserManagementPage", () => {
     expect(await screen.findByText("Maria Dela Cruz")).toBeInTheDocument();
     expect(screen.getByText("John Reyes")).toBeInTheDocument();
     expect(screen.getByText("maria.delacruz@example.com")).toBeInTheDocument();
+    expect(screen.getByText("Active")).toBeInTheDocument();
+    expect(screen.getByText("Inactive")).toBeInTheDocument();
 
-    await userEvent.type(screen.getByLabelText(/^search$/i), "john");
+    await userEvent.type(screen.getByPlaceholderText("Search by name..."), "john");
 
     expect(await screen.findByText("John Reyes")).toBeInTheDocument();
     expect(screen.queryByText("Maria Dela Cruz")).not.toBeInTheDocument();
 
-    await userEvent.clear(screen.getByLabelText(/^search$/i));
+    await userEvent.clear(screen.getByPlaceholderText("Search by name..."));
     await userEvent.selectOptions(screen.getByLabelText(/^role$/i), "user");
 
     expect(await screen.findByText("Maria Dela Cruz")).toBeInTheDocument();
     expect(screen.queryByText("John Reyes")).not.toBeInTheDocument();
+  });
+
+  it("deactivates a user from the table action menu", async () => {
+    listUsersMock.mockResolvedValueOnce({
+      data: {
+        data: [
+          {
+            id: 1,
+            name: "Maria Dela Cruz",
+            email: "maria.delacruz@example.com",
+            role: { id: 2, name: "user" },
+            created_at: "2026-05-12T00:00:00.000Z",
+            account_status: "active",
+          },
+        ],
+      },
+    } as never);
+
+    toggleUserStatusMock.mockResolvedValueOnce({
+      data: {
+        data: {
+          id: 1,
+          name: "Maria Dela Cruz",
+          email: "maria.delacruz@example.com",
+          role: { id: 2, name: "user" },
+          created_at: "2026-05-12T00:00:00.000Z",
+          account_status: "inactive",
+        },
+      },
+    } as never);
+
+    renderUserManagementPage();
+
+    await screen.findByText("Maria Dela Cruz");
+    await userEvent.click(screen.getByRole("button", { name: /open actions menu/i }));
+    await userEvent.click(screen.getByText("Deactivate"));
+
+    expect(usersApi.toggleUserStatus).toHaveBeenCalledWith(1);
+    expect(await screen.findByText("Inactive")).toBeInTheDocument();
   });
 });

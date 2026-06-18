@@ -7,10 +7,15 @@ import {
   DropdownMenuRoot,
   DropdownMenuTrigger,
 } from "radix-vue";
-import { EllipsisVertical } from "lucide-vue-next";
+import { EllipsisVertical, Trash2, UserRoundPen } from "lucide-vue-next";
 
 const props = defineProps<{
   users: ManagedUserRow[];
+  isUpdatingStatus?: boolean;
+}>();
+
+const emit = defineEmits<{
+  (e: "toggle-status", userId: number): void;
 }>();
 
 function asManagedUserRow(row: object): ManagedUserRow {
@@ -21,7 +26,8 @@ const columns = [
   { key: "id", label: "ID" },
   { key: "name", label: "Name" },
   { key: "email", label: "Email Address" },
-  { key: "role", label: "Authorization" },
+  { key: "role", label: "Authority" },
+  { key: "status", label: "Status", align: "center" as const },
   { key: "actions", label: "Options", align: "right" as const },
 ];
 </script>
@@ -36,7 +42,18 @@ const columns = [
         {{ asManagedUserRow(row).role }}
       </span>
     </template>
-    <template #cell-actions>
+    <template #cell-status="{ row }">
+      <div class="flex w-full justify-center">
+        <span class="inline-flex items-center gap-2 text-sm font-medium text-brand-darker">
+          <span :class="[
+            'inline-flex h-2 w-2 rounded-full',
+            asManagedUserRow(row).status === 'inactive' ? 'bg-red-500' : 'bg-emerald-500',
+          ]"></span>
+          {{ asManagedUserRow(row).status === 'inactive' ? 'Inactive' : 'Active' }}
+        </span>
+      </div>
+    </template>
+    <template #cell-actions="{ row }">
       <DropdownMenuRoot>
         <div class="text-right">
           <DropdownMenuTrigger as-child>
@@ -50,12 +67,15 @@ const columns = [
           class="z-50 flex min-w-32 flex-col gap-1 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg outline-none"
           align="end" :side-offset="8">
           <DropdownMenuItem
-            class="flex w-full cursor-pointer rounded px-3 py-2 text-left text-sm text-brand-dark outline-none focus:bg-brand-lighter/30">
-            Edit
+            class="flex items-center gap-1 w-full cursor-pointer rounded px-3 py-2 text-left text-sm text-brand-dark outline-none focus:bg-brand-lighter/30">
+            <UserRoundPen class="h-4 w-4" />
+            Modify
           </DropdownMenuItem>
-          <DropdownMenuItem
-            class="flex w-full cursor-pointer rounded px-3 py-2 text-left text-sm text-red-600 outline-none focus:bg-red-50">
-            Deactivate
+          <DropdownMenuItem :disabled="props.isUpdatingStatus" @select="emit('toggle-status', asManagedUserRow(row).id)"
+            class="flex items-center gap-1 w-full cursor-pointer rounded px-3 py-2 text-left text-sm outline-none"
+            :class="asManagedUserRow(row).status === 'inactive' ? 'text-emerald-600 focus:bg-emerald-50' : 'text-red-600 focus:bg-red-50'">
+            <Trash2 class="h-4 w-4" />
+            {{ asManagedUserRow(row).status === 'inactive' ? 'Activate' : 'Deactivate' }}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenuRoot>

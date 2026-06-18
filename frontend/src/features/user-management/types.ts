@@ -7,6 +7,8 @@ export interface ManagedUser {
   id: number;
   name: string;
   email: string;
+  account_status?: string | null;
+  created_at?: string | null;
   role?: ManagedRole | null;
 }
 
@@ -15,6 +17,7 @@ export interface ManagedUserRow {
   name: string;
   email: string;
   role: string;
+  status: "active" | "inactive";
 }
 
 export type UserManagementSearchField = "name" | "email" | "role";

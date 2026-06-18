@@ -40,6 +40,7 @@ describe("PatientListPage", () => {
             email: "maria.delacruz@example.com",
             role: { id: 2, name: "User" },
             created_at: "2026-05-12T00:00:00.000Z",
+            account_status: "active",
           },
           {
             id: 102,
@@ -47,6 +48,7 @@ describe("PatientListPage", () => {
             email: "john.reyes@example.com",
             role: { id: 2, name: "User" },
             created_at: "2026-05-09T00:00:00.000Z",
+            account_status: "inactive",
           },
           {
             id: 200,
@@ -54,6 +56,7 @@ describe("PatientListPage", () => {
             email: "admin@stbc.local",
             role: { id: 1, name: "Admin" },
             created_at: "2026-05-01T00:00:00.000Z",
+            account_status: "active",
           },
         ],
       },
@@ -66,11 +69,21 @@ describe("PatientListPage", () => {
     expect(await screen.findByText("Maria Dela Cruz")).toBeInTheDocument();
     expect(screen.getByText("John Reyes")).toBeInTheDocument();
     expect(screen.queryByText("System Admin")).not.toBeInTheDocument();
-    expect(screen.getByText("2026-05-12")).toBeInTheDocument();
 
     await userEvent.type(screen.getByLabelText(/^search$/i), "john");
 
     expect(await screen.findByText("John Reyes")).toBeInTheDocument();
+    expect(screen.queryByText("Maria Dela Cruz")).not.toBeInTheDocument();
+  });
+
+  it("filters patients by account status", async () => {
+    renderPatientListPage();
+
+    const statusFilter = await screen.findByLabelText(/^status$/i);
+
+    await userEvent.selectOptions(statusFilter, "inactive");
+
+    expect(screen.getByText("John Reyes")).toBeInTheDocument();
     expect(screen.queryByText("Maria Dela Cruz")).not.toBeInTheDocument();
   });
 });

@@ -8,8 +8,8 @@ export const patientRoutes: AppRoute[] = [
     meta: { roles: ["admin"] },
   },
   {
-    path: "users/:userId/profile",
-    name: "userProfileView",
+    path: "users/:userId/detail",
+    name: "userDetailView",
     component: () => import("@/features/patients/pages/PatientProfilePage.vue"),
     props: true,
     meta: { roles: ["admin", "user"], selfOnly: true, ownerParam: "userId" },
@@ -17,7 +17,7 @@ export const patientRoutes: AppRoute[] = [
   {
     path: "users/:userId/records",
     name: "userRecordsView",
-    component: () => import("@/features/patients/pages/PatientRecordsPage.vue"),
+    component: () => import("@/features/patients/pages/PatientProfilePage.vue"),
     props: true,
     meta: { roles: ["admin", "user"], selfOnly: true, ownerParam: "userId" },
   },
