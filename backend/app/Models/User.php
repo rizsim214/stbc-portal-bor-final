@@ -26,6 +26,8 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
+    protected $appends = ['account_status'];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -47,6 +49,16 @@ class User extends Authenticatable
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
+    }
+
+    public function getAccountStatusAttribute(): string
+    {
+        return (string) ($this->attributes['account_status'] ?? 'active');
+    }
+
+    public function setAccountStatusAttribute(string $value): void
+    {
+        $this->attributes['account_status'] = $value;
     }
 
     public function isAdmin(): bool

@@ -30,4 +30,8 @@ export const usersApi = {
   createUser(payload: UserFormPayload) {
     return http.post<ApiResponse<ManagedUser>>("/users", payload);
   },
+
+  toggleUserStatus(userId: string | number) {
+    return http.patch<ApiResponse<ManagedUser>>(`/users/${userId}/toggle-status`);
+  },
 };

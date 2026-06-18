@@ -64,9 +64,9 @@ describe("router guards", () => {
     setStore("user", true, 42);
     const router = await loadRouter();
 
-    await router.push("/dashboard/users/101/profile");
+    await router.push("/dashboard/users/101/detail");
 
-    expect(router.currentRoute.value.name).toBe("userProfileView");
+    expect(router.currentRoute.value.name).toBe("userDetailView");
     expect(router.currentRoute.value.params.userId).toBe("42");
   });
 

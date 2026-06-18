@@ -32,14 +32,6 @@ function isPatientUser(user: BackendPatientUser): boolean {
   return roleName === "user" || roleName === "patient";
 }
 
-function formatDate(value?: string | null): string {
-  if (!value) {
-    return "Unknown";
-  }
-
-  return value.slice(0, 10);
-}
-
 function toPatientRow(user: BackendPatientUser): PatientRow {
   const normalizedStatus = (user.account_status ?? "active").trim().toLowerCase();
 
@@ -48,7 +40,6 @@ function toPatientRow(user: BackendPatientUser): PatientRow {
     name: user.name,
     email: user.email,
     role: "Patient",
-    registeredAt: formatDate(user.created_at ?? user.updated_at),
     status: normalizedStatus === "inactive" ? "inactive" : "active",
   };
 }

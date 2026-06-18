@@ -2,6 +2,7 @@
 
 use App\Modules\Users\Controllers\AdminRegisterUserController;
 use App\Modules\Users\Controllers\AssignUserRoleController;
+use App\Modules\Users\Controllers\DeactivateUserController;
 use App\Modules\Users\Controllers\ListUsersController;
 use App\Modules\Users\Controllers\ListRolesController;
 use App\Modules\Users\Controllers\ShowUserMedicalHistoryController;
@@ -18,6 +19,9 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('can:manage-users');
 
     Route::patch('/users/{user}/role', AssignUserRoleController::class)
+        ->middleware('can:manage-users');
+
+    Route::patch('/users/{user}/toggle-status', DeactivateUserController::class)
         ->middleware('can:manage-users');
 
     Route::get('/users/{user}/medical-history', ShowUserMedicalHistoryController::class);

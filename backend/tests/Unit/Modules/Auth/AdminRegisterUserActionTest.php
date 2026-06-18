@@ -27,5 +27,10 @@ class AdminRegisterUserActionTest extends TestCase
         ));
 
         $this->assertSame('user', $user->role?->name);
+        $this->assertSame('active', $user->account_status);
+        $this->assertDatabaseHas('users', [
+            'email' => 'jane.doe@example.com',
+            'account_status' => 'active',
+        ]);
     }
 }

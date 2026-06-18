@@ -18,7 +18,6 @@ export interface PatientRow {
   name: string;
   email: string;
   role: string;
-  registeredAt: string;
   status: "active" | "inactive";
 }
 

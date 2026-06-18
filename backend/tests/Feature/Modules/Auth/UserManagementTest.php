@@ -22,6 +22,7 @@ class UserManagementTest extends TestCase
             'name' => 'Jane Doe',
             'email' => 'jane.doe@example.com',
             'role_id' => $userRoleId,
+            'account_status' => 'inactive',
         ]);
 
         Sanctum::actingAs($admin);
@@ -37,6 +38,12 @@ class UserManagementTest extends TestCase
 
         $this->assertContains('admin', $roleNames);
         $this->assertContains('user', $roleNames);
+
+        $createdUser = collect($response->json('data'))
+            ->firstWhere('email', 'jane.doe@example.com');
+
+        $this->assertNotNull($createdUser);
+        $this->assertSame('inactive', $createdUser['account_status']);
     }
 
     public function test_non_admin_cannot_list_users(): void
