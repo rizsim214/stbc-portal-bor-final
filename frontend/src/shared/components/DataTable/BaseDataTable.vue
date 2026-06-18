@@ -27,8 +27,10 @@ type TableColumn = {
   align?: "left" | "right" | "center";
 };
 
+type TableRow = object;
+
 const props = withDefaults(defineProps<{
-  rows: Record<string, unknown>[];
+  rows: TableRow[];
   columns: TableColumn[];
   pageSize?: number;
 }>(), {
@@ -59,6 +61,10 @@ function alignmentClass(align?: "left" | "right" | "center"): string {
   return "text-left";
 }
 
+function getCellValue(row: TableRow, key: string): unknown {
+  return (row as Record<string, unknown>)[key];
+}
+
 watch(() => props.rows, () => {
   currentPage.value = 1;
 });
@@ -78,7 +84,7 @@ watch(() => props.rows, () => {
       <TableRow v-for="(row, rowIndex) in pagedRows" :key="rowIndex" class="hover:bg-brand-lighter/20">
         <TableCell v-for="column in columns" :key="`${rowIndex}-${column.key}`" :class="alignmentClass(column.align)">
           <slot :name="`cell-${column.key}`" :row="row">
-            {{ row[column.key] }}
+            {{ getCellValue(row, column.key) }}
           </slot>
         </TableCell>
       </TableRow>
@@ -106,7 +112,7 @@ watch(() => props.rows, () => {
 
                 <template v-for="(item, index) in items" :key="`${item.type}-${index}`">
                   <PaginationListItem v-if="item.type === 'page'" :value="item.value"
-                    class="inline-flex h-8 min-w-8 items-center justify-center rounded-md border-brand-light/40 px-2 text-xs text-brand-dark transition hover:bg-brand-lighter/30 data-[selected]:border-brand-darker data-[selected]:bg-brand-darker data-[selected]:text-white">
+                    class="inline-flex h-8 min-w-8 items-center justify-center rounded-md border-brand-light/40 px-2 text-xs text-brand-dark transition hover:bg-brand-lighter/30 data-selected:border-brand-darker data-selected:bg-brand-darker data-selected:text-white">
                     {{ item.value }}
                   </PaginationListItem>
                   <PaginationEllipsis v-else
@@ -117,11 +123,11 @@ watch(() => props.rows, () => {
                 </template>
 
                 <PaginationNext
-                  class="inline-flex h-8 items-center rounded-md px-2 text-xs text-brand-dark transition hover:bg-brand-lighter/30 data-[disabled]:pointer-events-none data-[disabled]:opacity-45">
+                  class="inline-flex h-8 items-center rounded-md px-2 text-xs text-brand-dark transition hover:bg-brand-lighter/30 data-disabled:pointer-events-none data-disabled:opacity-45">
                   <ChevronRight class="h-4 w-4 stroke-[1.5]" />
                 </PaginationNext>
                 <PaginationLast
-                  class="inline-flex h-8 items-center rounded-md px-2 text-xs text-brand-dark transition hover:bg-brand-lighter/30 data-[disabled]:pointer-events-none data-[disabled]:opacity-45">
+                  class="inline-flex h-8 items-center rounded-md px-2 text-xs text-brand-dark transition hover:bg-brand-lighter/30 data-disabled:pointer-events-none data-disabled:opacity-45">
                   <ChevronsRight class="h-4 w-4 stroke-[1.5]" />
                 </PaginationLast>
               </PaginationList>

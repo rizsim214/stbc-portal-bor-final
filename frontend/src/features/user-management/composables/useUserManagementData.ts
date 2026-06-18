@@ -1,13 +1,55 @@
 import { computed, ref } from "vue";
+import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import { usersApi } from "../api/usersApi";
-import type { ManagedRole, ManagedUser, ManagedUserRow } from "../types";
+import type { ManagedUser, ManagedUserRow } from "../types";
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return fallback;
+}
 
 export function useUserManagementData() {
-  const users = ref<ManagedUser[]>([]);
-  const roles = ref<ManagedRole[]>([]);
-  const isLoadingUsers = ref(false);
-  const isLoadingRoles = ref(false);
-  const dataError = ref("");
+  const queryClient = useQueryClient();
+  const errorDismissed = ref(false);
+
+  const usersQuery = useQuery({
+    queryKey: ["users", "management", "list"],
+    queryFn: async () => {
+      const { data } = await usersApi.listUsers();
+      return data.data;
+    },
+  });
+
+  const rolesQuery = useQuery({
+    queryKey: ["users", "management", "roles"],
+    queryFn: async () => {
+      const { data } = await usersApi.listRoles();
+      return data.data;
+    },
+  });
+
+  const users = computed(() => usersQuery.data.value ?? []);
+  const roles = computed(() => rolesQuery.data.value ?? []);
+  const isLoadingUsers = computed(() => usersQuery.isFetching.value || usersQuery.isPending.value);
+  const isLoadingRoles = computed(() => rolesQuery.isFetching.value || rolesQuery.isPending.value);
+  const dataError = computed(() => {
+    if (errorDismissed.value) {
+      return "";
+    }
+
+    if (usersQuery.isError.value) {
+      return getErrorMessage(usersQuery.error.value, "Failed to load users.");
+    }
+
+    if (rolesQuery.isError.value && !roles.value.length) {
+      return getErrorMessage(rolesQuery.error.value, "Failed to load role options.");
+    }
+
+    return "";
+  });
 
   const normalizedUsers = computed<ManagedUserRow[]>(() =>
     users.value.map((user) => ({
@@ -27,30 +69,13 @@ export function useUserManagementData() {
   });
 
   async function loadUsers(): Promise<void> {
-    isLoadingUsers.value = true;
-    try {
-      const { data } = await usersApi.listUsers();
-      users.value = data.data;
-    } catch (error) {
-      dataError.value = "Failed to load users.";
-      throw error;
-    } finally {
-      isLoadingUsers.value = false;
-    }
+    errorDismissed.value = false;
+    await usersQuery.refetch();
   }
 
   async function loadRoles(): Promise<void> {
-    isLoadingRoles.value = true;
-    try {
-      const { data } = await usersApi.listRoles();
-      roles.value = data.data;
-    } catch {
-      if (!roles.value.length) {
-        dataError.value = "Failed to load role options.";
-      }
-    } finally {
-      isLoadingRoles.value = false;
-    }
+    errorDismissed.value = false;
+    await rolesQuery.refetch();
   }
 
   async function loadInitialData(): Promise<void> {
@@ -58,11 +83,14 @@ export function useUserManagementData() {
   }
 
   function clearDataError(): void {
-    dataError.value = "";
+    errorDismissed.value = true;
   }
 
   function addUser(user: ManagedUser): void {
-    users.value = [user, ...users.value.filter((currentUser) => currentUser.id !== user.id)];
+    queryClient.setQueryData<ManagedUser[]>(
+      ["users", "management", "list"],
+      (currentUsers = []) => [user, ...currentUsers.filter((currentUser) => currentUser.id !== user.id)],
+    );
   }
 
   return {
