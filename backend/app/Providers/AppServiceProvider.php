@@ -54,5 +54,13 @@ class AppServiceProvider extends ServiceProvider
 
             return false;
         });
+
+        Gate::define('view-medical-history', function (User $user, User $targetUser): bool {
+            if ($user->isAdmin()) {
+                return true;
+            }
+
+            return $user->hasRole('user') && (int) $user->id === (int) $targetUser->id;
+        });
     }
 }

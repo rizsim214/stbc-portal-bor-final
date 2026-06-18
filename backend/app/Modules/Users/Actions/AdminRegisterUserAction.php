@@ -17,6 +17,7 @@ class AdminRegisterUserAction
             'email' => $dto->email,
             'password' => $dto->password,
             'role_id' => $role->id,
+            'account_status' => 'active',
         ]);
 
         return $user->load('role');

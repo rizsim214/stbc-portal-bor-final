@@ -60,6 +60,55 @@ class RoleManagementTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_toggle_user_status(): void
+    {
+        $adminRoleId = $this->createRole('admin');
+        $userRoleId = $this->createRole('user');
+
+        $admin = User::factory()->create(['role_id' => $adminRoleId]);
+        $target = User::factory()->create([
+            'role_id' => $userRoleId,
+            'account_status' => 'active',
+        ]);
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->patchJson("/api/users/{$target->id}/toggle-status");
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'User status updated successfully.')
+            ->assertJsonPath('data.account_status', 'inactive');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $target->id,
+            'account_status' => 'inactive',
+        ]);
+
+        $response = $this->patchJson("/api/users/{$target->id}/toggle-status");
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'User status updated successfully.')
+            ->assertJsonPath('data.account_status', 'active');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $target->id,
+            'account_status' => 'active',
+        ]);
+    }
+
+    public function test_non_admin_cannot_toggle_user_status(): void
+    {
+        $userRoleId = $this->createRole('user');
+
+        $user = User::factory()->create(['role_id' => $userRoleId]);
+        $target = User::factory()->create(['role_id' => $userRoleId]);
+
+        Sanctum::actingAs($user);
+
+        $this->patchJson("/api/users/{$target->id}/toggle-status")
+            ->assertStatus(403);
+    }
+
     public function test_admin_can_create_user_with_role(): void
     {
         $adminRoleId = $this->createRole('admin');
