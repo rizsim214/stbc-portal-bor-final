@@ -10,6 +10,6 @@ const app = createApp(App);
 
 app.use(pinia);
 app.use(router);
-app.use(VueQueryPlugin, { queryClient });
+app.use(VueQueryPlugin, { queryClient, enableDevtoolsV6Plugin: true });
 
 app.mount("#app");
