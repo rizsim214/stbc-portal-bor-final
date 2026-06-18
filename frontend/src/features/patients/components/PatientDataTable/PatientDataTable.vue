@@ -20,8 +20,9 @@ function asPatientRow(row: object): PatientRow {
 const columns = [
   { key: "name", label: "User Name" },
   { key: "email", label: "Email Address" },
-  { key: "role", label: "Role" },
-  { key: "registeredAt", label: "Registered At" },
+  { key: "role", label: "Authority" },
+  { key: "status", label: "Status", align: "center" as const },
+  { key: "registeredAt", label: "Registration Date", align: "right" as const },
   { key: "actions", label: "Options", align: "right" as const },
 ];
 </script>
@@ -34,8 +35,17 @@ const columns = [
       </span>
     </template>
 
+    <template #cell-status="{ row }">
+      <div class="flex w-full justify-center">
+        <span :class="[
+          'inline-flex h-2 w-2 rounded-full',
+          asPatientRow(row).status === 'inactive' ? 'bg-red-500' : 'bg-emerald-500',
+        ]"></span>
+      </div>
+    </template>
+
     <template #cell-registeredAt="{ row }">
-      <span class="font-mono text-xs text-brand-dark/80">
+      <span class="block w-full text-right font-mono text-xs text-brand-dark/80">
         {{ asPatientRow(row).registeredAt }}
       </span>
     </template>

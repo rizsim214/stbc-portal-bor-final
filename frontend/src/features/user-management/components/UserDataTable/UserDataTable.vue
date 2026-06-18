@@ -21,7 +21,7 @@ const columns = [
   { key: "id", label: "ID" },
   { key: "name", label: "Name" },
   { key: "email", label: "Email Address" },
-  { key: "role", label: "Authorization" },
+  { key: "role", label: "Authority" },
   { key: "actions", label: "Options", align: "right" as const },
 ];
 </script>

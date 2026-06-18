@@ -41,12 +41,15 @@ function formatDate(value?: string | null): string {
 }
 
 function toPatientRow(user: BackendPatientUser): PatientRow {
+  const normalizedStatus = (user.account_status ?? "active").trim().toLowerCase();
+
   return {
     id: user.id,
     name: user.name,
     email: user.email,
     role: "Patient",
     registeredAt: formatDate(user.created_at ?? user.updated_at),
+    status: normalizedStatus === "inactive" ? "inactive" : "active",
   };
 }
 
