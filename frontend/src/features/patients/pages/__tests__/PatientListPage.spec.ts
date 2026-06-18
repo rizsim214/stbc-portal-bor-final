@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/vue";
 import userEvent from "@testing-library/user-event";
+import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import PatientListPage from "../PatientListPage.vue";
 import { patientsApi } from "../../api/patientsApi";
@@ -12,6 +13,22 @@ vi.mock("../../api/patientsApi", () => ({
 
 const listPatientsMock = vi.mocked(patientsApi.listPatients);
 
+function renderPatientListPage() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+
+  return render(PatientListPage, {
+    global: {
+      plugins: [[VueQueryPlugin, { queryClient }]],
+    },
+  });
+}
+
 describe("PatientListPage", () => {
   beforeEach(() => {
     listPatientsMock.mockResolvedValue({
@@ -21,21 +38,21 @@ describe("PatientListPage", () => {
             id: 101,
             name: "Maria Dela Cruz",
             email: "maria.delacruz@example.com",
-            role: { id: 2, name: "user" },
+            role: { id: 2, name: "User" },
             created_at: "2026-05-12T00:00:00.000Z",
           },
           {
             id: 102,
             name: "John Reyes",
             email: "john.reyes@example.com",
-            role: { id: 2, name: "user" },
+            role: { id: 2, name: "User" },
             created_at: "2026-05-09T00:00:00.000Z",
           },
           {
             id: 200,
             name: "System Admin",
             email: "admin@stbc.local",
-            role: { id: 1, name: "admin" },
+            role: { id: 1, name: "Admin" },
             created_at: "2026-05-01T00:00:00.000Z",
           },
         ],
@@ -44,7 +61,7 @@ describe("PatientListPage", () => {
   });
 
   it("loads patient users from the backend and filters the table", async () => {
-    render(PatientListPage);
+    renderPatientListPage();
 
     expect(await screen.findByText("Maria Dela Cruz")).toBeInTheDocument();
     expect(screen.getByText("John Reyes")).toBeInTheDocument();

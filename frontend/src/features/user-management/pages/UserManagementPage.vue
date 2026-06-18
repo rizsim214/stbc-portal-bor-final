@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
 import { Plus } from "lucide-vue-next";
 import DataTable from "@/features/user-management/components/UserDataTable/UserDataTable.vue";
 import UserCreateModal from "@/features/user-management/components/UserCreateModal/UserCreateModal.vue";
@@ -19,7 +18,6 @@ const {
   isLoadingUsers,
   normalizedUsers,
   availableRoles,
-  loadInitialData,
   addUser,
 } = useUserManagementData();
 
@@ -44,10 +42,6 @@ function dismissStatusBanner(): void {
   clearPageError();
   clearPageMessage();
 }
-
-onMounted(async () => {
-  await loadInitialData();
-});
 </script>
 
 <template>
