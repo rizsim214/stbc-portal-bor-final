@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { ChevronLeft, UserPen } from "lucide-vue-next";
 
 const props = defineProps<{
   userId: string;
@@ -19,10 +20,28 @@ const profile = computed(() => {
 </script>
 
 <template>
+
+  <div class="mb-2">
+    <RouterLink :to="{ name: 'userList' }"
+      class="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-brand-darker transition no-underline underline-offset-2 hover:underline  tracking-widest">
+      <ChevronLeft class="h-4 w-4" />
+      Back
+    </RouterLink>
+  </div>
   <section class="rounded-xl border border-brand-light/30 bg-white p-6">
-    <p class="text-xs uppercase tracking-[0.12em] text-brand-dark/65">User Profile</p>
-    <h1 class="mt-2 text-2xl font-semibold text-brand-darker">{{ profile.name }}</h1>
-    <p class="mt-2 text-sm text-brand-dark">Profile summary for the selected patient record.</p>
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <p class="text-xs uppercase tracking-[0.12em] text-brand-dark/65">User Profile</p>
+        <h1 class="mt-2 text-2xl font-semibold text-brand-darker">{{ profile.name }}</h1>
+        <p class="mt-2 text-sm text-brand-dark">Profile summary for the selected patient record.</p>
+      </div>
+
+      <RouterLink to="#"
+        class="inline-flex items-center gap-2 rounded-md border border-brand-light/40 px-3 py-2 text-sm font-medium text-brand-darker transition hover:bg-brand-lighter/30">
+        <UserPen class="h-4 w-4" />
+        Edit
+      </RouterLink>
+    </div>
 
     <div class="mt-6 grid gap-4 md:grid-cols-2">
       <div class="rounded-lg border border-brand-light/25 bg-brand-lighter/10 p-4">

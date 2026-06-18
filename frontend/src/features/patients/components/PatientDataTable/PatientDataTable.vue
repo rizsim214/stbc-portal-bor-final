@@ -13,6 +13,10 @@ const props = defineProps<{
   patients: PatientRow[];
 }>();
 
+function asPatientRow(row: object): PatientRow {
+  return row as PatientRow;
+}
+
 const columns = [
   { key: "name", label: "User Name" },
   { key: "email", label: "Email Address" },
@@ -23,16 +27,16 @@ const columns = [
 </script>
 
 <template>
-  <BaseDataTable :rows="props.patients as unknown as Record<string, unknown>[]" :columns="columns" :page-size="5">
+  <BaseDataTable :rows="props.patients" :columns="columns" :page-size="15">
     <template #cell-role="{ row }">
       <span class="rounded-full bg-brand-lighter/50 px-2 py-1 text-xs font-medium text-brand-darker">
-        {{ row.role }}
+        {{ asPatientRow(row).role }}
       </span>
     </template>
 
     <template #cell-registeredAt="{ row }">
       <span class="font-mono text-xs text-brand-dark/80">
-        {{ row.registeredAt }}
+        {{ asPatientRow(row).registeredAt }}
       </span>
     </template>
 
@@ -48,21 +52,21 @@ const columns = [
         </div>
         <DropdownMenuContent
           class="z-50 flex min-w-36 flex-col gap-1 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg outline-none"
-          align="end"
-          :side-offset="8">
+          align="end" :side-offset="8">
           <DropdownMenuItem as-child
             class="flex w-full cursor-pointer rounded px-3 py-2 text-left text-sm text-brand-dark outline-none focus:bg-brand-lighter/30">
-            <RouterLink :to="{ name: 'userProfileView', params: { userId: String(row.id) } }">
+            <RouterLink :to="{ name: 'userProfileView', params: { userId: String(asPatientRow(row).id) } }">
               View Profile
             </RouterLink>
           </DropdownMenuItem>
           <DropdownMenuItem as-child
             class="flex w-full cursor-pointer rounded px-3 py-2 text-left text-sm text-brand-dark outline-none focus:bg-brand-lighter/30">
-            <RouterLink :to="{ name: 'userRecordsView', params: { userId: String(row.id) } }">
+            <RouterLink :to="{ name: 'userRecordsView', params: { userId: String(asPatientRow(row).id) } }">
               View Records
             </RouterLink>
           </DropdownMenuItem>
-          <DropdownMenuItem class="flex w-full cursor-pointer rounded px-3 py-2 text-left text-sm text-red-600 outline-none focus:bg-red-50">
+          <DropdownMenuItem
+            class="flex w-full cursor-pointer rounded px-3 py-2 text-left text-sm text-red-600 outline-none focus:bg-red-50">
             Deactivate
           </DropdownMenuItem>
         </DropdownMenuContent>

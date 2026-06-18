@@ -11,7 +11,7 @@ class ListUsersAction
     {
         return User::query()
             ->with('role')
-            ->orderBy('name')
+            ->latest()
             ->get();
     }
 }

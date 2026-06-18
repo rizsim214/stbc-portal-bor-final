@@ -13,6 +13,10 @@ const props = defineProps<{
   users: ManagedUserRow[];
 }>();
 
+function asManagedUserRow(row: object): ManagedUserRow {
+  return row as ManagedUserRow;
+}
+
 const columns = [
   { key: "id", label: "ID" },
   { key: "name", label: "Name" },
@@ -23,17 +27,13 @@ const columns = [
 </script>
 
 <template>
-  <BaseDataTable
-    :rows="props.users as unknown as Record<string, unknown>[]"
-    :columns="columns"
-    :page-size="15"
-  >
+  <BaseDataTable :rows="props.users" :columns="columns" :page-size="15">
     <template #cell-id="{ row }">
-      <span class="font-mono text-xs text-brand-dark/80">{{ row.id }}</span>
+      <span class="font-mono text-xs text-brand-dark/80">{{ asManagedUserRow(row).id }}</span>
     </template>
     <template #cell-role="{ row }">
       <span class="rounded-full bg-brand-lighter/50 px-2 py-1 text-xs font-medium text-brand-darker">
-        {{ row.role }}
+        {{ asManagedUserRow(row).role }}
       </span>
     </template>
     <template #cell-actions>
