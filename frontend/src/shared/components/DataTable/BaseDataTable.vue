@@ -106,7 +106,7 @@ watch(() => props.rows, () => {
 
                 <template v-for="(item, index) in items" :key="`${item.type}-${index}`">
                   <PaginationListItem v-if="item.type === 'page'" :value="item.value"
-                    class="inline-flex h-8 min-w-8 items-center justify-center rounded-md border-brand-light/40 px-2 text-xs text-brand-dark transition hover:bg-brand-lighter/30 data-[selected]:border-brand-darker data-[selected]:bg-brand-darker data-[selected]:text-white">
+                    class="inline-flex h-8 min-w-8 items-center justify-center rounded-md border-brand-light/40 px-2 text-xs text-brand-dark transition hover:bg-brand-lighter/30 data-selected:border-brand-darker data-selected:bg-brand-darker data-selected:text-white">
                     {{ item.value }}
                   </PaginationListItem>
                   <PaginationEllipsis v-else
@@ -117,11 +117,11 @@ watch(() => props.rows, () => {
                 </template>
 
                 <PaginationNext
-                  class="inline-flex h-8 items-center rounded-md px-2 text-xs text-brand-dark transition hover:bg-brand-lighter/30 data-[disabled]:pointer-events-none data-[disabled]:opacity-45">
+                  class="inline-flex h-8 items-center rounded-md px-2 text-xs text-brand-dark transition hover:bg-brand-lighter/30 data-disabled:pointer-events-none data-disabled:opacity-45">
                   <ChevronRight class="h-4 w-4 stroke-[1.5]" />
                 </PaginationNext>
                 <PaginationLast
-                  class="inline-flex h-8 items-center rounded-md px-2 text-xs text-brand-dark transition hover:bg-brand-lighter/30 data-[disabled]:pointer-events-none data-[disabled]:opacity-45">
+                  class="inline-flex h-8 items-center rounded-md px-2 text-xs text-brand-dark transition hover:bg-brand-lighter/30 data-disabled:pointer-events-none data-disabled:opacity-45">
                   <ChevronsRight class="h-4 w-4 stroke-[1.5]" />
                 </PaginationLast>
               </PaginationList>

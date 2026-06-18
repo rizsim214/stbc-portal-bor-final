@@ -40,35 +40,16 @@ onMounted(async () => {
 
 <template>
   <section class="rounded-xl border border-brand-light/30 bg-white p-6">
-    <PageHeader
-      title="Patient List"
-      subtitle="Live patient records from the database."
-      heading-tag="h1"
-    />
+    <PageHeader title="Patient List" subtitle="Live patient records from the database." heading-tag="h1" />
 
-    <StatusBanner
-      v-if="dataError"
-      :message="dataError"
-      tone="error"
-      @dismiss="dismissStatusBanner"
-    />
+    <StatusBanner v-if="dataError" :message="dataError" tone="error" @dismiss="dismissStatusBanner" />
 
     <div class="mt-5">
-      <PatientTableFilters
-        :search-term="searchTerm"
-        :search-field="searchField"
-        :role-filter="roleFilter"
-        :available-roles="availableRoles"
-        @update:search-term="searchTerm = $event"
-        @update:search-field="searchField = $event"
-        @update:role-filter="roleFilter = $event"
-      />
-      <ListMeta
-        :shown-count="filteredPatients.length"
-        :total-count="patients.length"
-        label="patients"
-        :is-loading="isLoadingPatients"
-      />
+      <PatientTableFilters :search-term="searchTerm" :search-field="searchField" :role-filter="roleFilter"
+        :available-roles="availableRoles" @update:search-term="searchTerm = $event"
+        @update:search-field="searchField = $event" @update:role-filter="roleFilter = $event" />
+      <ListMeta :shown-count="filteredPatients.length" :total-count="patients.length" label="patients"
+        :is-loading="isLoadingPatients" />
       <PatientDataTable :patients="filteredPatients" />
     </div>
   </section>
