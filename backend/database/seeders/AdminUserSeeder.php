@@ -23,7 +23,7 @@ class AdminUserSeeder extends Seeder
             ['email' => $adminEmail],
             [
                 'name' => (string) env('INITIAL_ADMIN_NAME', 'System Admin'),
-                'password' => (string) env('INITIAL_ADMIN_PASSWORD', 'ChangeMe123!'),
+                'password' => (string) env('INITIAL_ADMIN_PASSWORD', 'password123'),
                 'role_id' => $adminRole->id,
             ]
         );
