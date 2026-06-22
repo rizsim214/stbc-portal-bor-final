@@ -16,4 +16,9 @@ export const publicRoutes: AppRoute[] = [
     name: "services",
     component: () => import("@/pages/ServicesPage.vue"),
   },
+  {
+    path: "/appointments",
+    name: "appointments",
+    component: () => import("@/features/appointment/pages/AppointmentPage.vue"),
+  },
 ];
