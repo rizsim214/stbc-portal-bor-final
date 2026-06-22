@@ -52,8 +52,7 @@ const onSubmit = async (): Promise<void> => {
 </script>
 
 <template>
-  <main
-    class="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl items-center justify-center px-4 py-6 sm:px-6 lg:px-8">
+  <main class="flex min-h-[calc(100vh-10rem)] w-full items-center justify-center px-4 py-6 sm:px-6 lg:px-8">
     <section
       class="w-full max-w-md rounded-2xl border border-brand-light/30 bg-white p-6 shadow-[0_12px_28px_-16px_rgba(21,5,120,0.45)] sm:p-8">
       <h1 class="text-2xl font-semibold text-brand-darker">Sign in to your account</h1>
@@ -62,14 +61,19 @@ const onSubmit = async (): Promise<void> => {
         Please use the email you used to book your appointment and the password sent to your email.
       </p>
 
-      <form class="mt-6 space-y-4" @submit.prevent="onSubmit">
+      <form class="mt-4 space-y-4" @submit.prevent="onSubmit">
+
         <Input id="email" v-model="loginForm.email" :error="loginErrors.email" type="email" label="Email"
           placeholder="you@example.com" autocomplete="email" @clear-error="clearLoginError('email')" />
-
-        <Input id="password" v-model="loginForm.password" :error="loginErrors.password" type="password" label="Password"
-          placeholder="Enter your password" autocomplete="current-password"
-          @clear-error="clearLoginError('password')" />
-
+        <div class="space-y-1">
+          <Input id="password" v-model="loginForm.password" :error="loginErrors.password" type="password"
+            label="Password" placeholder="Enter your password" autocomplete="current-password"
+            @clear-error="clearLoginError('password')" />
+          <RouterLink to="#" class="flex w-full justify-end"><small
+              class="underline text-brand-darker tracking-wide">Forgot
+              Password?</small>
+          </RouterLink>
+        </div>
         <p v-if="submitError" class="text-sm text-red-500">{{ submitError }}</p>
         <Button type="submit" :loading="authStore.isLoading" class="bg-brand-dark hover:bg-brand-darker">
           Sign In

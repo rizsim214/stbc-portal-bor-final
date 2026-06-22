@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/vue";
+import { fireEvent, render, screen } from "@testing-library/vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 import { createPinia, setActivePinia } from "pinia";
 import { describe, it, expect } from "vitest";
+import { defineComponent, ref } from "vue";
 import SideNavigation from "../SideNavigation.vue";
 import { useAuthStore } from "@/features/auth/stores/useAuthStore";
 
@@ -83,7 +84,16 @@ async function renderForRole(role: "admin" | "user") {
   await router.push("/dashboard");
   await router.isReady();
 
-  render(SideNavigation, {
+  const SideNavigationHarness = defineComponent({
+    components: { SideNavigation },
+    setup() {
+      const collapsed = ref(false);
+      return { collapsed };
+    },
+    template: '<SideNavigation v-model:collapsed="collapsed" />',
+  });
+
+  render(SideNavigationHarness, {
     global: {
       plugins: [pinia, router],
     },
@@ -106,5 +116,19 @@ describe("SideNavigation role visibility", () => {
     expect(screen.getByAltText("STBC Clinic Logo")).toBeInTheDocument();
     expect(screen.getByText("Records")).toBeInTheDocument();
     expect(screen.getByText("Administration")).toBeInTheDocument();
+  });
+
+  it("renders icon-only desktop content when collapsed", async () => {
+    await renderForRole("admin");
+
+    const collapseButton = screen.getByLabelText("Collapse sidebar");
+    await fireEvent.click(collapseButton);
+
+    expect(screen.getByLabelText("Expand sidebar")).toBeInTheDocument();
+    expect(screen.queryByText("Navigation")).not.toBeInTheDocument();
+    expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
+    expect(screen.queryByText("Administration")).not.toBeInTheDocument();
+    expect(screen.getByTitle("Dashboard")).toBeInTheDocument();
+    expect(screen.getByTitle("User Administration")).toBeInTheDocument();
   });
 });
