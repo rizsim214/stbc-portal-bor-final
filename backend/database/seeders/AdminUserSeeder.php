@@ -22,7 +22,7 @@ class AdminUserSeeder extends Seeder
         $admin = User::query()->firstOrCreate(
             ['email' => $adminEmail],
             [
-                'name' => (string) env('INITIAL_ADMIN_NAME', 'System Admin'),
+                'name' => (string) env('INITIAL_ADMIN_NAME', 'System Administrator'),
                 'password' => (string) env('INITIAL_ADMIN_PASSWORD', 'password123'),
                 'role_id' => $adminRole->id,
             ]

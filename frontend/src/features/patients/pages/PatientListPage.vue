@@ -3,7 +3,7 @@ import { computed, ref } from "vue";
 import PatientDataTable from "@/features/patients/components/PatientDataTable/PatientDataTable.vue";
 import PatientTableFilters from "@/features/patients/components/PatientTableFilters/PatientTableFilters.vue";
 import { usePatientListData } from "@/features/patients/composables/usePatientListData";
-import type { PatientListSearchField, PatientListStatusFilter } from "@/features/patients/types";
+import type { PatientListSearchField } from "@/features/patients/types";
 import PageHeader from "@/shared/components/PageHeader/PageHeader.vue";
 import ListMeta from "@/shared/components/ListMeta/ListMeta.vue";
 import StatusBanner from "@/shared/components/StatusBanner/StatusBanner.vue";
@@ -12,16 +12,13 @@ const { patients, isLoadingPatients, dataError, clearDataError } = usePatientLis
 
 const searchTerm = ref("");
 const searchField = ref<PatientListSearchField>("name");
-const statusFilter = ref<PatientListStatusFilter>("all");
 
 const filteredPatients = computed(() => {
   const query = searchTerm.value.trim().toLowerCase();
 
   return patients.value.filter((patient) => {
     const searchableValue = patient[searchField.value].toLowerCase();
-    const matchesQuery = !query || searchableValue.includes(query);
-    const matchesStatus = statusFilter.value === "all" || patient.status === statusFilter.value;
-    return matchesQuery && matchesStatus;
+    return !query || searchableValue.includes(query);
   });
 });
 
@@ -40,10 +37,8 @@ function dismissStatusBanner(): void {
       <PatientTableFilters
         :search-term="searchTerm"
         :search-field="searchField"
-        :status-filter="statusFilter"
         @update:search-term="searchTerm = $event"
         @update:search-field="searchField = $event"
-        @update:status-filter="statusFilter = $event"
       />
       <ListMeta :shown-count="filteredPatients.length" :total-count="patients.length" label="patients"
         :is-loading="isLoadingPatients" />

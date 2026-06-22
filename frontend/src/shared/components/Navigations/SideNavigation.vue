@@ -31,7 +31,7 @@ type SubItem = {
   to: RouteLocationRaw;
   routeName: string;
   icon: Component;
-  roles?: Array<"admin" | "user">;
+  roles?: Array<"admin" | "patient">;
 };
 
 type SideNavGroup = {
@@ -53,10 +53,10 @@ const emit = defineEmits<{
 
 const isDesktopCollapsed = computed(() => props.collapsed ?? false);
 
-const currentRole = computed<"admin" | "user">(() => {
+const currentRole = computed<"admin" | "patient">(() => {
   const role = authStore.user?.role?.name?.toLowerCase();
   if (role === "admin") return role;
-  return "user";
+  return "patient";
 });
 
 const accordionItems: SideNavGroup[] = [
@@ -79,7 +79,7 @@ const accordionItems: SideNavGroup[] = [
         to: { name: "userMedicalRecord" },
         routeName: "userMedicalRecord",
         icon: UserRoundSearch,
-        roles: ["user"],
+        roles: ["patient"],
       },
     ],
   },
@@ -122,7 +122,7 @@ function getDashboardLinkClass(): string {
   const dashboardRouteNames = [
     "dashboard",
     "dashboardOverview",
-    "userDashboard",
+    "patientDashboard",
     "adminDashboard",
   ];
   const isActive =
