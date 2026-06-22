@@ -14,8 +14,8 @@ function buildRouter() {
     routes: [
       { path: "/dashboard", name: "dashboard", component: DummyPage },
       {
-        path: "/dashboard/user",
-        name: "userDashboard",
+        path: "/dashboard/patient",
+        name: "patientDashboard",
         component: DummyPage,
       },
       {
@@ -67,7 +67,7 @@ function buildRouter() {
   });
 }
 
-async function renderForRole(role: "admin" | "user") {
+async function renderForRole(role: "admin" | "patient") {
   const pinia = createPinia();
   setActivePinia(pinia);
 
@@ -101,8 +101,8 @@ async function renderForRole(role: "admin" | "user") {
 }
 
 describe("SideNavigation role visibility", () => {
-  it("shows only dashboard and user related group for user role", async () => {
-    await renderForRole("user");
+  it("shows only dashboard and patient related group for patient role", async () => {
+    await renderForRole("patient");
 
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.getByAltText("STBC Clinic Logo")).toBeInTheDocument();

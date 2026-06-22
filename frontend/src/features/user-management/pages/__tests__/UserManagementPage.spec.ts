@@ -43,7 +43,7 @@ describe("UserManagementPage", () => {
             id: 1,
             name: "Maria Dela Cruz",
             email: "maria.delacruz@example.com",
-            role: { id: 2, name: "user" },
+            role: { id: 2, name: "patient" },
             created_at: "2026-05-12T00:00:00.000Z",
             account_status: "active",
           },
@@ -63,7 +63,7 @@ describe("UserManagementPage", () => {
       data: {
         data: [
           { id: 1, name: "admin" },
-          { id: 2, name: "user" },
+          { id: 2, name: "patient" },
         ],
       },
     } as never);
@@ -75,8 +75,8 @@ describe("UserManagementPage", () => {
     expect(await screen.findByText("Maria Dela Cruz")).toBeInTheDocument();
     expect(screen.getByText("John Reyes")).toBeInTheDocument();
     expect(screen.getByText("maria.delacruz@example.com")).toBeInTheDocument();
-    expect(screen.getByText("Active")).toBeInTheDocument();
-    expect(screen.getByText("Inactive")).toBeInTheDocument();
+    expect(screen.getAllByText("Active").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Inactive").length).toBeGreaterThan(0);
 
     await userEvent.type(screen.getByPlaceholderText("Search by name..."), "john");
 
@@ -84,7 +84,14 @@ describe("UserManagementPage", () => {
     expect(screen.queryByText("Maria Dela Cruz")).not.toBeInTheDocument();
 
     await userEvent.clear(screen.getByPlaceholderText("Search by name..."));
-    await userEvent.selectOptions(screen.getByLabelText(/^role$/i), "user");
+    await userEvent.selectOptions(screen.getByLabelText(/^status$/i), "inactive");
+
+    expect(await screen.findByText("John Reyes")).toBeInTheDocument();
+    expect(screen.queryByText("Maria Dela Cruz")).not.toBeInTheDocument();
+
+    await userEvent.selectOptions(screen.getByLabelText(/^status$/i), "all");
+    await userEvent.selectOptions(screen.getByLabelText(/^filter field$/i), "role");
+    await userEvent.type(screen.getByPlaceholderText("Search by role..."), "patient");
 
     expect(await screen.findByText("Maria Dela Cruz")).toBeInTheDocument();
     expect(screen.queryByText("John Reyes")).not.toBeInTheDocument();
@@ -98,7 +105,7 @@ describe("UserManagementPage", () => {
             id: 1,
             name: "Maria Dela Cruz",
             email: "maria.delacruz@example.com",
-            role: { id: 2, name: "user" },
+            role: { id: 2, name: "patient" },
             created_at: "2026-05-12T00:00:00.000Z",
             account_status: "active",
           },
@@ -112,7 +119,7 @@ describe("UserManagementPage", () => {
           id: 1,
           name: "Maria Dela Cruz",
           email: "maria.delacruz@example.com",
-          role: { id: 2, name: "user" },
+          role: { id: 2, name: "patient" },
           created_at: "2026-05-12T00:00:00.000Z",
           account_status: "inactive",
         },
@@ -126,6 +133,6 @@ describe("UserManagementPage", () => {
     await userEvent.click(screen.getByText("Deactivate"));
 
     expect(usersApi.toggleUserStatus).toHaveBeenCalledWith(1);
-    expect(await screen.findByText("Inactive")).toBeInTheDocument();
+    expect((await screen.findAllByText("Inactive")).length).toBeGreaterThan(0);
   });
 });

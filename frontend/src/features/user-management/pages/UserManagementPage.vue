@@ -17,13 +17,12 @@ const {
   clearDataError,
   isLoadingUsers,
   normalizedUsers,
-  availableRoles,
   addUser,
   toggleUserStatus,
   isTogglingUserStatus,
 } = useUserManagementData();
 
-const { searchTerm, searchField, roleFilter, filteredUsers } = useUserManagementFilters(normalizedUsers);
+const { searchTerm, searchField, statusFilter, filteredUsers } = useUserManagementFilters(normalizedUsers);
 
 const {
   form,
@@ -61,9 +60,9 @@ function dismissStatusBanner(): void {
       :tone="dataError || pageError ? 'error' : 'success'" @dismiss="dismissStatusBanner" />
 
     <div class="mb-4">
-      <UserTableFilters :search-term="searchTerm" :search-field="searchField" :position-filter="roleFilter"
-        :available-positions="availableRoles" @update:search-term="searchTerm = $event"
-        @update:search-field="searchField = $event" @update:position-filter="roleFilter = $event" />
+      <UserTableFilters :search-term="searchTerm" :search-field="searchField" :status-filter="statusFilter"
+        @update:search-term="searchTerm = $event"
+        @update:search-field="searchField = $event" @update:status-filter="statusFilter = $event" />
       <ListMeta :shown-count="filteredUsers.length" :total-count="normalizedUsers.length" label="users"
         :is-loading="isLoadingUsers" />
     </div>

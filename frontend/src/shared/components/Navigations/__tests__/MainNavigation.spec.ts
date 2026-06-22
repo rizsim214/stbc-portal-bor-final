@@ -58,14 +58,29 @@ describe("MainNavigation behavior", () => {
     mockAuthState = {
       isAuthenticated: false,
       user: null,
-      getDashboardPath: () => "/dashboard/user",
+      getDashboardPath: () => "/dashboard/patient",
       logout,
     };
     renderMainNavigation();
 
+    await userEvent.click(screen.getByRole("button", { name: /open navigation menu/i }));
     await userEvent.click(screen.getByRole("button", { name: /login/i }));
 
     expect(push).toHaveBeenCalledWith("/login");
+  });
+
+  it("shows appointment CTA and routes through login redirect", async () => {
+    mockAuthState = {
+      isAuthenticated: false,
+      user: null,
+      getDashboardPath: () => "/dashboard/patient",
+      logout,
+    };
+    renderMainNavigation();
+
+    await userEvent.click(screen.getAllByRole("button", { name: /set appointment/i })[0]);
+
+    expect(push).toHaveBeenCalledWith("/login?redirect=%2Fappointments");
   });
 
   it("logs out authenticated user and redirects to login", async () => {
@@ -73,7 +88,7 @@ describe("MainNavigation behavior", () => {
     mockAuthState = {
       isAuthenticated: true,
       user: { email: "test@example.com" },
-      getDashboardPath: () => "/dashboard/user",
+      getDashboardPath: () => "/dashboard/patient",
       logout,
     };
     renderMainNavigation();
@@ -90,7 +105,7 @@ describe("MainNavigation behavior", () => {
     mockAuthState = {
       isAuthenticated: true,
       user: { email: "test@example.com" },
-      getDashboardPath: () => "/dashboard/user",
+      getDashboardPath: () => "/dashboard/patient",
       logout,
     };
     renderMainNavigation();

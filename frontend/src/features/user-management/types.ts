@@ -21,6 +21,7 @@ export interface ManagedUserRow {
 }
 
 export type UserManagementSearchField = "name" | "email" | "role";
+export type UserManagementStatusFilter = "all" | "active" | "inactive";
 
 export type UserManagementFormField =
   | "name"

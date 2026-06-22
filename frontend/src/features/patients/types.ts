@@ -22,7 +22,6 @@ export interface PatientRow {
 }
 
 export type PatientListSearchField = "name" | "email" | "role";
-export type PatientListStatusFilter = "all" | "active" | "inactive";
 
 export type PatientRecordRow = {
   id: number | string;

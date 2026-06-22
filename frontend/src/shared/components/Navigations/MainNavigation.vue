@@ -13,7 +13,7 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
 } from "radix-vue";
-import { Menu, CircleUser, X } from "lucide-vue-next";
+import { CalendarDays, Menu, CircleUser, X } from "lucide-vue-next";
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { Button } from "@/shared/ui/button";
@@ -26,6 +26,10 @@ const isMobileMenuOpen = ref(false);
 
 const headerClass = "border-brand-light/30 bg-white/95 backdrop-blur";
 const linkClass = "text-brand-dark hover:bg-brand-lighter/30 hover:text-brand-darker";
+const appointmentCtaClass =
+  "inline-flex items-center justify-center gap-2 rounded-full bg-brand-dark px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_24px_-16px_rgba(21,5,120,0.8)] transition hover:bg-brand-darker focus:outline-none focus:ring-2 focus:ring-brand-highlight/50";
+const appointmentRedirectPath = "/appointments";
+
 
 const homeLink = computed(() =>
   authStore.isAuthenticated ? authStore.getDashboardPath() : "/"
@@ -187,13 +191,17 @@ function onUserMenuAction(action: UserMenuAction) {
           </DropdownMenuRoot>
         </template>
         <template v-else>
-          <Button variant="outline" size="sm" class="border-brand-light text-brand-dark hover:bg-brand-lighter/30"
-            @click="router.push('/login')">
+          <Button size="sm" class="h-10 px-4" :class="appointmentCtaClass" @click="navigateTo(appointmentRedirectPath)">
+            <CalendarDays class="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>Set Appointment</span>
+          </Button>
+          <RouterLink :to="{ path: '/login' }"
+            class="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-brand-dark transition hover:bg-brand-lighter/30 hover:text-brand-darker">
             <span class="inline-flex items-center gap-2 leading-none">
-              <CircleUser class="h-4 w-4 shrink-0" aria-hidden="true" />
+              <CircleUser class="h-6 w-6 shrink-0" aria-hidden="true" />
               <span>Login</span>
             </span>
-          </Button>
+          </RouterLink>
         </template>
       </div>
 
@@ -249,6 +257,12 @@ function onUserMenuAction(action: UserMenuAction) {
         </li>
       </ul>
       <div class="mt-3 grid grid-cols-1 gap-2">
+        <Button size="sm" class="h-11" :class="appointmentCtaClass" @click="navigateTo(appointmentRedirectPath)">
+          <span class="inline-flex items-center gap-2 leading-none">
+            <CalendarDays class="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>Set Appointment</span>
+          </span>
+        </Button>
         <Button variant="outline" size="sm" class="border-brand-light text-brand-dark hover:bg-brand-lighter/30"
           @click="navigateTo('/login')">
           <span class="inline-flex items-center gap-2 leading-none">
