@@ -17,6 +17,11 @@ import {
   UserSquare2,
   Users,
   X,
+  Calendar,
+  UserRound,
+  Calendars,
+  CalendarDays,
+
 } from "lucide-vue-next";
 import { computed, ref } from "vue";
 import type { Component } from "vue";
@@ -59,49 +64,80 @@ const currentRole = computed<"admin" | "patient">(() => {
   return "patient";
 });
 
-const accordionItems: SideNavGroup[] = [
-  {
-    value: "records",
-    title: "Records",
-    icon: Users,
-    items: [
-      {
-        id: "user-records",
-        label: "User Records",
-        to: { name: "userList" },
-        routeName: "userList",
-        icon: UserRoundSearch,
-        roles: ["admin"],
-      },
-      {
-        id: "my-record",
-        label: "My Record",
-        to: { name: "userMedicalRecord" },
-        routeName: "userMedicalRecord",
-        icon: UserRoundSearch,
-        roles: ["patient"],
-      },
-    ],
-  },
-  {
-    value: "administration",
-    title: "Administration",
-    icon: ShieldCheck,
-    items: [
-      {
-        id: "users-admin",
-        label: "User Administration",
-        to: { name: "userManagement" },
-        routeName: "userManagement",
-        icon: UserSquare2,
-        roles: ["admin"],
-      },
-    ],
-  },
-];
+const accordionItems = computed<SideNavGroup[]>(() => {
+  const userId = authStore.user?.id;
+
+  return [
+    {
+      value: "appointments",
+      title: "Appointments",
+      icon: Calendars,
+      items: [
+        {
+          id: "my-appointments-list",
+          label: "My Appointments",
+          to: userId
+            ? { name: "MyAppointmentList" }
+            : { name: "dashboard" },
+          routeName: "MyAppointmentList",
+          icon: Calendar,
+          roles: ["patient"],
+        },
+        {
+          id: "all-appointments-list",
+          label: "All Appointments",
+          to: userId
+            ? { name: "AdminAppointmentList" }
+            : { name: "dashboard" },
+          routeName: "AdminAppointmentList",
+          icon: CalendarDays,
+          roles: ["admin"],
+        },
+      ],
+    },
+    {
+      value: "records",
+      title: "Records",
+      icon: Users,
+      items: [
+        {
+          id: "user-records",
+          label: "Patient Records",
+          to: { name: "userList" },
+          routeName: "userList",
+          icon: UserRoundSearch,
+          roles: ["admin"],
+        },
+        {
+          id: "my-record",
+          label: "My Lab-Results",
+          to: { name: "userMedicalRecord" },
+          routeName: "userMedicalRecord",
+          icon: UserRound,
+          roles: ["patient"],
+        },
+      ],
+    },
+    {
+      value: "administration",
+      title: "Administration",
+      icon: ShieldCheck,
+      items: [
+        {
+          id: "users-admin",
+          label: "User Administration",
+          to: { name: "userManagement" },
+          routeName: "userManagement",
+          icon: UserSquare2,
+          roles: ["admin"],
+        },
+      ],
+    },
+  ];
+});
 
 const visibleGroups = computed(() =>
-  accordionItems
+  accordionItems.value
     .map((group) => ({
       ...group,
       items: group.items.filter(
@@ -200,8 +236,8 @@ function toggleDesktopNav(): void {
     <div v-if="isDesktopCollapsed" class="space-y-2">
       <div v-for="item in visibleGroups" :key="item.value"
         class="flex flex-col items-center gap-1 border-t border-brand-light/35 pt-2 first:border-t-0 first:pt-0">
-        <div class="inline-flex h-10 w-10 items-center justify-center rounded-md text-brand-dark/80"
-          :title="item.title" :aria-label="item.title">
+        <div class="inline-flex h-10 w-10 items-center justify-center rounded-md text-brand-dark/80" :title="item.title"
+          :aria-label="item.title">
           <component :is="item.icon" class="h-4 w-4" />
         </div>
 

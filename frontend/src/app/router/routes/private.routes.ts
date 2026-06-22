@@ -2,6 +2,7 @@ import DashboardLayout from "@/app/layouts/DashboardLayout.vue";
 import type { AppRoute } from "../types";
 import { patientRoutes } from "./modules/patient.routes";
 import { userRoutes } from "./modules/users.routes";
+import { appointmentRoutes } from "./modules/appointment.route";
 
 export const privateRoutes: AppRoute[] = [
   {
@@ -29,6 +30,7 @@ export const privateRoutes: AppRoute[] = [
       },
       ...patientRoutes,
       ...userRoutes,
+      ...appointmentRoutes,
     ],
   },
 ];
