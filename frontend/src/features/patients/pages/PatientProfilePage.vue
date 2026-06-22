@@ -59,8 +59,14 @@ function dismissStatusBanner(): void {
           </div>
           <div class="flex justify-between gap-4">
             <dt class="text-brand-dark/70">Account Status</dt>
-            <dd class="font-medium capitalize">
-              {{ patient?.account_status ?? "active" }}
+            <dd class="capitalize">
+              <span class="gap-1.5 inline-flex items-center text-sm font-medium text-brand-darker">
+                <span :class="[
+                  'inline-flex h-2 w-2 rounded-full',
+                  patient?.account_status === 'inactive' ? 'bg-red-500' : 'bg-emerald-500',
+                ]"></span>
+                {{ patient?.account_status === 'inactive' ? 'Inactive' : 'Active' }}
+              </span>
             </dd>
           </div>
         </dl>

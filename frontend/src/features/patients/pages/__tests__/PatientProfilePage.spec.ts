@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/vue";
-import { ref } from "vue";
+import { computed } from "vue";
 import { describe, expect, it, vi } from "vitest";
 import PatientProfilePage from "../PatientProfilePage.vue";
 import { usePatientRecordsData } from "../../composables/usePatientRecordsData";
@@ -13,13 +13,13 @@ const usePatientRecordsDataMock = vi.mocked(usePatientRecordsData);
 describe("PatientProfilePage", () => {
   it("renders combined patient details and records without edit actions", () => {
     usePatientRecordsDataMock.mockReturnValue({
-      patient: ref({
+      patient: computed(() => ({
         id: 101,
         name: "Maria Dela Cruz",
         email: "maria.delacruz@example.com",
         account_status: "active",
-      }),
-      records: ref([
+      })),
+      records: computed(() => [
         {
           id: 1,
           date: "2026-05-12",
@@ -29,8 +29,8 @@ describe("PatientProfilePage", () => {
           releasedAt: "2026-05-13T00:00:00.000Z",
         },
       ]),
-      isLoading: ref(false),
-      dataError: ref(""),
+      isLoading: computed(() => false),
+      dataError: computed(() => ""),
       clearDataError: vi.fn(),
       loadRecords: vi.fn(),
     });
