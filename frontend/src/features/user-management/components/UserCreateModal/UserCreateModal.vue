@@ -1,5 +1,17 @@
 <script setup lang="ts">
-import { Plus } from "lucide-vue-next";
+import { Check, ChevronDown, Plus } from "lucide-vue-next";
+import {
+  SelectContent,
+  SelectIcon,
+  SelectItem,
+  SelectItemIndicator,
+  SelectItemText,
+  SelectPortal,
+  SelectRoot,
+  SelectTrigger,
+  SelectValue,
+  SelectViewport,
+} from "radix-vue";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import BaseModal from "@/shared/components/Modal/BaseModal.vue";
@@ -40,13 +52,32 @@ const emit = defineEmits<{
 
       <div class="space-y-1 md:col-span-2">
         <label for="role_id" class="text-sm font-medium text-brand-darker">Role</label>
-        <select id="role_id" v-model="form.roleId"
-          class="flex h-10 w-full rounded-md border border-brand-light/50 px-3 py-2 text-sm text-brand-darker transition placeholder:text-brand-dark/60 focus:border-brand-highlight focus:outline-none focus:ring-2 focus:ring-brand-highlight/40">
-          <option value="" disabled>Select a role</option>
-          <option v-for="role in roles" :key="role.id" :value="String(role.id)">
-            {{ role.name }}
-          </option>
-        </select>
+        <SelectRoot v-model="form.roleId">
+          <SelectTrigger id="role_id"
+            class="inline-flex h-10 w-full items-center justify-between rounded-md border border-brand-light/50 bg-white px-3 py-2 text-sm text-brand-darker outline-none transition focus:border-brand-highlight focus:ring-2 focus:ring-brand-highlight/40"
+            aria-label="Role">
+            <SelectValue placeholder="Select a role" />
+            <SelectIcon>
+              <ChevronDown class="h-4 w-4 text-brand-dark/70" />
+            </SelectIcon>
+          </SelectTrigger>
+
+          <SelectPortal>
+            <SelectContent
+              class="z-80 min-w-(--radix-select-trigger-width) overflow-hidden rounded-xl border border-brand-light/30 bg-white shadow-xl"
+              position="popper" :side-offset="8">
+              <SelectViewport class="max-h-60 overflow-y-auto p-1">
+                <SelectItem v-for="role in roles" :key="role.id" :value="String(role.id)"
+                  class="relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm text-brand-darker outline-none data-highlighted:bg-brand-lighter/35 data-[state=checked]:bg-brand-lighter/45">
+                  <SelectItemText class="capitalize">{{ role.name }}</SelectItemText>
+                  <SelectItemIndicator class="ml-auto">
+                    <Check class="h-4 w-4 text-brand-highlight" />
+                  </SelectItemIndicator>
+                </SelectItem>
+              </SelectViewport>
+            </SelectContent>
+          </SelectPortal>
+        </SelectRoot>
         <p v-if="formErrors.role_id" class="text-sm text-red-500">{{ formErrors.role_id }}</p>
       </div>
 

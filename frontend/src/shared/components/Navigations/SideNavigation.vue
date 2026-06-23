@@ -189,7 +189,7 @@ function toggleDesktopNav(): void {
 
   <aside :class="[
     isMobileNavOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
-    isDesktopCollapsed ? 'md:w-[88px]' : 'md:w-[300px]',
+    isDesktopCollapsed ? 'md:w-22' : 'md:w-75',
   ]"
     class="fixed inset-y-0 left-0 z-50 w-70 border-r border-brand-light/30 bg-white p-5 transition-[transform,width] duration-300 md:sticky md:top-0 md:h-screen md:self-start md:overflow-y-auto md:p-6">
     <button type="button"
