@@ -232,9 +232,10 @@ function onSelectedDateChange(value: DateValue | undefined): void {
         </label>
         <textarea id="appointment-notes" v-model="props.form.notes" rows="4"
           placeholder="Describe the test, checkup, symptoms, or clinic service you need."
-          class="flex min-h-28 w-full rounded-md border border-brand-light/50 bg-white px-3 py-2 text-sm text-brand-darker transition placeholder:text-brand-dark/60 focus:border-brand-highlight focus:outline-none focus:ring-2 focus:ring-brand-highlight/40" />
+          class="flex min-h-28 w-full rounded-md border resize-none border-brand-light/50 bg-white px-3 py-2 text-sm text-brand-darker transition placeholder:text-brand-dark/60 focus:border-brand-highlight focus:outline-none focus:ring-2 focus:ring-brand-highlight/40" />
         <p class="text-xs text-brand-dark/70">
-          Staff will review this description to identify whether the appointment should be routed to a doctor, lab technician, radiologist, nurse, or other clinic staff.
+          Staff will review this description to identify whether the appointment should be routed to a doctor, lab
+          technician, radiologist, nurse, or other clinic staff.
         </p>
       </div>
 

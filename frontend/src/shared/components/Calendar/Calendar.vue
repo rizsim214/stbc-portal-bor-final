@@ -73,7 +73,16 @@ onBeforeUnmount(() => {
   border-radius: 0.65rem;
   font-size: 0.78rem;
   font-weight: 600;
-  padding: 0.1rem 0.2rem;
+  padding: 0.28rem 0.38rem;
+  min-height: 2rem;
+}
+
+.stbc-calendar :deep(.fc-daygrid-event) {
+  min-height: 2.15rem;
+}
+
+.stbc-calendar :deep(.fc-timegrid-slot) {
+  height: 2.5rem;
 }
 
 .stbc-calendar :deep(.fc-button) {
