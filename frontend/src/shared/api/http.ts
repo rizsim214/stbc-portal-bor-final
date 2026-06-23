@@ -9,34 +9,41 @@ export const http = axios.create({
   },
 });
 
-http.interceptors.request.use((config) => {
-  const skipGlobalLoading = config.headers?.["X-Skip-Global-Loading"] === "true";
-  if (!skipGlobalLoading) {
-    startApiLoading();
-  }
-  const token = localStorage.getItem(AUTH_STORAGE_KEYS.token);
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-}, (error) => {
-  const skipGlobalLoading = error?.config?.headers?.["X-Skip-Global-Loading"] === "true";
-  if (!skipGlobalLoading) {
-    stopApiLoading();
-  }
-  return Promise.reject(error);
-});
+http.interceptors.request.use(
+  (config) => {
+    const skipGlobalLoading =
+      config.headers?.["X-Skip-Global-Loading"] === "true";
+    if (!skipGlobalLoading) {
+      startApiLoading();
+    }
+    const token = localStorage.getItem(AUTH_STORAGE_KEYS.token);
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    const skipGlobalLoading =
+      error?.config?.headers?.["X-Skip-Global-Loading"] === "true";
+    if (!skipGlobalLoading) {
+      stopApiLoading();
+    }
+    return Promise.reject(error);
+  },
+);
 
 http.interceptors.response.use(
   (response) => {
-    const skipGlobalLoading = response.config.headers?.["X-Skip-Global-Loading"] === "true";
+    const skipGlobalLoading =
+      response.config.headers?.["X-Skip-Global-Loading"] === "true";
     if (!skipGlobalLoading) {
       stopApiLoading();
     }
     return response;
   },
   (error) => {
-    const skipGlobalLoading = error?.config?.headers?.["X-Skip-Global-Loading"] === "true";
+    const skipGlobalLoading =
+      error?.config?.headers?.["X-Skip-Global-Loading"] === "true";
     if (!skipGlobalLoading) {
       stopApiLoading();
     }

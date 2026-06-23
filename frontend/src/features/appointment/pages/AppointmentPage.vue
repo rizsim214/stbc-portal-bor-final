@@ -6,9 +6,11 @@ import { useAppointmentBooking } from "../composables/useAppointmentBooking";
 
 const {
   appointmentTypes,
+  appointmentTypesError,
   calendarOptions,
   datePlaceholder,
   form,
+  isLoadingAppointmentTypes,
   selectedDate,
   submitMessage,
   summaryText,
@@ -31,8 +33,9 @@ const {
       <div class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(360px,0.9fr)]">
         <AppointmentCalendar :calendar-options="calendarOptions" />
 
-        <AppointmentBookingForm :appointment-types="appointmentTypes" :date-placeholder="datePlaceholder"
-          :format-selected-date="formatSelectedDate" :format-time-value="formatTimeValue" :form="form"
+        <AppointmentBookingForm :appointment-types="appointmentTypes" :appointment-types-error="appointmentTypesError"
+          :date-placeholder="datePlaceholder" :format-selected-date="formatSelectedDate"
+          :format-time-value="formatTimeValue" :form="form" :is-loading-appointment-types="isLoadingAppointmentTypes"
           :selected-date="selectedDate" :submit-message="submitMessage" :summary-text="summaryText"
           :time-options="timeOptions" @update:selected-date="setSelectedDate" @submit="submitAppointment" />
       </div>

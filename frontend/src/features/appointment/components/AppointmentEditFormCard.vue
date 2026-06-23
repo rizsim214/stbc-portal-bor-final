@@ -7,8 +7,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
-  Mail,
-  ShieldCheck,
 } from "lucide-vue-next";
 import {
   DatePickerAnchor,
@@ -40,25 +38,22 @@ import {
   SelectViewport,
 } from "radix-vue";
 import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import type { AppointmentFormState, AppointmentTypeOption } from "../../types";
+import type { AppointmentEditFormState, AppointmentTypeOption } from "../types";
+import { formatSelectedDate, formatTimeValue } from "../utils/schedule";
 
 const props = defineProps<{
   appointmentTypes: AppointmentTypeOption[];
-  appointmentTypesError: string;
+  availableTimeOptions: string[];
   datePlaceholder: CalendarDate;
-  formatSelectedDate: (value?: CalendarDate) => string;
-  formatTimeValue: (value: string) => string;
-  form: AppointmentFormState;
+  form: AppointmentEditFormState;
+  isLoadingAvailability: boolean;
   isLoadingAppointmentTypes: boolean;
+  isSubmitting: boolean;
   selectedDate: CalendarDate | undefined;
-  submitMessage: string;
-  summaryText: string;
-  timeOptions: string[];
 }>();
 
 const emit = defineEmits<{
-  submit: [];
+  save: [];
   "update:selectedDate": [value: CalendarDate | undefined];
 }>();
 
@@ -68,32 +63,21 @@ function onSelectedDateChange(value: DateValue | undefined): void {
 </script>
 
 <template>
-  <aside class="rounded-3xl border border-brand-light/30 bg-white p-5 shadow-[0_22px_60px_-36px_rgba(21,5,120,0.4)]">
-    <div class="border-b border-brand-light/25 pb-4">
-      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-dark/70">
-        First-Time Patient Form
-      </p>
-      <h2 class="mt-1 text-2xl font-semibold text-brand-darker">
-        Scheduled Appointment Request
-      </h2>
-      <p class="mt-2 text-sm text-brand-dark/80">
-        New patients can book with their email. An account may be created for future bookings and profile access.
-      </p>
-    </div>
+  <section class="rounded-2xl border border-brand-light/25 bg-white p-5 shadow-sm">
+    <h2 class="text-lg font-semibold text-brand-darker">Modify Appointment</h2>
+    <p class="mt-2 text-sm text-brand-dark/80">
+      Update the appointment type, schedule, and description. Only available time slots are shown.
+    </p>
 
-    <form class="mt-5 space-y-4" @submit.prevent="emit('submit')">
-      <Input v-model="props.form.fullName" label="Full name" placeholder="Juan Dela Cruz" />
-
-      <Input v-model="props.form.email" label="Email address" type="email" placeholder="juan@example.com" />
-
+    <div class="mt-4 space-y-4">
       <div class="space-y-1">
-        <label for="select-appointment" class="text-sm font-medium text-brand-darker">
+        <label for="edit-appointment-type" class="text-sm font-medium text-brand-darker">
           Appointment type
         </label>
-        <SelectRoot v-model="props.form.appointmentType" id="select-appointment">
+        <SelectRoot v-model="props.form.appointmentType" id="edit-appointment-type">
           <SelectTrigger
             class="inline-flex h-10 w-full items-center justify-between rounded-md border border-brand-light/50 bg-white px-3 py-2 text-sm text-brand-darker outline-none transition focus:border-brand-highlight focus:ring-2 focus:ring-brand-highlight/30"
-            :disabled="props.isLoadingAppointmentTypes || !props.appointmentTypes.length" aria-label="Appointment type">
+            :disabled="props.isLoadingAppointmentTypes || !props.appointmentTypes.length">
             <SelectValue
               :placeholder="props.isLoadingAppointmentTypes ? 'Loading appointment types...' : 'Select appointment type'" />
             <SelectIcon>
@@ -107,8 +91,7 @@ function onSelectedDateChange(value: DateValue | undefined): void {
               position="popper" :side-offset="8">
               <SelectViewport class="max-h-72 overflow-y-auto p-1">
                 <SelectItem v-for="option in props.appointmentTypes" :key="option.value" :value="option.value"
-                  class="relative flex cursor-pointer select-none items-center gap-2 rounded-lg px-3 py-2 text-sm text-brand-darker outline-none data-highlighted:bg-brand-lighter/35 data-[state=checked]:bg-brand-lighter/45">
-                  <component :is="option.icon" v-if="option.icon" class="h-4 w-4 text-brand-dark/75" />
+                  class="relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm text-brand-darker outline-none data-highlighted:bg-brand-lighter/35 data-[state=checked]:bg-brand-lighter/45">
                   <div class="flex min-w-0 flex-col">
                     <SelectItemText>{{ option.label }}</SelectItemText>
                     <span v-if="option.description" class="truncate text-xs text-brand-dark/65">
@@ -123,13 +106,10 @@ function onSelectedDateChange(value: DateValue | undefined): void {
             </SelectContent>
           </SelectPortal>
         </SelectRoot>
-        <p v-if="props.appointmentTypesError" class="text-sm text-red-600">
-          {{ props.appointmentTypesError }}
-        </p>
       </div>
 
       <div class="space-y-1">
-        <label for="appointment-date-picker" class="text-sm font-medium text-brand-darker">
+        <label for="edit-appointment-date" class="text-sm font-medium text-brand-darker">
           Appointment date
         </label>
         <DatePickerRoot :model-value="props.selectedDate" :placeholder="props.datePlaceholder" :weekday-format="'short'"
@@ -140,13 +120,13 @@ function onSelectedDateChange(value: DateValue | undefined): void {
               <span :class="props.selectedDate ? 'text-brand-darker' : 'text-brand-dark/60'"
                 class="inline-flex items-center gap-2">
                 <Calendar class="h-4 w-4" />
-                <span>{{ props.selectedDate ? props.formatSelectedDate(props.selectedDate) : "Choose a date" }}</span>
+                <span>{{ props.selectedDate ? formatSelectedDate(props.selectedDate) : "Choose a date" }}</span>
               </span>
               <ChevronDown class="h-4 w-4 text-brand-dark/70" />
             </DatePickerTrigger>
           </DatePickerAnchor>
 
-          <DatePickerContent class="z-80` rounded-2xl border border-brand-light/30 bg-white p-3 shadow-xl"
+          <DatePickerContent class="z-80 rounded-2xl border border-brand-light/30 bg-white p-3 shadow-xl"
             :side-offset="8">
             <DatePickerArrow class="fill-white" />
             <DatePickerCalendar v-slot="{ weekDays, grid }" class="space-y-3">
@@ -192,16 +172,17 @@ function onSelectedDateChange(value: DateValue | undefined): void {
       </div>
 
       <div class="space-y-1">
-        <label for="select-preferred-time" class="text-sm font-medium text-brand-darker">
-          Preferred time
+        <label for="edit-appointment-time" class="text-sm font-medium text-brand-darker">
+          Available time
         </label>
-        <SelectRoot v-model="props.form.time" id="select-preferred-time">
+        <SelectRoot v-model="props.form.time" id="edit-appointment-time">
           <SelectTrigger
             class="inline-flex h-10 w-full items-center justify-between rounded-md border border-brand-light/50 bg-white px-3 py-2 text-sm text-brand-darker outline-none transition focus:border-brand-highlight focus:ring-2 focus:ring-brand-highlight/30"
-            aria-label="Preferred time">
+            :disabled="props.isLoadingAvailability || !props.availableTimeOptions.length">
             <span class="inline-flex items-center gap-2">
               <Clock3 class="h-4 w-4 text-brand-dark/70" />
-              <SelectValue placeholder="Choose a time slot" />
+              <SelectValue
+                :placeholder="props.isLoadingAvailability ? 'Loading available slots...' : 'Select available time'" />
             </span>
             <SelectIcon>
               <ChevronDown class="h-4 w-4 text-brand-dark/70" />
@@ -212,10 +193,10 @@ function onSelectedDateChange(value: DateValue | undefined): void {
             <SelectContent
               class="z-80 min-w-(--radix-select-trigger-width) overflow-hidden rounded-xl border border-brand-light/30 bg-white shadow-xl"
               position="popper" :side-offset="8">
-              <SelectViewport class="max-h-64 p-1">
-                <SelectItem v-for="time in props.timeOptions" :key="time" :value="time"
+              <SelectViewport class="max-h-64 overflow-y-auto p-1">
+                <SelectItem v-for="time in props.availableTimeOptions" :key="time" :value="time"
                   class="relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm text-brand-darker outline-none data-highlighted:bg-brand-lighter/35 data-[state=checked]:bg-brand-lighter/45">
-                  <SelectItemText>{{ props.formatTimeValue(time) }}</SelectItemText>
+                  <SelectItemText>{{ formatTimeValue(time) }}</SelectItemText>
                   <SelectItemIndicator class="ml-auto">
                     <Check class="h-4 w-4 text-brand-highlight" />
                   </SelectItemIndicator>
@@ -224,47 +205,24 @@ function onSelectedDateChange(value: DateValue | undefined): void {
             </SelectContent>
           </SelectPortal>
         </SelectRoot>
+        <p v-if="!props.isLoadingAvailability && !props.availableTimeOptions.length" class="text-xs text-amber-700">
+          No available slots for the selected date.
+        </p>
       </div>
 
       <div class="space-y-1">
-        <label for="appointment-notes" class="text-sm font-medium text-brand-darker">
+        <label for="edit-appointment-notes" class="text-sm font-medium text-brand-darker">
           Appointment description
         </label>
-        <textarea id="appointment-notes" v-model="props.form.notes" rows="4"
+        <textarea id="edit-appointment-notes" v-model="props.form.notes" rows="4"
           placeholder="Describe the test, checkup, symptoms, or clinic service you need."
           class="flex min-h-28 w-full rounded-md border border-brand-light/50 bg-white px-3 py-2 text-sm text-brand-darker transition placeholder:text-brand-dark/60 focus:border-brand-highlight focus:outline-none focus:ring-2 focus:ring-brand-highlight/40" />
-        <p class="text-xs text-brand-dark/70">
-          Staff will review this description to identify whether the appointment should be routed to a doctor, lab technician, radiologist, nurse, or other clinic staff.
-        </p>
       </div>
 
-      <div class="rounded-2xl border border-brand-light/25 bg-brand-lighter/10 p-4">
-        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-brand-dark/70">
-          Account Creation Flow
-        </p>
-        <p class="mt-2 text-sm text-brand-dark/80">
-          First-time patients can book by email and reuse their account for future bookings.
-        </p>
-        <div class="mt-3 flex flex-wrap gap-2 text-xs font-medium text-brand-darker">
-          <span class="rounded-full bg-white px-3 py-1 ring-1 ring-brand-light/30">
-            <Mail class="mr-1 inline h-3.5 w-3.5" />
-            Email-based account creation
-          </span>
-          <span class="rounded-full bg-white px-3 py-1 ring-1 ring-brand-light/30">
-            <ShieldCheck class="mr-1 inline h-3.5 w-3.5" />
-            Auto-generated password
-          </span>
-        </div>
-      </div>
-
-      <div class="space-y-3">
-        <Button type="submit" class="h-11 w-full bg-brand-dark text-white hover:bg-brand-darker">
-          Submit Appointment Request
-        </Button>
-        <p v-if="props.submitMessage" class="text-sm text-emerald-700">
-          {{ props.submitMessage }}
-        </p>
-      </div>
-    </form>
-  </aside>
+      <Button type="button" class="w-full bg-brand-dark text-white hover:bg-brand-darker" :loading="props.isSubmitting"
+        @click="emit('save')">
+        Save Appointment Changes
+      </Button>
+    </div>
+  </section>
 </template>

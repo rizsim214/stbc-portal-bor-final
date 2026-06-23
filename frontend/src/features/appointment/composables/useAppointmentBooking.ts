@@ -1,47 +1,29 @@
+import axios from "axios";
+import { AUTH_STORAGE_KEYS } from "@/features/auth/constants";
 import type { CalendarOptions } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
+import { useQuery } from "@tanstack/vue-query";
 import { computed, reactive, ref } from "vue";
 import {
-  appointmentTypes,
+  appointmentsApi,
+  mapAppointmentTypeOption,
   sampleSchedules,
   timeOptions,
 } from "../api/appointmentsApi";
 import type { AppointmentFormState, AppointmentTypeOption } from "../types";
-
-function dateToCalendarDate(value: Date): CalendarDate {
-  return new CalendarDate(
-    value.getFullYear(),
-    value.getMonth() + 1,
-    value.getDate(),
-  );
-}
+import {
+  addMinutesToSqlDateTime,
+  dateToCalendarDate,
+  formatSelectedDate,
+  formatTimeValue,
+  toDateInput,
+  toSqlDateTime,
+} from "../utils/schedule";
 
 function padTime(value: number): string {
   return String(value).padStart(2, "0");
-}
-
-function toDateInput(value: CalendarDate): string {
-  return `${value.year}-${padTime(value.month)}-${padTime(value.day)}`;
-}
-
-export function formatTimeValue(value: string): string {
-  const [hoursText, minutes] = value.split(":");
-  const hours = Number(hoursText);
-  const suffix = hours >= 12 ? "PM" : "AM";
-  const hour12 = hours % 12 || 12;
-  return `${hour12}:${minutes} ${suffix}`;
-}
-
-export function formatSelectedDate(value?: CalendarDate): string {
-  if (!value) return "No date selected";
-  return value.toDate(getLocalTimeZone()).toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 export function useAppointmentBooking() {
@@ -50,12 +32,20 @@ export function useAppointmentBooking() {
     email: "",
     appointmentType: "",
     time: "",
+    notes: "",
   });
 
   const selectedDate = ref<CalendarDate | undefined>();
   const datePlaceholder = today(getLocalTimeZone());
   const submitMessage = ref("");
   const minDate = toDateInput(datePlaceholder);
+  const appointmentTypesQuery = useQuery({
+    queryKey: ["appointments", "types"],
+    queryFn: async () => {
+      const { data } = await appointmentsApi.listAppointmentTypes();
+      return data.data.map(mapAppointmentTypeOption);
+    },
+  });
 
   function hydrateFormFromDate(date: Date): void {
     selectedDate.value = dateToCalendarDate(date);
@@ -98,7 +88,7 @@ export function useAppointmentBooking() {
 
   const selectedAppointmentTypeLabel = computed(
     () =>
-      appointmentTypes.find(
+      (appointmentTypesQuery.data.value ?? []).find(
         (option: AppointmentTypeOption) =>
           option.value === form.appointmentType,
       )?.label ?? "Choose an appointment type",
@@ -111,11 +101,53 @@ export function useAppointmentBooking() {
     return `${type} | ${date} | ${time}`;
   });
 
-  /*
-    The actual function/method to be used for submitting the appointment data into the backend
-  */
-  function submitAppointment(): void {
-    submitMessage.value = `Sample flow: an appointment request for ${form.fullName || "this patient"} would be submitted and a patient account would be created for ${form.email || "the provided email"}.`;
+  async function submitAppointment(): Promise<void> {
+    submitMessage.value = "";
+
+    if (!selectedDate.value) {
+      submitMessage.value = "Please select an appointment date.";
+      return;
+    }
+
+    if (!form.appointmentType) {
+      submitMessage.value = "Please select an appointment type.";
+      return;
+    }
+
+    if (!form.time) {
+      submitMessage.value = "Please select a preferred time.";
+      return;
+    }
+
+    const startTime = toSqlDateTime(selectedDate.value, form.time);
+    const endTime = addMinutesToSqlDateTime(startTime, 30);
+
+    try {
+      const { data } = await appointmentsApi.createGuestAppointment({
+        name: form.fullName,
+        email: form.email,
+        appointment_type_id: Number(form.appointmentType),
+        start_time: startTime,
+        end_time: endTime,
+        notes: form.notes.trim() || undefined,
+      });
+
+      localStorage.setItem(AUTH_STORAGE_KEYS.token, data.data.token);
+      localStorage.setItem(
+        AUTH_STORAGE_KEYS.user,
+        JSON.stringify(data.data.user),
+      );
+
+      submitMessage.value = `Appointment request submitted. Temporary password: ${data.data.temporary_password}`;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        submitMessage.value =
+          error.response?.data?.message ?? "Unable to submit appointment.";
+        return;
+      }
+
+      submitMessage.value = "Unable to submit appointment.";
+    }
   }
 
   function setSelectedDate(value: CalendarDate | undefined): void {
@@ -134,7 +166,17 @@ export function useAppointmentBooking() {
   }
 
   return {
-    appointmentTypes,
+    appointmentTypes: computed(() => appointmentTypesQuery.data.value ?? []),
+    appointmentTypesError: computed(() =>
+      appointmentTypesQuery.isError.value
+        ? "Unable to load appointment types."
+        : "",
+    ),
+    isLoadingAppointmentTypes: computed(
+      () =>
+        appointmentTypesQuery.isPending.value ||
+        appointmentTypesQuery.isFetching.value,
+    ),
     calendarOptions,
     datePlaceholder,
     form,
