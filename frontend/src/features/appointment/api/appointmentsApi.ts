@@ -6,7 +6,11 @@ import {
 } from "lucide-vue-next";
 import { http } from "@/shared/api/http";
 import type {
+  AuthenticatedAppointmentRequestPayload,
+  AuthenticatedAppointmentRequestResponse,
   AppointmentAvailabilityResponse,
+  AppointmentCalendarItem,
+  AppointmentCalendarResponse,
   AssignableResource,
   AppointmentListItem,
   AppointmentScheduleEvent,
@@ -130,6 +134,18 @@ export const appointmentsApi = {
     });
   },
 
+  async listAppointmentCalendar(start: string, end: string) {
+    return http.get<AppointmentCalendarResponse>("/appointments/calendar", {
+      params: {
+        start,
+        end,
+      },
+      headers: {
+        "X-Skip-Global-Loading": "true",
+      },
+    });
+  },
+
   async updateAppointment(
     appointmentId: string | number,
     payload: UpdateAppointmentPayload,
@@ -142,6 +158,10 @@ export const appointmentsApi = {
 
   async createGuestAppointment(payload: GuestAppointmentPayload) {
     return http.post<GuestAppointmentResponse>("/appointments/guest", payload);
+  },
+
+  async createMyAppointmentRequest(payload: AuthenticatedAppointmentRequestPayload) {
+    return http.post<AuthenticatedAppointmentRequestResponse>("/appointments/request", payload);
   },
 };
 
@@ -157,61 +177,61 @@ export function mapAppointmentTypeOption(
   };
 }
 
-export const timeOptions = [
-  "07:30",
-  "08:00",
-  "08:30",
-  "09:00",
-  "09:30",
-  "10:00",
-  "10:30",
-  "11:00",
-  "11:30",
-  "13:00",
-  "13:30",
-  "14:00",
-  "14:30",
-  "15:00",
-  "15:30",
-  "16:00",
-  "16:30",
-];
+export function extractTimeValue(dateTime: string): string {
+  const date = new Date(dateTime.replace(" ", "T"));
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
 
-export const sampleSchedules: AppointmentScheduleEvent[] = [
-  {
-    id: "booked-1",
-    title: "Booked",
-    start: "2026-06-22T09:00:00",
-    end: "2026-06-22T09:30:00",
-    backgroundColor: "#b91c1c",
-    borderColor: "#991b1b",
+function mapCalendarStatusLabel(status: string): string {
+  return status
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function mapCalendarStatusPalette(status: string): { backgroundColor: string; borderColor: string } {
+  switch (status) {
+    case "assigned":
+      return {
+        backgroundColor: "#1d4ed8",
+        borderColor: "#1e40af",
+      };
+    case "completed":
+      return {
+        backgroundColor: "#047857",
+        borderColor: "#065f46",
+      };
+    case "pending":
+      return {
+        backgroundColor: "#b45309",
+        borderColor: "#92400e",
+      };
+    default:
+      return {
+        backgroundColor: "#7c2d12",
+        borderColor: "#9a3412",
+      };
+  }
+}
+
+export function mapAppointmentCalendarEvent(
+  appointment: AppointmentCalendarItem,
+): AppointmentScheduleEvent {
+  const statusLabel = mapCalendarStatusLabel(appointment.status);
+  const typeLabel = appointment.type?.name ?? "Appointment";
+  const palette = mapCalendarStatusPalette(appointment.status);
+
+  return {
+    id: String(appointment.id),
+    title: `${typeLabel} (${statusLabel})`,
+    start: appointment.start_time.replace(" ", "T"),
+    end: appointment.end_time.replace(" ", "T"),
+    backgroundColor: palette.backgroundColor,
+    borderColor: palette.borderColor,
     extendedProps: {
-      status: "booked",
-      note: "This slot is already reserved.",
+      status: appointment.status,
+      note: `${typeLabel} is ${statusLabel.toLowerCase()}.`,
+      appointmentId: appointment.id,
+      appointmentTypeId: appointment.appointment_type_id,
     },
-  },
-  {
-    id: "booked-2",
-    title: "Booked",
-    start: "2026-06-24T14:00:00",
-    end: "2026-06-24T14:30:00",
-    backgroundColor: "#b91c1c",
-    borderColor: "#991b1b",
-    extendedProps: {
-      status: "booked",
-      note: "Reserved by another patient.",
-    },
-  },
-  {
-    id: "booked-3",
-    title: "Booked",
-    start: "2026-06-26T15:00:00",
-    end: "2026-06-26T15:30:00",
-    backgroundColor: "#b91c1c",
-    borderColor: "#991b1b",
-    extendedProps: {
-      status: "booked",
-      note: "No walk-ins for this slot.",
-    },
-  },
-];
+  };
+}

@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Modules\Appointments\DTOs\GuestBookAppointmentDTO;
 use App\Modules\Appointments\Services\AppointmentScheduleService;
+use App\Modules\Appointments\Support\AppointmentLifecycleDispatcher;
 use App\Modules\Shared\Exceptions\UnprocessableEntityApiException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -15,6 +16,7 @@ class CreateGuestBookAppointment
 {
     public function __construct(
         private readonly AppointmentScheduleService $appointmentScheduleService,
+        private readonly AppointmentLifecycleDispatcher $lifecycleDispatcher,
     ) {
     }
 
@@ -44,7 +46,7 @@ class CreateGuestBookAppointment
             );
         }
 
-        return DB::transaction(function () use ($dto): array {
+        $result = DB::transaction(function () use ($dto): array {
             $patientRole = Role::query()
                 ->where('name', 'patient')
                 ->firstOrFail();
@@ -80,5 +82,11 @@ class CreateGuestBookAppointment
                 ],
             ];
         });
+
+        /** @var Appointment $appointment */
+        $appointment = $result['data']['appointment'];
+        $this->lifecycleDispatcher->dispatch($appointment, 'created');
+
+        return $result;
     }
 }

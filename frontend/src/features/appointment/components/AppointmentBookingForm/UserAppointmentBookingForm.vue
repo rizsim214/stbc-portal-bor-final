@@ -7,8 +7,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
-  Mail,
   ShieldCheck,
+  UserRound,
 } from "lucide-vue-next";
 import {
   DatePickerAnchor,
@@ -40,20 +40,22 @@ import {
   SelectViewport,
 } from "radix-vue";
 import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
 import type { AppointmentFormState, AppointmentTypeOption } from "../../types";
 
 const props = defineProps<{
   appointmentTypes: AppointmentTypeOption[];
   appointmentTypesError: string;
+  availabilityError: string;
   datePlaceholder: CalendarDate;
   formatSelectedDate: (value?: CalendarDate) => string;
   formatTimeValue: (value: string) => string;
   form: AppointmentFormState;
+  isLoadingAvailability: boolean;
   isLoadingAppointmentTypes: boolean;
   selectedDate: CalendarDate | undefined;
+  signedInEmail: string;
+  signedInName: string;
   submitMessage: string;
-  summaryText: string;
   timeOptions: string[];
 }>();
 
@@ -71,20 +73,31 @@ function onSelectedDateChange(value: DateValue | undefined): void {
   <aside class="rounded-3xl border border-brand-light/30 bg-white p-5 shadow-[0_22px_60px_-36px_rgba(21,5,120,0.4)]">
     <div class="border-b border-brand-light/25 pb-4">
       <p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-dark/70">
-        First-Time Patient Form
+        Signed-In Patient Form
       </p>
       <h2 class="mt-1 text-2xl font-semibold text-brand-darker">
-        Scheduled Appointment Request
+        New Appointment Request
       </h2>
       <p class="mt-2 text-sm text-brand-dark/80">
-        New patients can book with their email. An account may be created for future bookings and profile access.
+        Submit a follow-up or new service request using your existing patient account.
       </p>
     </div>
 
     <form class="mt-5 space-y-4" @submit.prevent="emit('submit')">
-      <Input v-model="props.form.fullName" label="Full name" placeholder="Juan Dela Cruz" />
-
-      <Input v-model="props.form.email" label="Email address" type="email" placeholder="juan@example.com" />
+      <div class="rounded-2xl border border-brand-light/25 bg-brand-lighter/10 p-4">
+        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-brand-dark/70">
+          Requesting As
+        </p>
+        <div class="mt-3 grid gap-2 text-sm text-brand-darker">
+          <p class="inline-flex items-center gap-2 font-medium">
+            <UserRound class="h-4 w-4 text-brand-dark/75" />
+            {{ props.signedInName }}
+          </p>
+          <p class="text-brand-dark/80">
+            {{ props.signedInEmail }}
+          </p>
+        </div>
+      </div>
 
       <div class="space-y-1">
         <label for="select-appointment" class="text-sm font-medium text-brand-darker">
@@ -198,10 +211,16 @@ function onSelectedDateChange(value: DateValue | undefined): void {
         <SelectRoot v-model="props.form.time" id="select-preferred-time">
           <SelectTrigger
             class="inline-flex h-10 w-full items-center justify-between rounded-md border border-brand-light/50 bg-white px-3 py-2 text-sm text-brand-darker outline-none transition focus:border-brand-highlight focus:ring-2 focus:ring-brand-highlight/30"
+            :disabled="!props.selectedDate || !props.form.appointmentType || props.isLoadingAvailability || !props.timeOptions.length"
             aria-label="Preferred time">
             <span class="inline-flex items-center gap-2">
               <Clock3 class="h-4 w-4 text-brand-dark/70" />
-              <SelectValue placeholder="Choose a time slot" />
+              <SelectValue
+                :placeholder="props.isLoadingAvailability
+                  ? 'Loading available time slots...'
+                  : props.selectedDate && props.form.appointmentType
+                    ? 'Choose a time slot'
+                    : 'Select a date and appointment type first'" />
             </span>
             <SelectIcon>
               <ChevronDown class="h-4 w-4 text-brand-dark/70" />
@@ -224,6 +243,13 @@ function onSelectedDateChange(value: DateValue | undefined): void {
             </SelectContent>
           </SelectPortal>
         </SelectRoot>
+        <p v-if="props.availabilityError" class="text-sm text-red-600">
+          {{ props.availabilityError }}
+        </p>
+        <p v-else-if="props.selectedDate && props.form.appointmentType && !props.isLoadingAvailability && !props.timeOptions.length"
+          class="text-sm text-brand-dark/75">
+          No available time slots for the selected date.
+        </p>
       </div>
 
       <div class="space-y-1">
@@ -241,19 +267,15 @@ function onSelectedDateChange(value: DateValue | undefined): void {
 
       <div class="rounded-2xl border border-brand-light/25 bg-brand-lighter/10 p-4">
         <p class="text-xs font-semibold uppercase tracking-[0.14em] text-brand-dark/70">
-          Account Creation Flow
+          Patient Account
         </p>
         <p class="mt-2 text-sm text-brand-dark/80">
-          First-time patients can book by email and reuse their account for future bookings.
+          This request stays linked to your existing account and will appear in your appointment history.
         </p>
         <div class="mt-3 flex flex-wrap gap-2 text-xs font-medium text-brand-darker">
           <span class="rounded-full bg-white px-3 py-1 ring-1 ring-brand-light/30">
-            <Mail class="mr-1 inline h-3.5 w-3.5" />
-            Email-based account creation
-          </span>
-          <span class="rounded-full bg-white px-3 py-1 ring-1 ring-brand-light/30">
             <ShieldCheck class="mr-1 inline h-3.5 w-3.5" />
-            Auto-generated password
+            No new account creation
           </span>
         </div>
       </div>

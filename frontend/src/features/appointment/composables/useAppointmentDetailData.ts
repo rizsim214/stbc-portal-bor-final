@@ -16,6 +16,7 @@ import {
   toSqlDateTime,
 } from "../utils/schedule";
 import { mapAppointmentTypeOption } from "../api/appointmentsApi";
+import { useAppointmentRealtime } from "./useAppointmentRealtime";
 
 function getErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof Error && error.message) {
@@ -27,6 +28,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
 
 export function useAppointmentDetailData(appointmentId: string, mode: "patient" | "admin") {
   const queryClient = useQueryClient();
+  useAppointmentRealtime(mode === "admin" ? "admin" : "mine");
   const pageMessage = ref("");
   const pageError = ref("");
   const selectedResourceId = ref("");

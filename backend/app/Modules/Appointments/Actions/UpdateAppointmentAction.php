@@ -5,6 +5,7 @@ namespace App\Modules\Appointments\Actions;
 use App\Models\Appointment;
 use App\Modules\Appointments\DTOs\UpdateAppointmentDTO;
 use App\Modules\Appointments\Services\AppointmentScheduleService;
+use App\Modules\Appointments\Support\AppointmentLifecycleDispatcher;
 use App\Modules\Scheduling\Services\SchedulingService;
 use App\Modules\Shared\Exceptions\UnprocessableEntityApiException;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ class UpdateAppointmentAction
     public function __construct(
         private readonly AppointmentScheduleService $appointmentScheduleService,
         private readonly SchedulingService $schedulingService,
+        private readonly AppointmentLifecycleDispatcher $lifecycleDispatcher,
     ) {
     }
 
@@ -58,7 +60,7 @@ class UpdateAppointmentAction
             );
         }
 
-        return DB::transaction(function () use ($appointment, $dto): Appointment {
+        $updatedAppointment = DB::transaction(function () use ($appointment, $dto): Appointment {
             $appointment->update([
                 'appointment_type_id' => $dto->appointmentTypeId,
                 'start_time' => $dto->startTime,
@@ -80,5 +82,9 @@ class UpdateAppointmentAction
                 'resources:id,name,type',
             ]);
         });
+
+        $this->lifecycleDispatcher->dispatch($updatedAppointment, 'updated');
+
+        return $updatedAppointment;
     }
 }

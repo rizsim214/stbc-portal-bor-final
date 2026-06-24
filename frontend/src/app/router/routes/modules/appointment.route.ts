@@ -2,6 +2,13 @@ import type { AppRoute } from "../../types";
 
 export const appointmentRoutes: AppRoute[] = [
   {
+    path: "appointments/request",
+    name: "MyAppointmentRequest",
+    component: () =>
+      import("@/features/appointment/pages/private/UserAppointmentRequestPage.vue"),
+    meta: { roles: ["patient"] },
+  },
+  {
     path: "appointments/patient/list",
     name: "MyAppointmentList",
     component: () =>

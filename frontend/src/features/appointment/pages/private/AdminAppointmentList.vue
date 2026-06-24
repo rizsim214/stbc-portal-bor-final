@@ -5,8 +5,10 @@ import StatusBanner from "@/shared/components/StatusBanner/StatusBanner.vue";
 import AppointmentListPagination from "../../components/AppointmentListPagination.vue";
 import AppointmentListTable from "../../components/AppointmentListTable.vue";
 import { useAppointmentListData } from "../../composables/useAppointmentListData";
+import { useAppointmentRealtime } from "../../composables/useAppointmentRealtime";
 
 const { appointments, meta, isLoadingAppointments, dataError, clearDataError, setPage } = useAppointmentListData("admin");
+useAppointmentRealtime("admin");
 </script>
 <template>
   <section class="rounded-xl border border-brand-light/30 bg-white p-6">

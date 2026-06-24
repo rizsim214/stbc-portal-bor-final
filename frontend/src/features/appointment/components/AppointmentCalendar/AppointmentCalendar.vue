@@ -14,14 +14,14 @@ const props = defineProps<{
       class="flex flex-col gap-4 border-b border-brand-light/25 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--color-brand-lighter)_60%,white),white)] px-5 py-5 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-dark/70">
-          Live Sample Schedule
+          Live Appointment Schedule
         </p>
         <h2 class="mt-1 text-2xl font-semibold text-brand-darker">
           Booked clinic slots
         </h2>
         <p class="mt-2 max-w-2xl text-sm text-brand-dark/80">
-          Only booked schedules are shown here. Any empty day or time slot can be treated as available for appointment
-          requests.
+          This calendar now reflects appointment records from the backend. Empty day or time slots can be treated as
+          available for new appointment requests.
         </p>
       </div>
 

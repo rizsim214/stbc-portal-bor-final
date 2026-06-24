@@ -28,8 +28,10 @@ export interface AppointmentEditFormState {
 
 export interface AppointmentScheduleEvent extends EventInput {
   extendedProps: {
-    status: ScheduleStatus;
+    status: string;
     note: string;
+    appointmentId?: number;
+    appointmentTypeId?: number;
   };
 }
 
@@ -93,6 +95,19 @@ export interface AppointmentAvailabilityResponse {
   slots: AppointmentAvailabilitySlot[];
 }
 
+export interface AppointmentCalendarItem {
+  id: number;
+  appointment_type_id: number;
+  start_time: string;
+  end_time: string;
+  status: string;
+  type: AppointmentTypeSummary | null;
+}
+
+export interface AppointmentCalendarResponse {
+  data: AppointmentCalendarItem[];
+}
+
 export interface AppointmentSelectionSummary {
   label: string;
   note: string;
@@ -131,6 +146,18 @@ export type GuestAppointmentResponse = {
     token: string;
     temporary_password: string;
   };
+};
+
+export type AuthenticatedAppointmentRequestPayload = {
+  appointment_type_id: number;
+  start_time: string;
+  end_time: string;
+  notes?: string;
+};
+
+export type AuthenticatedAppointmentRequestResponse = {
+  message: string;
+  data: AppointmentListItem;
 };
 
 export type UpdateAppointmentPayload = {
