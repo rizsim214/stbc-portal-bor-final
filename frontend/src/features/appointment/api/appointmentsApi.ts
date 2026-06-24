@@ -9,6 +9,7 @@ import type {
   AuthenticatedAppointmentRequestPayload,
   AuthenticatedAppointmentRequestResponse,
   AppointmentAvailabilityResponse,
+  AppointmentActivityResponse,
   AppointmentCalendarItem,
   AppointmentCalendarResponse,
   AssignableResource,
@@ -19,6 +20,7 @@ import type {
   GuestAppointmentResponse,
   PaginatedAppointmentListResponse,
   UpdateAppointmentPayload,
+  UpdateAppointmentStatusPayload,
 } from "../types";
 
 type AppointmentTypeRecord = {
@@ -102,8 +104,9 @@ export const appointmentsApi = {
     });
   },
 
-  async listAssignableResources() {
+  async listAssignableResources(appointmentId?: string | number) {
     return http.get<{ data: AssignableResource[] }>("/appointments/resources", {
+      params: appointmentId ? { appointment_id: appointmentId } : undefined,
       headers: {
         "X-Skip-Global-Loading": "true",
       },
@@ -134,6 +137,17 @@ export const appointmentsApi = {
     });
   },
 
+  async listAdminActivity(limit = 8) {
+    return http.get<AppointmentActivityResponse>("/appointments/admin-activity", {
+      params: {
+        limit,
+      },
+      headers: {
+        "X-Skip-Global-Loading": "true",
+      },
+    });
+  },
+
   async listAppointmentCalendar(start: string, end: string) {
     return http.get<AppointmentCalendarResponse>("/appointments/calendar", {
       params: {
@@ -152,6 +166,16 @@ export const appointmentsApi = {
   ) {
     return http.patch<{ message: string; data: AppointmentListItem }>(
       `/appointments/${appointmentId}`,
+      payload,
+    );
+  },
+
+  async updateAppointmentStatus(
+    appointmentId: string | number,
+    payload: UpdateAppointmentStatusPayload,
+  ) {
+    return http.patch<{ message: string; data: AppointmentListItem }>(
+      `/appointments/${appointmentId}/status`,
       payload,
     );
   },

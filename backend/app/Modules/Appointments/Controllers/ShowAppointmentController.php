@@ -3,6 +3,7 @@
 namespace App\Modules\Appointments\Controllers;
 
 use App\Models\Appointment;
+use App\Modules\Appointments\Actions\UpdateAppointmentStatusAction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -17,11 +18,16 @@ class ShowAppointmentController extends Controller
         }
 
         return response()->json([
-            'data' => $appointment->load([
-                'user:id,name,email',
-                'type:id,name,description',
-                'resources:id,name,type',
-            ]),
+            'data' => [
+                ...$appointment->load([
+                    'user:id,name,email',
+                    'type:id,name,description',
+                    'resources:id,name,type',
+                ])->toArray(),
+                'allowed_next_statuses' => UpdateAppointmentStatusAction::allowedNextStatuses(
+                    (string) $appointment->status,
+                ),
+            ],
         ]);
     }
 }

@@ -45,6 +45,7 @@ export interface AppointmentPatientSummary {
   id: number;
   name: string;
   email: string;
+  created_at?: string;
 }
 
 export interface AppointmentTypeSummary {
@@ -61,6 +62,9 @@ export interface AppointmentListItem {
   end_time: string;
   status: string;
   notes: string | null;
+  created_at?: string;
+  updated_at?: string;
+  allowed_next_statuses?: string[];
   user?: AppointmentPatientSummary | null;
   type?: AppointmentTypeSummary | null;
   resources?: AppointmentResourceSummary[];
@@ -78,10 +82,15 @@ export interface PaginatedAppointmentListResponse {
   meta: PaginationMeta;
 }
 
+export interface AppointmentActivityResponse {
+  data: AppointmentListItem[];
+}
+
 export interface AssignableResource {
   id: number;
   name: string;
   type: string;
+  is_available: boolean;
 }
 
 export interface AppointmentAvailabilitySlot {
@@ -165,4 +174,8 @@ export type UpdateAppointmentPayload = {
   start_time: string;
   end_time: string;
   notes?: string;
+};
+
+export type UpdateAppointmentStatusPayload = {
+  status: string;
 };

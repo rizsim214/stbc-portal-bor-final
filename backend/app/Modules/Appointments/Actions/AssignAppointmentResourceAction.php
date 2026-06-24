@@ -21,6 +21,13 @@ class AssignAppointmentResourceAction
     {
         $resource = Resource::query()->findOrFail($resourceId);
 
+        if (!$resource->is_available) {
+            throw new UnprocessableEntityApiException(
+                message: 'Selected staff member is currently marked unavailable.',
+                errorCode: 'APPOINTMENT_RESOURCE_MARKED_UNAVAILABLE',
+            );
+        }
+
         if (
             !$this->schedulingService->isAvailableExcludingAppointment(
                 [$resource->id],

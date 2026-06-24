@@ -2,8 +2,10 @@
 
 namespace App\Modules\Users\Actions;
 
+use App\Models\Resource;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 
 class DeactivateUserAction
 {
@@ -18,9 +20,18 @@ class DeactivateUserAction
         $currentStatus = strtolower(trim((string) ($user->account_status ?? 'active')));
         $nextStatus = $currentStatus === 'inactive' ? 'active' : 'inactive';
 
-        User::query()
-            ->whereKey($userId)
-            ->update(['account_status' => $nextStatus]);
+        DB::transaction(function () use ($userId, $nextStatus): void {
+            User::query()
+                ->whereKey($userId)
+                ->update(['account_status' => $nextStatus]);
+
+            Resource::query()
+                ->where('user_id', $userId)
+                ->update([
+                    'is_active' => $nextStatus !== 'inactive',
+                    'is_available' => $nextStatus !== 'inactive',
+                ]);
+        });
 
         return User::query()
             ->with('role')

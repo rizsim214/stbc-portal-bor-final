@@ -8,4 +8,12 @@ export const userRoutes: AppRoute[] = [
       import("@/features/user-management/pages/UserManagementPage.vue"),
     meta: { roles: ["admin"] },
   },
+  {
+    path: "users/:userId/staff-schedule",
+    name: "userStaffSchedule",
+    component: () =>
+      import("@/features/staff/pages/AdminStaffSchedulePage.vue"),
+    props: true,
+    meta: { roles: ["admin"] },
+  },
 ];

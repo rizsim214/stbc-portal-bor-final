@@ -36,7 +36,7 @@ type SubItem = {
   to: RouteLocationRaw;
   routeName: string;
   icon: Component;
-  roles?: Array<"admin" | "patient">;
+  roles?: Array<"admin" | "patient" | "staff">;
 };
 
 type SideNavGroup = {
@@ -58,9 +58,10 @@ const emit = defineEmits<{
 
 const isDesktopCollapsed = computed(() => props.collapsed ?? false);
 
-const currentRole = computed<"admin" | "patient">(() => {
+const currentRole = computed<"admin" | "patient" | "staff">(() => {
   const role = authStore.user?.role?.name?.toLowerCase();
   if (role === "admin") return role;
+  if (role === "staff") return role;
   return "patient";
 });
 
@@ -160,6 +161,7 @@ function getDashboardLinkClass(): string {
     "dashboardOverview",
     "patientDashboard",
     "adminDashboard",
+    "staffDashboard",
   ];
   const isActive =
     typeof route.name === "string" && dashboardRouteNames.includes(route.name);

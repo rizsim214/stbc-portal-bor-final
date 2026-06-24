@@ -28,6 +28,7 @@ export function useAppointmentRealtime(mode: "mine" | "admin") {
 
   const refreshQueries = (payload: AppointmentRealtimePayload) => {
     queryClient.invalidateQueries({ queryKey: ["appointments", "list"] });
+    queryClient.invalidateQueries({ queryKey: ["appointments", "activity"] });
     queryClient.invalidateQueries({
       queryKey: ["appointments", "detail", String(payload.appointment.id)],
     });

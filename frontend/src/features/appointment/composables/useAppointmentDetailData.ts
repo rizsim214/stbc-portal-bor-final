@@ -1,7 +1,10 @@
 import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
 import { computed, reactive, ref, watch } from "vue";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
-import { appointmentsApi } from "../api/appointmentsApi";
+import {
+  appointmentsApi,
+  mapAppointmentTypeOption,
+} from "../api/appointmentsApi";
 import type {
   AppointmentEditFormState,
   AppointmentListItem,
@@ -15,7 +18,6 @@ import {
   toDateInput,
   toSqlDateTime,
 } from "../utils/schedule";
-import { mapAppointmentTypeOption } from "../api/appointmentsApi";
 import { useAppointmentRealtime } from "./useAppointmentRealtime";
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -26,7 +28,10 @@ function getErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
-export function useAppointmentDetailData(appointmentId: string, mode: "patient" | "admin") {
+export function useAppointmentDetailData(
+  appointmentId: string,
+  mode: "patient" | "admin",
+) {
   const queryClient = useQueryClient();
   useAppointmentRealtime(mode === "admin" ? "admin" : "mine");
   const pageMessage = ref("");
@@ -57,9 +62,10 @@ export function useAppointmentDetailData(appointmentId: string, mode: "patient" 
   });
 
   const resourcesQuery = useQuery({
-    queryKey: ["appointments", "resources"],
+    queryKey: ["appointments", "resources", appointmentId],
     queryFn: async () => {
-      const { data } = await appointmentsApi.listAssignableResources();
+      const { data } =
+        await appointmentsApi.listAssignableResources(appointmentId);
       return data.data;
     },
     enabled: mode === "admin",
@@ -88,7 +94,9 @@ export function useAppointmentDetailData(appointmentId: string, mode: "patient" 
 
       return data.slots;
     },
-    enabled: computed(() => Boolean(selectedEditDate.value && editForm.appointmentType)),
+    enabled: computed(() =>
+      Boolean(selectedEditDate.value && editForm.appointmentType),
+    ),
   });
 
   const assignMutation = useMutation({
@@ -107,12 +115,41 @@ export function useAppointmentDetailData(appointmentId: string, mode: "patient" 
     onSuccess: (updatedAppointment) => {
       pageError.value = "";
       pageMessage.value = "Assigned staff updated successfully.";
-      queryClient.setQueryData(["appointments", "detail", appointmentId], updatedAppointment);
+      queryClient.setQueryData(
+        ["appointments", "detail", appointmentId],
+        updatedAppointment,
+      );
       queryClient.invalidateQueries({ queryKey: ["appointments", "list"] });
     },
     onError: (error: unknown) => {
       pageMessage.value = "";
-      pageError.value = getErrorMessage(error, "Failed to update assigned staff.");
+      pageError.value = getErrorMessage(
+        error,
+        "Failed to update assigned staff.",
+      );
+    },
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async (status: string) => {
+      const { data } = await appointmentsApi.updateAppointmentStatus(appointmentId, {
+        status,
+      });
+
+      return data.data;
+    },
+    onSuccess: (updatedAppointment) => {
+      pageError.value = "";
+      pageMessage.value = "Appointment status updated successfully.";
+      queryClient.setQueryData(
+        ["appointments", "detail", appointmentId],
+        updatedAppointment,
+      );
+      queryClient.invalidateQueries({ queryKey: ["appointments", "list"] });
+    },
+    onError: (error: unknown) => {
+      pageMessage.value = "";
+      pageError.value = getErrorMessage(error, "Failed to update appointment status.");
     },
   });
 
@@ -144,9 +181,14 @@ export function useAppointmentDetailData(appointmentId: string, mode: "patient" 
     onSuccess: (updatedAppointment) => {
       pageError.value = "";
       pageMessage.value = "Appointment details updated successfully.";
-      queryClient.setQueryData(["appointments", "detail", appointmentId], updatedAppointment);
+      queryClient.setQueryData(
+        ["appointments", "detail", appointmentId],
+        updatedAppointment,
+      );
       queryClient.invalidateQueries({ queryKey: ["appointments", "list"] });
-      queryClient.invalidateQueries({ queryKey: ["appointments", "availability"] });
+      queryClient.invalidateQueries({
+        queryKey: ["appointments", "availability"],
+      });
       hydrateEditor(updatedAppointment);
     },
     onError: (error: unknown) => {
@@ -181,7 +223,9 @@ export function useAppointmentDetailData(appointmentId: string, mode: "patient" 
   watch(
     () => availabilityQuery.data.value,
     (slots) => {
-      const nextOptions = (slots ?? []).map((slot) => extractTimeValue(slot.start_time));
+      const nextOptions = (slots ?? []).map((slot) =>
+        extractTimeValue(slot.start_time),
+      );
 
       if (nextOptions.includes(editForm.time)) {
         return;
@@ -192,39 +236,62 @@ export function useAppointmentDetailData(appointmentId: string, mode: "patient" 
     { immediate: true },
   );
 
-  const appointment = computed<AppointmentListItem | null>(() => appointmentQuery.data.value ?? null);
-  const appointmentTypes = computed<AppointmentTypeOption[]>(() => appointmentTypesQuery.data.value ?? []);
-  const assignableResources = computed<AssignableResource[]>(() => resourcesQuery.data.value ?? []);
+  const appointment = computed<AppointmentListItem | null>(
+    () => appointmentQuery.data.value ?? null,
+  );
+  const appointmentTypes = computed<AppointmentTypeOption[]>(
+    () => appointmentTypesQuery.data.value ?? [],
+  );
+  const assignableResources = computed<AssignableResource[]>(
+    () => resourcesQuery.data.value ?? [],
+  );
   const availableTimeOptions = computed(() =>
-    (availabilityQuery.data.value ?? []).map((slot) => extractTimeValue(slot.start_time)),
+    (availabilityQuery.data.value ?? []).map((slot) =>
+      extractTimeValue(slot.start_time),
+    ),
   );
   const isLoadingAppointment = computed(
     () => appointmentQuery.isPending.value || appointmentQuery.isFetching.value,
   );
   const isLoadingAppointmentTypes = computed(
-    () => appointmentTypesQuery.isPending.value || appointmentTypesQuery.isFetching.value,
+    () =>
+      appointmentTypesQuery.isPending.value ||
+      appointmentTypesQuery.isFetching.value,
   );
   const isLoadingResources = computed(
     () => resourcesQuery.isPending.value || resourcesQuery.isFetching.value,
   );
   const isLoadingAvailability = computed(
-    () => availabilityQuery.isPending.value || availabilityQuery.isFetching.value,
+    () =>
+      availabilityQuery.isPending.value || availabilityQuery.isFetching.value,
   );
   const dataError = computed(() => {
     if (appointmentQuery.isError.value) {
-      return getErrorMessage(appointmentQuery.error.value, "Failed to load appointment.");
+      return getErrorMessage(
+        appointmentQuery.error.value,
+        "Failed to load appointment.",
+      );
     }
 
     if (appointmentTypesQuery.isError.value) {
-      return getErrorMessage(appointmentTypesQuery.error.value, "Failed to load appointment types.");
+      return getErrorMessage(
+        appointmentTypesQuery.error.value,
+        "Failed to load appointment types.",
+      );
     }
 
     if (resourcesQuery.isError.value) {
-      return getErrorMessage(resourcesQuery.error.value, "Failed to load assignable staff.");
+      return getErrorMessage(
+        resourcesQuery.error.value,
+        "Failed to load assignable staff.",
+      );
     }
 
     if (availabilityQuery.isError.value) {
-      return getErrorMessage(availabilityQuery.error.value, "Failed to load available schedule.");
+      return getErrorMessage(
+        availabilityQuery.error.value,
+        "Failed to load available schedule.",
+      );
     }
 
     return pageError.value;
@@ -253,6 +320,7 @@ export function useAppointmentDetailData(appointmentId: string, mode: "patient" 
     isLoadingResources,
     isLoadingAvailability,
     isAssigningResource: computed(() => assignMutation.isPending.value),
+    isUpdatingStatus: computed(() => updateStatusMutation.isPending.value),
     isUpdatingAppointment: computed(() => updateMutation.isPending.value),
     dataError,
     pageMessage,
@@ -260,6 +328,9 @@ export function useAppointmentDetailData(appointmentId: string, mode: "patient" 
     setSelectedEditDate,
     assignSelectedResource: async () => {
       await assignMutation.mutateAsync();
+    },
+    updateAppointmentStatus: async (status: string) => {
+      await updateStatusMutation.mutateAsync(status);
     },
     updateAppointmentDetails: async () => {
       await updateMutation.mutateAsync();
