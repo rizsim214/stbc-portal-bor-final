@@ -10,40 +10,45 @@ class ListAppointmentAvailabilityTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const APPOINTMENT_START_DATETIME1 = '2026-06-24 09:00:00';
+    private const APPOINTMENT_END_DATETIME1 = '2026-06-24 09:30:00';
+    private const APPOINTMENT_START_DATETIME2 = '2026-06-24 10:00:00';
+    private const APPOINTMENT_END_DATETIME2 = '2026-06-24 10:30:00';
+
     public function test_availability_lists_only_open_slots_for_the_day(): void
     {
         $appointmentTypeId = $this->createAppointmentType();
-        $this->createAppointment('2026-06-24 09:00:00', '2026-06-24 09:30:00');
-        $this->createAppointment('2026-06-24 10:00:00', '2026-06-24 10:30:00');
+        $this->createAppointment(self::APPOINTMENT_START_DATETIME1, self::APPOINTMENT_END_DATETIME1);
+        $this->createAppointment(self::APPOINTMENT_START_DATETIME2, self::APPOINTMENT_END_DATETIME2);
 
         $this->getJson('/api/appointments/availability?date=2026-06-24&appointment_type_id=' . $appointmentTypeId)
             ->assertOk()
             ->assertJsonPath('date', '2026-06-24')
             ->assertJsonPath('appointment_type_id', $appointmentTypeId)
             ->assertJsonMissing([
-                'start_time' => '2026-06-24 09:00:00',
-                'end_time' => '2026-06-24 09:30:00',
+                'start_time' => self::APPOINTMENT_START_DATETIME1,
+                'end_time' => self::APPOINTMENT_END_DATETIME1,
             ])
             ->assertJsonMissing([
-                'start_time' => '2026-06-24 10:00:00',
-                'end_time' => '2026-06-24 10:30:00',
+                'start_time' => self::APPOINTMENT_START_DATETIME2,
+                'end_time' => self::APPOINTMENT_END_DATETIME2,
             ])
             ->assertJsonFragment([
-                'start_time' => '2026-06-24 09:30:00',
-                'end_time' => '2026-06-24 10:00:00',
+                'start_time' => self::APPOINTMENT_END_DATETIME1,
+                'end_time' => self::APPOINTMENT_START_DATETIME2,
             ]);
     }
 
     public function test_availability_can_keep_current_slot_when_editing_existing_appointment(): void
     {
         $appointmentTypeId = $this->createAppointmentType();
-        $appointmentId = $this->createAppointment('2026-06-24 09:00:00', '2026-06-24 09:30:00');
+        $appointmentId = $this->createAppointment(self::APPOINTMENT_START_DATETIME1, self::APPOINTMENT_END_DATETIME1);
 
         $this->getJson('/api/appointments/availability?date=2026-06-24&appointment_type_id=' . $appointmentTypeId . '&appointment_id=' . $appointmentId)
             ->assertOk()
             ->assertJsonFragment([
-                'start_time' => '2026-06-24 09:00:00',
-                'end_time' => '2026-06-24 09:30:00',
+                'start_time' => self::APPOINTMENT_START_DATETIME1,
+                'end_time' => self::APPOINTMENT_END_DATETIME1,
             ]);
     }
 

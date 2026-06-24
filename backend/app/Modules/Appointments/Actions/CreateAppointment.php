@@ -4,6 +4,7 @@ namespace App\Modules\Appointments\Actions;
 
 use App\Models\Appointment;
 use App\Modules\Appointments\DTOs\StoreAppointmentDTO;
+use App\Modules\Appointments\Support\AppointmentLifecycleDispatcher;
 use App\Modules\Scheduling\Services\SchedulingService;
 use App\Modules\Shared\Exceptions\UnprocessableEntityApiException;
 use Illuminate\Database\Eloquent\Model;
@@ -14,13 +15,14 @@ class CreateAppointment
 {
     public function __construct(
         private readonly SchedulingService $schedulingService,
+        private readonly AppointmentLifecycleDispatcher $lifecycleDispatcher,
     ) {
     }
 
     public function execute(StoreAppointmentDTO $dto): Model
     {
         try {
-            return DB::transaction(fn() => $this->createWithinTransaction($dto));
+            $appointment = DB::transaction(fn() => $this->createWithinTransaction($dto));
         } catch (QueryException $e) {
             if (in_array($e->getCode(), ['23P01', '23505'], true)) {
                 throw new UnprocessableEntityApiException(
@@ -31,6 +33,10 @@ class CreateAppointment
 
             throw $e;
         }
+
+        $this->lifecycleDispatcher->dispatch($appointment, 'created');
+
+        return $appointment;
     }
 
     public function createWithinTransaction(StoreAppointmentDTO $dto): Model

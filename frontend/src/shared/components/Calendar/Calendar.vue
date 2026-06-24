@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import FullCalendar from "@fullcalendar/vue3";
 import type { CalendarApi, CalendarOptions } from "@fullcalendar/core";
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const emit = defineEmits<{
   ready: [value: CalendarApi | null];
@@ -17,18 +17,48 @@ const props = withDefaults(defineProps<{
 });
 
 const calendarRef = ref<InstanceType<typeof FullCalendar> | null>(null);
+const wrapperRef = ref<HTMLDivElement | null>(null);
+let resizeObserver: ResizeObserver | null = null;
+
+function updateCalendarSize(): void {
+  const calendarApi = calendarRef.value?.getApi();
+
+  if (!calendarApi) {
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    calendarApi.updateSize();
+  });
+}
 
 onMounted(() => {
   emit("ready", calendarRef.value?.getApi() ?? null);
+
+  void nextTick(() => {
+    updateCalendarSize();
+
+    if (typeof ResizeObserver === "undefined" || !wrapperRef.value) {
+      return;
+    }
+
+    resizeObserver = new ResizeObserver(() => {
+      updateCalendarSize();
+    });
+
+    resizeObserver.observe(wrapperRef.value);
+  });
 });
 
 onBeforeUnmount(() => {
+  resizeObserver?.disconnect();
+  resizeObserver = null;
   emit("ready", null);
 });
 </script>
 
 <template>
-  <div :class="['stbc-calendar', props.wrapperClass]">
+  <div ref="wrapperRef" :class="['stbc-calendar', props.wrapperClass]">
     <FullCalendar :key="props.calendarKey" ref="calendarRef" :options="props.calendarOptions" />
   </div>
 </template>

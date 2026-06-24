@@ -28,6 +28,12 @@ export const privateRoutes: AppRoute[] = [
         component: () => import("@/pages/dashboard/DashboardOverviewPage.vue"),
         meta: { roles: ["admin"] },
       },
+      {
+        path: "staff",
+        name: "staffDashboard",
+        component: () => import("@/pages/dashboard/DashboardOverviewPage.vue"),
+        meta: { roles: ["staff"] },
+      },
       ...patientRoutes,
       ...userRoutes,
       ...appointmentRoutes,

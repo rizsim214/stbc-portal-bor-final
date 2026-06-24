@@ -207,6 +207,7 @@ From repo root (Docker path, recommended):
 Useful URLs:
 - API health: `http://localhost:8000/api/health`
 - Laravel health: `http://localhost:8000/up`
+- Reverb websocket: `ws://localhost:8080`
 - MinIO console: `http://localhost:9001`
 
 Queue worker (Docker):
@@ -214,6 +215,11 @@ Queue worker (Docker):
   - `--memory=${QUEUE_WORKER_MEMORY:-256}`
   - `--max-jobs=${QUEUE_WORKER_MAX_JOBS:-1000}`
   - `--max-time=${QUEUE_WORKER_MAX_TIME:-3600}`
+
+Reverb (Docker):
+- A dedicated `reverb` service runs `php artisan reverb:start` on port `8080`.
+- Backend publishing uses `REVERB_HOST`, `REVERB_PORT`, and `BROADCAST_CONNECTION=reverb`.
+- The browser websocket client uses `VITE_REVERB_APP_KEY`, `VITE_REVERB_HOST`, `VITE_REVERB_PORT`, and `VITE_REVERB_SCHEME`.
 
 ## 10. Testing
 

@@ -12,6 +12,7 @@ class ShowAppointmentTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const APPOINTMENT_URL = '/api/appointments/';
     public function test_patient_can_view_their_own_appointment(): void
     {
         $patientRoleId = $this->createRole('patient');
@@ -21,7 +22,7 @@ class ShowAppointmentTest extends TestCase
 
         Sanctum::actingAs($patient);
 
-        $this->getJson('/api/appointments/' . $appointmentId)
+        $this->getJson(self::APPOINTMENT_URL . $appointmentId)
             ->assertOk()
             ->assertJsonPath('data.id', $appointmentId)
             ->assertJsonPath('data.user_id', $patient->id);
@@ -37,7 +38,7 @@ class ShowAppointmentTest extends TestCase
 
         Sanctum::actingAs($patient);
 
-        $this->getJson('/api/appointments/' . $appointmentId)
+        $this->getJson(self::APPOINTMENT_URL . $appointmentId)
             ->assertForbidden();
     }
 
@@ -52,7 +53,7 @@ class ShowAppointmentTest extends TestCase
 
         Sanctum::actingAs($admin);
 
-        $this->getJson('/api/appointments/' . $appointmentId)
+        $this->getJson(self::APPOINTMENT_URL . $appointmentId)
             ->assertOk()
             ->assertJsonPath('data.id', $appointmentId);
     }

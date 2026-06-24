@@ -20,8 +20,9 @@ import type {
   UserManagementFormErrors,
   UserManagementFormState,
 } from "@/features/user-management/types";
+import { computed, watch } from "vue";
 
-defineProps<{
+const props = defineProps<{
   isOpen: boolean;
   roles: ManagedRole[];
   form: UserManagementFormState;
@@ -35,11 +36,22 @@ const emit = defineEmits<{
   (e: "close"): void;
   (e: "submit"): void;
 }>();
+
+const selectedRole = computed(() =>
+  props.roles.find((role) => String(role.id) === props.form.roleId) ?? null,
+);
+const isStaffRoleSelected = computed(() => selectedRole.value?.name === "staff");
+
+watch(isStaffRoleSelected, (selected) => {
+  if (!selected) {
+    props.form.subRole = "";
+  }
+});
 </script>
 
 <template>
   <BaseModal :is-open="isOpen" title="Add User"
-    description="Create a new admin or patient account and assign a role immediately."
+    description="Create a new admin, patient, or staff account and assign a role immediately."
     close-label="Close add user modal" @close="emit('close')">
     <form class="grid gap-4 md:grid-cols-2" @submit.prevent="emit('submit')">
       <Input v-model="form.name" label="Full name" placeholder="Jane Doe" :error="formErrors.name" />
@@ -80,6 +92,15 @@ const emit = defineEmits<{
         </SelectRoot>
         <p v-if="formErrors.role_id" class="text-sm text-red-500">{{ formErrors.role_id }}</p>
       </div>
+
+      <Input
+        v-if="isStaffRoleSelected"
+        v-model="form.subRole"
+        class="md:col-span-2"
+        label="Staff sub role"
+        placeholder="Doctor, Nurse, Radiologist, Cardiologist, Lab Equipment Operator"
+        :error="formErrors.sub_role"
+      />
 
       <div class="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div class="text-sm">

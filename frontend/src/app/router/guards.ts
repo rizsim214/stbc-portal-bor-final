@@ -6,7 +6,7 @@ let authInitialized = false;
 
 function getCurrentRoleName(
   authStore: ReturnType<typeof useAuthStore>,
-): "admin" | "patient" {
+): "admin" | "patient" | "staff" {
   return normalizeAuthRole(authStore.user?.role?.name);
 }
 

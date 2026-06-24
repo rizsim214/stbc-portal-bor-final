@@ -22,6 +22,7 @@ class UserManagementTest extends TestCase
             'name' => 'Jane Doe',
             'email' => 'jane.doe@example.com',
             'role_id' => $userRoleId,
+            'sub_role' => 'Radiologist',
             'account_status' => 'inactive',
         ]);
 
@@ -44,6 +45,7 @@ class UserManagementTest extends TestCase
 
         $this->assertNotNull($createdUser);
         $this->assertSame('inactive', $createdUser['account_status']);
+        $this->assertSame('Radiologist', $createdUser['sub_role']);
     }
 
     public function test_non_admin_cannot_list_users(): void

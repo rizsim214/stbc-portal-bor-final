@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -19,7 +20,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property int $id
  */
 
-#[Fillable(['name', 'email', 'password', 'role_id', 'account_status'])]
+#[Fillable(['name', 'email', 'password', 'role_id', 'sub_role', 'account_status'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -51,6 +52,11 @@ class User extends Authenticatable
         return $this->hasMany(Appointment::class);
     }
 
+    public function resource(): HasOne
+    {
+        return $this->hasOne(Resource::class);
+    }
+
     public function getAccountStatusAttribute(): string
     {
         return (string) ($this->attributes['account_status'] ?? 'active');
@@ -64,6 +70,11 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role?->name === 'admin';
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->role?->name === 'staff';
     }
 
     public function hasRole(string $role): bool
