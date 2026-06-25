@@ -1,25 +1,30 @@
 import { computed, ref, type ComputedRef } from "vue";
-import type { ManagedUserRow, UserManagementSearchField } from "../types";
+import type {
+  ManagedUserRow,
+  UserManagementSearchField,
+  UserManagementStatusFilter,
+} from "../types";
 
 export function useUserManagementFilters(users: ComputedRef<ManagedUserRow[]>) {
   const searchTerm = ref("");
   const searchField = ref<UserManagementSearchField>("name");
-  const roleFilter = ref("all");
+  const statusFilter = ref<UserManagementStatusFilter>("all");
 
   const filteredUsers = computed(() => {
     const query = searchTerm.value.trim().toLowerCase();
 
     return users.value.filter((user) => {
       const matchesQuery = !query || user[searchField.value].toLowerCase().includes(query);
-      const matchesRole = roleFilter.value === "all" || user.role === roleFilter.value;
-      return matchesQuery && matchesRole;
+      const matchesStatus =
+        statusFilter.value === "all" || user.status === statusFilter.value;
+      return matchesQuery && matchesStatus;
     });
   });
 
   return {
     searchTerm,
     searchField,
-    roleFilter,
+    statusFilter,
     filteredUsers,
   };
 }

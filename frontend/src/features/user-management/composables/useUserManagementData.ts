@@ -79,6 +79,7 @@ export function useUserManagementData() {
       name: user.name,
       email: user.email,
       role: user.role?.name ?? "unassigned",
+      subRole: user.sub_role ?? "",
       status: (user.account_status ?? "active").trim().toLowerCase() === "inactive"
         ? "inactive"
         : "active",

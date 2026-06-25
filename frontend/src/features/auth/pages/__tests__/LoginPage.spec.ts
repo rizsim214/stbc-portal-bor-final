@@ -24,7 +24,7 @@ vi.mock("vue-router", async () => {
 });
 
 const loginMock = vi.fn();
-const getDashboardPathMock = vi.fn(() => "/dashboard/user");
+const getDashboardPathMock = vi.fn(() => "/dashboard/patient");
 
 vi.mock("../../stores/useAuthStore", () => ({
   useAuthStore: () => ({
@@ -65,7 +65,7 @@ describe("LoginPage integration", () => {
       email: "john@example.com",
       password: "password123",
     });
-    expect(push).toHaveBeenCalledWith("/dashboard/user");
+    expect(push).toHaveBeenCalledWith("/dashboard/patient");
   });
 
   it("maps API field errors to login form fields", async () => {

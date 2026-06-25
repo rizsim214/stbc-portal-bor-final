@@ -11,6 +11,8 @@ export interface AuthUser {
   id: number;
   name: string;
   email: string;
+  account_status?: string;
+  sub_role?: string | null;
   role?: {
     id: number;
     name: string;

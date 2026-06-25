@@ -13,7 +13,7 @@ class ListLabResultsAction
         $query = LabResult::query()->with('appointment.user');
         $role = $user->role?->name;
 
-        if ($role === 'user') {
+        if ($role === 'patient') {
             $query
                 ->whereNotNull('released_at')
                 ->whereHas('appointment', function ($appointmentQuery) use ($user) {

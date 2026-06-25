@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
+    ->withBroadcasting(__DIR__ . '/../routes/channels.php', [
+        'prefix' => 'api',
+        'middleware' => ['api', 'auth:sanctum'],
+    ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
@@ -34,7 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (AuthenticationException $exception, Request $request) {
             return response()->json([
-                'message' => 'Unauthenticated.',
+                'message' => $exception->getMessage(),
                 'error_code' => 'UNAUTHENTICATED',
             ], 401);
         });
@@ -48,7 +52,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (ModelNotFoundException $exception, Request $request) {
             return response()->json([
-                'message' => 'Resource not found.',
+                'message' => $exception->getMessage(),
                 'error_code' => 'RESOURCE_NOT_FOUND',
             ], 404);
         });

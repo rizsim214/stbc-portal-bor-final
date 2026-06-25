@@ -14,18 +14,22 @@ class StoreAppointmentTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const START_TIME = '09:00:00';
+    private const END_TIME = '16:30:00';
+    private const APPOINTMENT_API_URL = '/api/appointments';
+
     public function test_authenticated_user_can_store_appointment(): void
     {
         $user = $this->createUser();
         $appointmentTypeId = $this->createAppointmentType();
         $resourceId = $this->createResource();
-        $this->createResourceSchedule($resourceId, 6, '08:00:00', '17:00:00');
+        $this->createResourceSchedule($resourceId, 6, self::START_TIME, self::END_TIME);
         $start = CarbonImmutable::parse('2026-04-25 09:00:00');
         $end = $start->addHour();
 
         Sanctum::actingAs($user);
 
-        $response = $this->postJson('/api/appointments', [
+        $response = $this->postJson(self::APPOINTMENT_API_URL, [
             'appointment_type_id' => $appointmentTypeId,
             'start_time' => $start->toDateTimeString(),
             'end_time' => $end->toDateTimeString(),
@@ -52,20 +56,20 @@ class StoreAppointmentTest extends TestCase
         $user = $this->createUser();
         $appointmentTypeId = $this->createAppointmentType();
         $resourceId = $this->createResource();
-        $this->createResourceSchedule($resourceId, 6, '08:00:00', '17:00:00');
+        $this->createResourceSchedule($resourceId, 6, self::START_TIME, self::END_TIME);
         $start = CarbonImmutable::parse('2026-04-25 09:00:00');
         $end = $start->addHour();
 
         Sanctum::actingAs($user);
 
-        $this->postJson('/api/appointments', [
+        $this->postJson(self::APPOINTMENT_API_URL, [
             'appointment_type_id' => $appointmentTypeId,
             'start_time' => $start->toDateTimeString(),
             'end_time' => $end->toDateTimeString(),
             'resource_ids' => [$resourceId],
         ])->assertCreated();
 
-        $response = $this->postJson('/api/appointments', [
+        $response = $this->postJson(self::APPOINTMENT_API_URL, [
             'appointment_type_id' => $appointmentTypeId,
             'start_time' => $start->addMinutes(30)->toDateTimeString(),
             'end_time' => $end->addMinutes(30)->toDateTimeString(),
@@ -82,11 +86,11 @@ class StoreAppointmentTest extends TestCase
         $user = $this->createUser();
         $appointmentTypeId = $this->createAppointmentType();
         $resourceId = $this->createResource();
-        $this->createResourceSchedule($resourceId, 6, '08:00:00', '17:00:00');
+        $this->createResourceSchedule($resourceId, 6, self::START_TIME, self::END_TIME);
 
         Sanctum::actingAs($user);
 
-        $response = $this->postJson('/api/appointments', [
+        $response = $this->postJson(self::APPOINTMENT_API_URL, [
             'appointment_type_id' => $appointmentTypeId,
             'start_time' => '2026-04-25 18:00:00',
             'end_time' => '2026-04-25 19:00:00',

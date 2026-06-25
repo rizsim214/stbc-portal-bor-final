@@ -1,14 +1,28 @@
 <script setup lang="ts">
-import { Plus, X } from "lucide-vue-next";
+import { Check, ChevronDown, Plus } from "lucide-vue-next";
+import {
+  SelectContent,
+  SelectIcon,
+  SelectItem,
+  SelectItemIndicator,
+  SelectItemText,
+  SelectPortal,
+  SelectRoot,
+  SelectTrigger,
+  SelectValue,
+  SelectViewport,
+} from "radix-vue";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
+import BaseModal from "@/shared/components/Modal/BaseModal.vue";
 import type {
   ManagedRole,
   UserManagementFormErrors,
   UserManagementFormState,
 } from "@/features/user-management/types";
+import { computed, watch } from "vue";
 
-defineProps<{
+const props = defineProps<{
   isOpen: boolean;
   roles: ManagedRole[];
   form: UserManagementFormState;
@@ -22,74 +36,87 @@ const emit = defineEmits<{
   (e: "close"): void;
   (e: "submit"): void;
 }>();
+
+const selectedRole = computed(() =>
+  props.roles.find((role) => String(role.id) === props.form.roleId) ?? null,
+);
+const isStaffRoleSelected = computed(() => selectedRole.value?.name === "staff");
+
+watch(isStaffRoleSelected, (selected) => {
+  if (!selected) {
+    props.form.subRole = "";
+  }
+});
 </script>
 
 <template>
-  <Transition appear enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0"
-    enter-to-class="opacity-100" leave-active-class="transition duration-150 ease-in" leave-from-class="opacity-100"
-    leave-to-class="opacity-0">
-    <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"
-      @click.self="emit('close')">
-      <Transition appear enter-active-class="transition duration-200 ease-out"
-        enter-from-class="translate-y-2 scale-95 opacity-0" enter-to-class="translate-y-0 scale-100 opacity-100"
-        leave-active-class="transition duration-150 ease-in" leave-from-class="translate-y-0 scale-100 opacity-100"
-        leave-to-class="translate-y-2 scale-95 opacity-0">
-        <div v-if="isOpen" class="w-full max-w-2xl rounded-xl border border-brand-light/30 bg-white p-5 shadow-2xl"
-          role="dialog" aria-modal="true" aria-labelledby="user-create-modal-title"
-          aria-describedby="user-create-modal-description" tabindex="-1">
-          <div class="mb-4 flex items-start justify-between gap-4">
-            <div>
-              <h3 id="user-create-modal-title" class="text-base font-semibold text-brand-darker">Add user</h3>
-              <p id="user-create-modal-description" class="text-sm text-brand-dark/80">
-                Create a new admin or patient account and assign a role immediately.
-              </p>
-            </div>
-            <button type="button"
-              class="rounded-md px-2 py-1 text-sm text-brand-dark/70 transition hover:bg-brand-lighter/30 hover:text-brand-darker"
-              aria-label="Close add user modal" @click="emit('close')">
-              <X class="h-4 w-4" aria-hidden="true" />
-            </button>
-          </div>
+  <BaseModal :is-open="isOpen" title="Add User"
+    description="Create a new admin, patient, or staff account and assign a role immediately."
+    close-label="Close add user modal" @close="emit('close')">
+    <form class="grid gap-4 md:grid-cols-2" @submit.prevent="emit('submit')">
+      <Input v-model="form.name" label="Full name" placeholder="Jane Doe" :error="formErrors.name" />
+      <Input v-model="form.email" label="Email address" type="email" placeholder="jane@example.com"
+        :error="formErrors.email" autocomplete="email" />
+      <Input v-model="form.password" label="Password" type="password" placeholder="Enter password"
+        :error="formErrors.password" autocomplete="new-password" />
+      <Input v-model="form.passwordConfirmation" label="Confirm password" type="password" placeholder="Repeat password"
+        :error="formErrors.password_confirmation" autocomplete="new-password" />
 
-          <form class="grid gap-4 md:grid-cols-2" @submit.prevent="emit('submit')">
-            <Input v-model="form.name" label="Full name" placeholder="Jane Doe" :error="formErrors.name" />
-            <Input v-model="form.email" label="Email address" type="email" placeholder="jane@example.com"
-              :error="formErrors.email" autocomplete="email" />
-            <Input v-model="form.password" label="Password" type="password" placeholder="Enter password"
-              :error="formErrors.password" autocomplete="new-password" />
-            <Input v-model="form.passwordConfirmation" label="Confirm password" type="password"
-              placeholder="Repeat password" :error="formErrors.password_confirmation" autocomplete="new-password" />
+      <div class="space-y-1 md:col-span-2">
+        <label for="role_id" class="text-sm font-medium text-brand-darker">Role</label>
+        <SelectRoot v-model="form.roleId">
+          <SelectTrigger id="role_id"
+            class="inline-flex h-10 w-full items-center justify-between rounded-md border border-brand-light/50 bg-white px-3 py-2 text-sm text-brand-darker outline-none transition focus:border-brand-highlight focus:ring-2 focus:ring-brand-highlight/40"
+            aria-label="Role">
+            <SelectValue placeholder="Select a role" />
+            <SelectIcon>
+              <ChevronDown class="h-4 w-4 text-brand-dark/70" />
+            </SelectIcon>
+          </SelectTrigger>
 
-            <div class="space-y-1 md:col-span-2">
-              <label for="role_id" class="text-sm font-medium text-brand-darker">Role</label>
-              <select id="role_id" v-model="form.roleId"
-                class="flex h-10 w-full rounded-md border border-brand-light/50 px-3 py-2 text-sm text-brand-darker transition placeholder:text-brand-dark/60 focus:border-brand-highlight focus:outline-none focus:ring-2 focus:ring-brand-highlight/40">
-                <option value="" disabled>Select a role</option>
-                <option v-for="role in roles" :key="role.id" :value="String(role.id)">
-                  {{ role.name }}
-                </option>
-              </select>
-              <p v-if="formErrors.role_id" class="text-sm text-red-500">{{ formErrors.role_id }}</p>
-            </div>
+          <SelectPortal>
+            <SelectContent
+              class="z-80 min-w-(--radix-select-trigger-width) overflow-hidden rounded-xl border border-brand-light/30 bg-white shadow-xl"
+              position="popper" :side-offset="8">
+              <SelectViewport class="max-h-60 overflow-y-auto p-1">
+                <SelectItem v-for="role in roles" :key="role.id" :value="String(role.id)"
+                  class="relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm text-brand-darker outline-none data-highlighted:bg-brand-lighter/35 data-[state=checked]:bg-brand-lighter/45">
+                  <SelectItemText class="capitalize">{{ role.name }}</SelectItemText>
+                  <SelectItemIndicator class="ml-auto">
+                    <Check class="h-4 w-4 text-brand-highlight" />
+                  </SelectItemIndicator>
+                </SelectItem>
+              </SelectViewport>
+            </SelectContent>
+          </SelectPortal>
+        </SelectRoot>
+        <p v-if="formErrors.role_id" class="text-sm text-red-500">{{ formErrors.role_id }}</p>
+      </div>
 
-            <div class="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div class="text-sm">
-                <p v-if="pageError" class="text-red-600">{{ pageError }}</p>
-                <p v-else-if="pageMessage" class="text-emerald-700">{{ pageMessage }}</p>
-              </div>
-              <div class="flex gap-2 sm:ml-auto">
-                <Button type="button" variant="outline" class="w-auto" @click="emit('close')">
-                  Cancel
-                </Button>
-                <Button type="submit" class="w-auto bg-brand-dark hover:bg-brand-darker" :loading="isSubmitting">
-                  <Plus class="mr-1 h-4 w-4" />
-                  Save User
-                </Button>
-              </div>
-            </div>
-          </form>
+      <Input
+        v-if="isStaffRoleSelected"
+        v-model="form.subRole"
+        class="md:col-span-2"
+        label="Staff sub role"
+        placeholder="Doctor, Nurse, Radiologist, Cardiologist, Lab Equipment Operator"
+        :error="formErrors.sub_role"
+      />
+
+      <div class="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div class="text-sm">
+          <p v-if="pageError" class="text-red-600">{{ pageError }}</p>
+          <p v-else-if="pageMessage" class="text-emerald-700">{{ pageMessage }}</p>
         </div>
-      </Transition>
-    </div>
-  </Transition>
+        <div class="flex gap-2 sm:ml-auto">
+          <Button type="button" variant="outline" class="w-auto" @click="emit('close')">
+            Cancel
+          </Button>
+          <Button type="submit" class="w-auto bg-brand-dark hover:bg-brand-darker" :loading="isSubmitting">
+            <Plus class="mr-1 h-4 w-4" />
+            Save
+          </Button>
+        </div>
+      </div>
+    </form>
+  </BaseModal>
 </template>

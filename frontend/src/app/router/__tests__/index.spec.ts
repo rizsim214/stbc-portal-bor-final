@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-type MockRole = "admin" | "user";
+type MockRole = "admin" | "patient";
 
 type MockStore = {
   isAuthenticated: boolean;
@@ -20,8 +20,13 @@ async function loadRouter() {
   return module.router;
 }
 
-function setStore(role: MockRole, authenticated = true, userId = role === "admin" ? 1 : 42) {
-  const dashboardPath = `/dashboard/${role}`;
+function setStore(
+  role: MockRole,
+  authenticated = true,
+  userId = role === "admin" ? 1 : 42,
+) {
+  const dashboardPath =
+    role === "admin" ? "/dashboard/admin" : "/dashboard/patient";
   mockStore = {
     isAuthenticated: authenticated,
     user: authenticated ? { id: userId, role: { name: role } } : null,
@@ -38,7 +43,7 @@ describe("router guards", () => {
   it(
     "redirects unauthenticated users to login with redirect query",
     async () => {
-      setStore("user", false);
+      setStore("patient", false);
       const router = await loadRouter();
 
       await router.push("/dashboard/users/record");
@@ -51,8 +56,8 @@ describe("router guards", () => {
     15000,
   );
 
-  it("allows user to access user record route", async () => {
-    setStore("user", true);
+  it("allows patient to access their record route", async () => {
+    setStore("patient", true);
     const router = await loadRouter();
 
     await router.push("/dashboard/users/record");
@@ -60,8 +65,8 @@ describe("router guards", () => {
     expect(router.currentRoute.value.name).toBe("userMedicalRecord");
   });
 
-  it("redirects a user to their own profile route when targeting another patient", async () => {
-    setStore("user", true, 42);
+  it("redirects a patient to their own profile route when targeting another patient", async () => {
+    setStore("patient", true, 42);
     const router = await loadRouter();
 
     await router.push("/dashboard/users/101/detail");
@@ -80,22 +85,22 @@ describe("router guards", () => {
     expect(router.currentRoute.value.params.userId).toBe("101");
   });
 
-  it("redirects user away from restricted admin route", async () => {
-    setStore("user", true);
+  it("redirects patient away from restricted admin route", async () => {
+    setStore("patient", true);
     const router = await loadRouter();
 
     await router.push("/dashboard/users/list");
 
-    expect(router.currentRoute.value.path).toBe("/dashboard/user");
+    expect(router.currentRoute.value.path).toBe("/dashboard/patient");
   });
 
-  it("redirects authenticated user away from guest-only route", async () => {
-    setStore("user", true);
+  it("redirects authenticated patient away from guest-only route", async () => {
+    setStore("patient", true);
     const router = await loadRouter();
 
     await router.push("/login");
 
-    expect(router.currentRoute.value.path).toBe("/dashboard/user");
+    expect(router.currentRoute.value.path).toBe("/dashboard/patient");
   });
 
   it("redirects /dashboard to role dashboard path when authenticated", async () => {
@@ -108,20 +113,29 @@ describe("router guards", () => {
   });
 
   it("redirects / to role dashboard path when authenticated", async () => {
-    setStore("user", true);
+    setStore("patient", true);
     const router = await loadRouter();
 
     await router.push("/");
 
-    expect(router.currentRoute.value.path).toBe("/dashboard/user");
+    expect(router.currentRoute.value.path).toBe("/dashboard/patient");
   });
 
   it("redirects non-admin away from admin-only route", async () => {
-    setStore("user", true);
+    setStore("patient", true);
     const router = await loadRouter();
 
     await router.push("/dashboard/users/manage");
 
-    expect(router.currentRoute.value.path).toBe("/dashboard/user");
+    expect(router.currentRoute.value.path).toBe("/dashboard/patient");
+  });
+
+  it("allows a patient role to access the patient dashboard without redirect looping", async () => {
+    setStore("patient", true);
+    const router = await loadRouter();
+
+    await router.push("/dashboard/patient");
+
+    expect(router.currentRoute.value.path).toBe("/dashboard/patient");
   });
 });

@@ -7,6 +7,7 @@ export interface ManagedUser {
   id: number;
   name: string;
   email: string;
+  sub_role?: string | null;
   account_status?: string | null;
   created_at?: string | null;
   role?: ManagedRole | null;
@@ -17,17 +18,20 @@ export interface ManagedUserRow {
   name: string;
   email: string;
   role: string;
+  subRole: string;
   status: "active" | "inactive";
 }
 
 export type UserManagementSearchField = "name" | "email" | "role";
+export type UserManagementStatusFilter = "all" | "active" | "inactive";
 
 export type UserManagementFormField =
   | "name"
   | "email"
   | "password"
   | "password_confirmation"
-  | "role_id";
+  | "role_id"
+  | "sub_role";
 
 export type UserManagementFormErrors = Partial<Record<UserManagementFormField, string>>;
 
@@ -37,6 +41,7 @@ export interface UserManagementFormState {
   password: string;
   passwordConfirmation: string;
   roleId: string;
+  subRole: string;
 }
 
 export interface UserFormPayload {
@@ -45,4 +50,5 @@ export interface UserFormPayload {
   password: string;
   password_confirmation: string;
   role_id: number;
+  sub_role?: string;
 }
