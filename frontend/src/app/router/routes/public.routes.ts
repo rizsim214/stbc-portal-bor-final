@@ -16,4 +16,10 @@ export const publicRoutes: AppRoute[] = [
     name: "services",
     component: () => import("@/pages/ServicesPage.vue"),
   },
+  {
+    path: "/appointments",
+    name: "appointments",
+    component: () => import("@/features/appointment/pages/GuestAppointmentPage.vue"),
+    meta: { guestOnly: true },
+  },
 ];

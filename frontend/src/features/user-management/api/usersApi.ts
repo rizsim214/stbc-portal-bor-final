@@ -1,4 +1,5 @@
 import { http } from "@/shared/api/http";
+import type { StaffScheduleDay, StaffScheduleResponseData } from "@/features/staff/types";
 import type {
   ManagedRole,
   ManagedUser,
@@ -29,6 +30,20 @@ export const usersApi = {
 
   createUser(payload: UserFormPayload) {
     return http.post<ApiResponse<ManagedUser>>("/users", payload);
+  },
+
+  getUserStaffSchedule(userId: string | number) {
+    return http.get<ApiResponse<StaffScheduleResponseData>>(`/users/${userId}/staff-schedule`, {
+      headers: {
+        "X-Skip-Global-Loading": "true",
+      },
+    });
+  },
+
+  updateUserStaffSchedule(userId: string | number, days: StaffScheduleDay[]) {
+    return http.patch<ApiResponse<StaffScheduleResponseData>>(`/users/${userId}/staff-schedule`, {
+      days,
+    });
   },
 
   toggleUserStatus(userId: string | number) {

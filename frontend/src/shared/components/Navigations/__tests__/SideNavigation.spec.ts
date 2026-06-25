@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/vue";
+import { fireEvent, render, screen } from "@testing-library/vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 import { createPinia, setActivePinia } from "pinia";
 import { describe, it, expect } from "vitest";
+import { defineComponent, ref } from "vue";
 import SideNavigation from "../SideNavigation.vue";
 import { useAuthStore } from "@/features/auth/stores/useAuthStore";
 
@@ -13,8 +14,8 @@ function buildRouter() {
     routes: [
       { path: "/dashboard", name: "dashboard", component: DummyPage },
       {
-        path: "/dashboard/user",
-        name: "userDashboard",
+        path: "/dashboard/patient",
+        name: "patientDashboard",
         component: DummyPage,
       },
       {
@@ -66,7 +67,7 @@ function buildRouter() {
   });
 }
 
-async function renderForRole(role: "admin" | "user") {
+async function renderForRole(role: "admin" | "patient") {
   const pinia = createPinia();
   setActivePinia(pinia);
 
@@ -83,7 +84,16 @@ async function renderForRole(role: "admin" | "user") {
   await router.push("/dashboard");
   await router.isReady();
 
-  render(SideNavigation, {
+  const SideNavigationHarness = defineComponent({
+    components: { SideNavigation },
+    setup() {
+      const collapsed = ref(false);
+      return { collapsed };
+    },
+    template: '<SideNavigation v-model:collapsed="collapsed" />',
+  });
+
+  render(SideNavigationHarness, {
     global: {
       plugins: [pinia, router],
     },
@@ -91,8 +101,8 @@ async function renderForRole(role: "admin" | "user") {
 }
 
 describe("SideNavigation role visibility", () => {
-  it("shows only dashboard and user related group for user role", async () => {
-    await renderForRole("user");
+  it("shows only dashboard and patient related group for patient role", async () => {
+    await renderForRole("patient");
 
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.getByAltText("STBC Clinic Logo")).toBeInTheDocument();
@@ -106,5 +116,19 @@ describe("SideNavigation role visibility", () => {
     expect(screen.getByAltText("STBC Clinic Logo")).toBeInTheDocument();
     expect(screen.getByText("Records")).toBeInTheDocument();
     expect(screen.getByText("Administration")).toBeInTheDocument();
+  });
+
+  it("renders icon-only desktop content when collapsed", async () => {
+    await renderForRole("admin");
+
+    const collapseButton = screen.getByLabelText("Collapse sidebar");
+    await fireEvent.click(collapseButton);
+
+    expect(screen.getByLabelText("Expand sidebar")).toBeInTheDocument();
+    expect(screen.queryByText("Navigation")).not.toBeInTheDocument();
+    expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
+    expect(screen.queryByText("Administration")).not.toBeInTheDocument();
+    expect(screen.getByTitle("Dashboard")).toBeInTheDocument();
+    expect(screen.getByTitle("User Administration")).toBeInTheDocument();
   });
 });

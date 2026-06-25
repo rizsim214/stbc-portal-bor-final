@@ -22,8 +22,15 @@ class RoleManagementTest extends TestCase
 
         $response = $this->getJson('/api/roles');
 
-        $response->assertOk()
-            ->assertJsonCount(2, 'data');
+        $response->assertOk();
+
+        $roleNames = collect($response->json('data'))
+            ->pluck('name')
+            ->all();
+
+        $this->assertContains('admin', $roleNames);
+        $this->assertContains('user', $roleNames);
+        $this->assertContains('staff', $roleNames);
     }
 
     public function test_non_admin_cannot_list_roles(): void
@@ -134,10 +141,61 @@ class RoleManagementTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_create_staff_user_with_sub_role(): void
+    {
+        $adminRoleId = $this->createRole('admin');
+        $staffRoleId = $this->findRoleId('staff');
+        $admin = User::factory()->create(['role_id' => $adminRoleId]);
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->postJson('/api/users', [
+            'name' => 'Dr. House',
+            'email' => 'staff@example.com',
+            'password' => 'secret-123',
+            'password_confirmation' => 'secret-123',
+            'role_id' => $staffRoleId,
+            'sub_role' => 'Doctor',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.role.name', 'staff')
+            ->assertJsonPath('data.sub_role', 'Doctor');
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'staff@example.com',
+            'role_id' => $staffRoleId,
+            'sub_role' => 'Doctor',
+        ]);
+    }
+
+    public function test_staff_user_creation_requires_sub_role(): void
+    {
+        $adminRoleId = $this->createRole('admin');
+        $staffRoleId = $this->findRoleId('staff');
+        $admin = User::factory()->create(['role_id' => $adminRoleId]);
+
+        Sanctum::actingAs($admin);
+
+        $this->postJson('/api/users', [
+            'name' => 'Staff User',
+            'email' => 'missing-sub-role@example.com',
+            'password' => 'secret-123',
+            'password_confirmation' => 'secret-123',
+            'role_id' => $staffRoleId,
+        ])->assertStatus(422)
+            ->assertJsonValidationErrors(['sub_role']);
+    }
+
     private function createRole(string $name): int
     {
         return (int) DB::table('roles')->insertGetId([
             'name' => $name,
         ]);
+    }
+
+    private function findRoleId(string $name): int
+    {
+        return (int) DB::table('roles')->where('name', $name)->value('id');
     }
 }

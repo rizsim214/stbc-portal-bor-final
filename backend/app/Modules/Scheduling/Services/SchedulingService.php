@@ -17,8 +17,20 @@ class SchedulingService
      */
     public function isAvailable(array $resourceIds, string $start, string $end): bool
     {
+        return $this->isAvailableExcludingAppointment($resourceIds, $start, $end);
+    }
+
+    /**
+     * @param  array<int>  $resourceIds
+     */
+    public function isAvailableExcludingAppointment(
+        array $resourceIds,
+        string $start,
+        string $end,
+        ?int $ignoreAppointmentId = null
+    ): bool {
         return $this->isWithinResourceSchedules($resourceIds, $start, $end)
-            && $this->isConflictFree($resourceIds, $start, $end);
+            && $this->isConflictFree($resourceIds, $start, $end, $ignoreAppointmentId);
     }
 
     /**
@@ -95,14 +107,24 @@ class SchedulingService
     /**
      * @param  array<int>  $resourceIds
      */
-    private function isConflictFree(array $resourceIds, string $start, string $end): bool
+    private function isConflictFree(
+        array $resourceIds,
+        string $start,
+        string $end,
+        ?int $ignoreAppointmentId = null
+    ): bool
     {
-        return !DB::table('resource_bookings')
+        $query = DB::table('resource_bookings')
             ->join('appointments', 'appointments.id', '=', 'resource_bookings.appointment_id')
             ->whereIn('resource_bookings.resource_id', $resourceIds)
             ->where('appointments.start_time', '<', $end)
-            ->where('appointments.end_time', '>', $start)
-            ->exists();
+            ->where('appointments.end_time', '>', $start);
+
+        if ($ignoreAppointmentId !== null) {
+            $query->where('appointments.id', '!=', $ignoreAppointmentId);
+        }
+
+        return !$query->exists();
     }
 
     /**

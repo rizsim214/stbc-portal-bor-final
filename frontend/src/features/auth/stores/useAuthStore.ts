@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { disconnectEcho, initializeEcho } from "@/shared/realtime/echo";
 import { authApi } from "../api/authApi";
 import type { AuthUser, LoginForm } from "../types";
 import {
@@ -38,9 +39,11 @@ export const useAuthStore = defineStore("auth", {
       this.user = user;
       localStorage.setItem(AUTH_STORAGE_KEYS.token, token);
       localStorage.setItem(AUTH_STORAGE_KEYS.user, JSON.stringify(user));
+      initializeEcho();
     },
 
     clearSession(): void {
+      disconnectEcho();
       this.token = "";
       this.user = null;
       localStorage.removeItem(AUTH_STORAGE_KEYS.token);
@@ -70,7 +73,10 @@ export const useAuthStore = defineStore("auth", {
         // Keep session on refresh using persisted user data.
         if (!this.user) {
           this.clearSession();
+          return;
         }
+
+        initializeEcho();
       } finally {
         this.isBootstrapping = false;
       }

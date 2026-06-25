@@ -1,12 +1,13 @@
 import type { RouteLocationNormalized, Router } from "vue-router";
 import { useAuthStore } from "@/features/auth/stores/useAuthStore";
+import { normalizeAuthRole } from "@/features/auth/constants";
 
 let authInitialized = false;
 
 function getCurrentRoleName(
   authStore: ReturnType<typeof useAuthStore>,
-): string {
-  return authStore.user?.role?.name?.toLowerCase() ?? "user";
+): "admin" | "patient" | "staff" {
+  return normalizeAuthRole(authStore.user?.role?.name);
 }
 
 function redirectForAuthState(
@@ -53,7 +54,7 @@ function redirectForSelfOnlyRoute(
   const currentUserId = authStore.user?.id;
 
   if (
-    currentRole === "user" &&
+    currentRole === "patient" &&
     currentUserId != null &&
     targetUserId != null &&
     targetUserId !== String(currentUserId)

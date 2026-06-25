@@ -1,6 +1,6 @@
 import type { RouteMeta, RouteRecordRaw } from "vue-router";
 
-export type AppRole = "admin" | "user";
+export type AppRole = "admin" | "patient" | "staff";
 
 export type AppRouteMeta = RouteMeta & {
   public?: boolean;

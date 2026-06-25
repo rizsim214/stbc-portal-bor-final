@@ -33,6 +33,7 @@ export function useUserManagementForm({ addUser }: SubmitUserOptions) {
     password: "",
     passwordConfirmation: "",
     roleId: "",
+    subRole: "",
   });
 
   function clearFeedback(): void {
@@ -45,6 +46,7 @@ export function useUserManagementForm({ addUser }: SubmitUserOptions) {
     form.password = "";
     form.passwordConfirmation = "";
     form.roleId = "";
+    form.subRole = "";
     formErrors.value = {};
   }
 
@@ -85,6 +87,7 @@ export function useUserManagementForm({ addUser }: SubmitUserOptions) {
       password: errors.password?.[0],
       password_confirmation: errors.password_confirmation?.[0],
       role_id: errors.role_id?.[0],
+      sub_role: errors.sub_role?.[0],
     };
   }
 
@@ -100,6 +103,7 @@ export function useUserManagementForm({ addUser }: SubmitUserOptions) {
         password: form.password,
         password_confirmation: form.passwordConfirmation,
         role_id: Number(form.roleId),
+        sub_role: form.subRole.trim() || undefined,
       };
 
       const { data } = await usersApi.createUser(payload);
