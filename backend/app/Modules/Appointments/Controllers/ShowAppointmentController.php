@@ -23,6 +23,7 @@ class ShowAppointmentController extends Controller
                     'user:id,name,email',
                     'type:id,name,description',
                     'resources:id,name,type',
+                    'labResult:id,appointment_id,file_path,released_at',
                 ])->toArray(),
                 'allowed_next_statuses' => UpdateAppointmentStatusAction::allowedNextStatuses(
                     (string) $appointment->status,

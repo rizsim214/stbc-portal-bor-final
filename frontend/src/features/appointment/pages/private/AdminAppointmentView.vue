@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import axios from "axios";
 import {
   Activity,
   ArrowRight,
@@ -6,8 +7,14 @@ import {
   ChevronDown,
   ClipboardList,
   Clock3,
+  Download,
   Dot,
+  FileImage,
+  FileText,
+  FlaskConical,
+  LoaderCircle,
   Mail,
+  ScanEye,
   Sparkles,
   UserRoundCog,
 } from "lucide-vue-next";
@@ -23,11 +30,12 @@ import {
   SelectValue,
   SelectViewport,
 } from "radix-vue";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import PageHeader from "@/shared/components/PageHeader/PageHeader.vue";
 import StatusBanner from "@/shared/components/StatusBanner/StatusBanner.vue";
 import { Button } from "@/shared/ui/button";
+import { appointmentsApi } from "../../api/appointmentsApi";
 import { useAppointmentDetailData } from "../../composables/useAppointmentDetailData";
 import { formatScheduleRange } from "../../utils/schedule";
 import {
@@ -50,6 +58,7 @@ const {
   pageMessage,
   dismissPageState,
   assignSelectedResource,
+  refreshAppointmentDetail,
   updateAppointmentStatus,
 } = useAppointmentDetailData(appointmentId.value, "admin");
 
@@ -70,6 +79,29 @@ const workflowStages = [
 
 const currentWorkflowIndex = computed(() =>
   workflowStages.findIndex((stage) => stage.key === appointment.value?.status),
+);
+const selectedLabResultFile = ref<File | null>(null);
+const labUploadError = ref("");
+const labUploadMessage = ref("");
+const labResultUrl = ref("");
+const isUploadingLabResult = ref(false);
+const isLoadingLabResult = ref(false);
+const acceptedLabResultTypes = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+] as const;
+const acceptedLabResultTypesLabel = ".pdf,.jpg,.jpeg,.png";
+const maxLabResultFileSizeBytes = 10 * 1024 * 1024;
+const hasLabResult = computed(() => Boolean(appointment.value?.lab_result?.id));
+const canUploadLabResult = computed(
+  () => appointment.value?.status === "releasing_lab_result",
+);
+const requiresLabResultBeforeCompletion = computed(
+  () =>
+    appointment.value?.status === "releasing_lab_result" &&
+    nextStatus.value === "completed" &&
+    !hasLabResult.value,
 );
 
 function getWorkflowStageState(index: number): "complete" | "current" | "upcoming" {
@@ -100,6 +132,118 @@ function getWorkflowStageClasses(index: number): string {
   }
 
   return "border-slate-200 bg-white text-slate-500";
+}
+
+function clearLabResultState(): void {
+  labUploadError.value = "";
+  labUploadMessage.value = "";
+}
+
+function formatFileSize(sizeBytes: number): string {
+  return `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function onLabResultFileChange(event: Event): void {
+  clearLabResultState();
+  const input = event.target as HTMLInputElement;
+  selectedLabResultFile.value = input.files?.[0] ?? null;
+}
+
+async function ensureLabResultUrl(): Promise<string> {
+  if (!appointment.value?.lab_result?.id) {
+    throw new Error("No uploaded lab result is available for this appointment.");
+  }
+
+  if (labResultUrl.value) {
+    return labResultUrl.value;
+  }
+
+  isLoadingLabResult.value = true;
+  labUploadError.value = "";
+
+  try {
+    const { data } = await appointmentsApi.getLabResultFileUrl(
+      appointment.value.lab_result.id,
+    );
+    labResultUrl.value = data.data.download_url;
+    return labResultUrl.value;
+  } catch {
+    labUploadError.value = "Unable to load the uploaded lab result.";
+    throw new Error(labUploadError.value);
+  } finally {
+    isLoadingLabResult.value = false;
+  }
+}
+
+async function handleViewLabResult(): Promise<void> {
+  await ensureLabResultUrl();
+}
+
+async function handleDownloadLabResult(): Promise<void> {
+  const url = await ensureLabResultUrl();
+  globalThis.open(url, "_blank", "noopener,noreferrer");
+}
+
+async function uploadLabResult(): Promise<void> {
+  clearLabResultState();
+
+  if (!appointment.value?.id) {
+    labUploadError.value = "Appointment details are not available.";
+    return;
+  }
+
+  if (!selectedLabResultFile.value) {
+    labUploadError.value = "Please choose a PDF or scanned image file first.";
+    return;
+  }
+
+  if (!acceptedLabResultTypes.includes(selectedLabResultFile.value.type as typeof acceptedLabResultTypes[number])) {
+    labUploadError.value = "Only PDF, JPG, and PNG files are allowed.";
+    return;
+  }
+
+  if (selectedLabResultFile.value.size > maxLabResultFileSizeBytes) {
+    labUploadError.value = `File must be ${formatFileSize(maxLabResultFileSizeBytes)} or smaller.`;
+    return;
+  }
+
+  isUploadingLabResult.value = true;
+
+  try {
+    const { data: uploadData } = await appointmentsApi.generateLabResultUploadUrl({
+      appointment_id: appointment.value.id,
+      file_name: selectedLabResultFile.value.name,
+      content_type: selectedLabResultFile.value.type,
+      size_bytes: selectedLabResultFile.value.size,
+    });
+
+    await axios.put(uploadData.data.upload_url, selectedLabResultFile.value, {
+      headers: uploadData.data.headers,
+    });
+
+    await appointmentsApi.createLabResult({
+      appointment_id: appointment.value.id,
+      file_key: uploadData.data.file_key,
+    });
+
+    selectedLabResultFile.value = null;
+    labResultUrl.value = "";
+    labUploadMessage.value = "Lab result uploaded successfully.";
+    await refreshAppointmentDetail();
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      labUploadError.value =
+        error.response?.data?.message ?? "Unable to upload the lab result.";
+      return;
+    }
+
+    labUploadError.value =
+      error instanceof Error && error.message
+        ? error.message
+        : "Unable to upload the lab result.";
+  } finally {
+    isUploadingLabResult.value = false;
+  }
 }
 </script>
 
@@ -170,7 +314,7 @@ function getWorkflowStageClasses(index: number): string {
                 </p>
                 <p class="mt-1 inline-flex items-center gap-2 text-xs text-slate-600">
                   <UserRoundCog class="h-3.5 w-3.5 text-brand-dark/70" />
-                  {{ appointment.resources?.length ? appointment.resources[0].type : "Assignment pending" }}
+                  {{ appointment.resources?.length ? appointment.resources[0].type : "Pending Assignment" }}
                 </p>
               </div>
             </div>
@@ -190,6 +334,9 @@ function getWorkflowStageClasses(index: number): string {
               </p>
               <p class="mt-2 text-sm leading-6 text-slate-600">
                 <span v-if="requiresStaffAssignment">Choose who handles this visit.</span>
+                <span v-else-if="requiresLabResultBeforeCompletion">
+                  Upload a lab result before completing this appointment.
+                </span>
                 <span v-else-if="canAdvanceStatus">Move to the next stage.</span>
                 <span v-else>No action needed.</span>
               </p>
@@ -197,6 +344,8 @@ function getWorkflowStageClasses(index: number): string {
              border-brand-light/20 bg-white/80 px-3 py-1 text-[11px] font-medium text-brand-dark/75 shadow-sm">
                 {{ requiresStaffAssignment ?
                   "Assignment required"
+                  : requiresLabResultBeforeCompletion
+                    ? "Upload required"
                   : canAdvanceStatus
                     ? "Ready for update"
                     : "Final stage reached" }}
@@ -260,14 +409,18 @@ function getWorkflowStageClasses(index: number): string {
                   <div class="min-w-0">
                     <p class="text-sm font-medium text-slate-900">Next step</p>
                     <p class="mt-1 text-sm text-slate-600">
-                      <span v-if="canAdvanceStatus">{{ getAppointmentStatusActionLabel(appointment.status) }}</span>
-                      <span v-else>No action needed.</span>
+                      <span v-if="requiresLabResultBeforeCompletion">
+                        Upload a lab result before marking this appointment complete.
+                      </span>
+                      <span v-else-if="canAdvanceStatus">{{ getAppointmentStatusActionLabel(appointment.status) }}</span>
+                      <span v-else-if="!requiresLabResultBeforeCompletion">No action needed.</span>
                     </p>
                   </div>
                 </div>
 
                 <Button v-if="canAdvanceStatus" type="button"
                   class="w-full bg-brand-dark text-white hover:bg-brand-darker" :loading="isUpdatingStatus"
+                  :disabled="requiresLabResultBeforeCompletion"
                   @click="updateAppointmentStatus(nextStatus)">
                   <ArrowRight class="mr-2 h-4 w-4" />
                   {{ getAppointmentStatusActionLabel(appointment.status) }}
@@ -278,15 +431,104 @@ function getWorkflowStageClasses(index: number): string {
         </div>
       </article>
 
-      <div class="grid gap-6 lg:grid-cols-[0.58fr_0.42fr]">
+      <aside class="rounded-3xl border border-brand-light/20 bg-linear-to-br from-white to-slate-50 p-6 shadow-sm"
+        aria-label="description-section">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">Description</p>
+        <p class="mt-4 min-h-28 max-h-48 overflow-y-auto pr-2 text-sm leading-7 text-slate-700">
+          {{ appointment?.notes ?? "No description provided." }}
+        </p>
+      </aside>
 
+      <div class="grid gap-6 lg:grid-cols-[0.52fr_0.48fr]">
 
-        <aside class="rounded-3xl border border-brand-light/20 bg-linear-to-br from-white to-slate-50 p-6 shadow-sm">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">Description</p>
-          <p class="mt-4 text-sm leading-7 text-slate-700">
-            {{ appointment?.notes ?? "No description provided." }}
-          </p>
+        <aside class="rounded-3xl border border-brand-light/20 bg-white p-6 shadow-sm" aria-label="lab-result-upload">
+          <div class="flex items-start gap-3">
+            <div class="rounded-2xl bg-brand-lighter/35 p-3 text-brand-darker">
+              <FlaskConical class="h-5 w-5" />
+            </div>
+            <div class="min-w-0">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">Lab Result Upload</p>
+              <h2 class="mt-2 text-lg font-semibold text-brand-darker">Attach result file</h2>
+              <p class="mt-2 text-sm leading-6 text-brand-dark/80">
+                Upload a PDF or scanned image for this appointment. Accepted formats are PDF, JPG, and PNG.
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-5 space-y-4">
+            <StatusBanner v-if="labUploadError" :message="labUploadError" tone="error" @dismiss="labUploadError = ''" />
+            <StatusBanner v-if="labUploadMessage" :message="labUploadMessage" tone="success"
+              @dismiss="labUploadMessage = ''" />
+
+            <div v-if="hasLabResult" class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div class="flex items-start gap-3">
+                <FileText class="mt-0.5 h-4 w-4 text-brand-dark/70" />
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold text-slate-900">Lab result already uploaded</p>
+                  <p class="mt-2 text-sm leading-6 text-slate-700">
+                    This appointment already has a stored lab result file. View or download it below.
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-4 flex flex-wrap gap-3">
+                <Button type="button" class="w-auto bg-brand-dark text-white hover:bg-brand-darker"
+                  :disabled="isLoadingLabResult" @click="handleViewLabResult">
+                  <LoaderCircle v-if="isLoadingLabResult" class="mr-2 h-4 w-4 animate-spin" />
+                  <ScanEye v-else class="mr-2 h-4 w-4" />
+                  View File
+                </Button>
+
+                <Button type="button" variant="outline"
+                  class="w-auto border-brand-light/40 text-brand-darker hover:bg-brand-lighter/20"
+                  :disabled="isLoadingLabResult" @click="handleDownloadLabResult">
+                  <Download class="mr-2 h-4 w-4" />
+                  Download
+                </Button>
+              </div>
+
+              <div v-if="labResultUrl" class="mt-4 overflow-hidden rounded-2xl border border-brand-light/20 bg-white">
+                <template v-if="appointment.lab_result?.file_path?.toLowerCase().endsWith('.pdf')">
+                  <iframe :src="labResultUrl" title="Admin Lab Result Preview" class="h-96 w-full" />
+                </template>
+                <template v-else>
+                  <img :src="labResultUrl" alt="Uploaded lab result" class="max-h-96 w-full object-contain" />
+                </template>
+              </div>
+            </div>
+
+            <div v-else class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div class="flex items-start gap-3">
+                <FileImage class="mt-1.25 h-4 w-4 text-brand-dark/70" />
+                <div class="min-w-0">
+                  <label for="upload-lab-result" class="text-sm font-semibold text-slate-900 ">Choose result
+                    file</label>
+                  <p class="mt-2 text-sm leading-6 text-slate-700">
+                    Upload one file per appointment. Use a PDF or scanned image under
+                    {{ formatFileSize(maxLabResultFileSizeBytes) }}.
+                  </p>
+                  <p v-if="!canUploadLabResult" class="mt-2 text-sm leading-6 text-amber-600">
+                    Upload is available only in Releasing Lab Result.
+                  </p>
+                </div>
+              </div>
+
+              <input type="file" :accept="acceptedLabResultTypesLabel" :disabled="!canUploadLabResult"
+                class="block w-full rounded-xl border border-brand-light/40 bg-white px-3 py-2 text-sm text-brand-darker file:mr-3 file:rounded-lg file:border-0 file:bg-brand-lighter/35 file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-darker hover:file:bg-brand-lighter/45 disabled:cursor-not-allowed disabled:opacity-60"
+                @change="onLabResultFileChange" id="upload-lab-result" />
+
+              <p v-if="selectedLabResultFile" class="text-sm text-slate-700">
+                Selected: <span class="font-medium text-slate-900">{{ selectedLabResultFile.name }}</span>
+              </p>
+
+              <Button type="button" class="w-full bg-brand-dark text-white hover:bg-brand-darker"
+                :disabled="!canUploadLabResult" :loading="isUploadingLabResult" @click="uploadLabResult">
+                Upload Lab Result
+              </Button>
+            </div>
+          </div>
         </aside>
+
         <section class="rounded-3xl border border-brand-light/20 bg-white p-5 shadow-sm">
           <div class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">

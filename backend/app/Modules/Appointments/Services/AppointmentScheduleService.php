@@ -9,10 +9,10 @@ class AppointmentScheduleService
 {
     private const SLOT_MINUTES = 30;
 
-    private const CLINIC_START_HOUR = 7;
-    private const CLINIC_START_MINUTE = 30;
-    private const CLINIC_END_HOUR = 17;
-    private const CLINIC_END_MINUTE = 0;
+    private const CLINIC_START_HOUR = 9;
+    private const CLINIC_START_MINUTE = 0;
+    private const CLINIC_END_HOUR = 16;
+    private const CLINIC_END_MINUTE = 30;
 
     public function isSlotAvailable(string $start, string $end, ?int $ignoreAppointmentId = null): bool
     {

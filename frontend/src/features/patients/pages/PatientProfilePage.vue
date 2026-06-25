@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import {
-  Activity,
-  CalendarClock,
   ChevronLeft,
   ClipboardPlus,
   Mail,
@@ -66,11 +64,11 @@ function dismissStatusBanner(): void {
             </p>
           </div>
 
-          <div class="grid gap-3 sm:grid-cols-3">
-            <div class="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-sm backdrop-blur">
-              <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">Records</p>
-              <p class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">{{ records.length }}</p>
-              <p class="mt-1 text-sm text-slate-600">Entries in history</p>
+            <div class="grid gap-3 sm:grid-cols-3">
+              <div class="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-sm backdrop-blur">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">Records</p>
+                <p class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">{{ records.length }}</p>
+                <p class="mt-1 text-sm text-slate-600">Entries in history</p>
             </div>
 
             <div class="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-sm backdrop-blur">
@@ -79,15 +77,15 @@ function dismissStatusBanner(): void {
               <p class="mt-1 text-sm text-slate-600">Most recent entry</p>
             </div>
 
-            <div class="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-sm backdrop-blur">
-              <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">Account</p>
-              <p class="mt-2 text-lg font-semibold tracking-tight text-slate-900">
-                {{ patient?.account_status === "inactive" ? "Inactive" : "Active" }}
-              </p>
-              <p class="mt-1 text-sm text-slate-600">Current access status</p>
+              <div class="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-sm backdrop-blur">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">Account</p>
+                <p class="mt-2 text-lg font-semibold tracking-tight text-slate-900">
+                  {{ patient?.account_status === "inactive" ? "Inactive" : "Active" }}
+                </p>
+                <p class="mt-1 text-sm text-slate-600">Current access status</p>
+              </div>
             </div>
           </div>
-        </div>
 
         <aside class="rounded-[1.5rem] border border-white/80 bg-white/90 p-5 shadow-sm backdrop-blur">
           <div class="flex items-center gap-3">
@@ -107,17 +105,8 @@ function dismissStatusBanner(): void {
                 <div class="min-w-0">
                   <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">Email</p>
                   <p class="mt-1 text-sm font-medium text-slate-900 break-all">{{ patient?.email ?? "Unknown" }}</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div class="flex items-start gap-3">
-                <CalendarClock class="mt-0.5 h-4 w-4 text-brand-dark/70" />
-                <div class="min-w-0">
-                  <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">Visit Pattern</p>
-                  <p class="mt-1 text-sm font-medium text-slate-900">
-                    {{ isFrequentVisitor ? "Frequent visitor history" : "Standard visit history" }}
+                  <p class="mt-2 text-sm leading-6 text-slate-600">
+                    Primary contact used for clinic updates and appointment communication.
                   </p>
                 </div>
               </div>
@@ -125,19 +114,15 @@ function dismissStatusBanner(): void {
 
             <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <div class="flex items-start gap-3">
-                <Activity class="mt-0.5 h-4 w-4 text-brand-dark/70" />
+                <ShieldCheck class="mt-0.5 h-4 w-4 text-brand-dark/70" />
                 <div class="min-w-0">
-                  <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">Account Status</p>
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">Profile Summary</p>
                   <p class="mt-1 text-sm font-medium text-slate-900">
-                    <span class="inline-flex items-center gap-2">
-                      <span
-                        :class="[
-                          'inline-flex h-2 w-2 rounded-full',
-                          patient?.account_status === 'inactive' ? 'bg-red-500' : 'bg-emerald-500',
-                        ]"
-                      />
-                      {{ patient?.account_status === "inactive" ? "Inactive" : "Active" }}
-                    </span>
+                    {{ isFrequentVisitor ? "Frequent visitor with active history" : "Standard visit history on file" }}
+                  </p>
+                  <p class="mt-2 text-sm leading-6 text-slate-600">
+                    Last visit: {{ lastVisit }}. Account is currently
+                    {{ patient?.account_status === "inactive" ? "inactive" : "active" }}.
                   </p>
                 </div>
               </div>

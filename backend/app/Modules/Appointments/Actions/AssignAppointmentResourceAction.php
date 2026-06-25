@@ -68,6 +68,10 @@ class AssignAppointmentResourceAction
             ]);
         });
 
+        $updatedAppointment->setAttribute(
+            'allowed_next_statuses',
+            UpdateAppointmentStatusAction::allowedNextStatuses((string) $updatedAppointment->status),
+        );
         $this->lifecycleDispatcher->dispatch($updatedAppointment, 'assigned');
 
         return $updatedAppointment;

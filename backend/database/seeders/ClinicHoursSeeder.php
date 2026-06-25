@@ -26,8 +26,8 @@ class ClinicHoursSeeder extends Seeder
                 $rows[] = [
                     'resource_id' => $resourceId,
                     'day_of_week' => $dayOfWeek,
-                    'start_time' => '08:30:00',
-                    'end_time' => '17:30:00',
+                    'start_time' => '09:00:00',
+                    'end_time' => '16:30:00',
                     'created_at' => $now,
                     'updated_at' => $now,
                 ];

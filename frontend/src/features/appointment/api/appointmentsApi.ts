@@ -16,8 +16,13 @@ import type {
   AppointmentListItem,
   AppointmentScheduleEvent,
   AppointmentTypeOption,
+  CreateLabResultPayload,
+  CreateLabResultResponse,
+  GenerateLabResultUploadUrlPayload,
+  GenerateLabResultUploadUrlResponse,
   GuestAppointmentPayload,
   GuestAppointmentResponse,
+  LabResultFileUrlResponse,
   PaginatedAppointmentListResponse,
   UpdateAppointmentPayload,
   UpdateAppointmentStatusPayload,
@@ -186,6 +191,22 @@ export const appointmentsApi = {
 
   async createMyAppointmentRequest(payload: AuthenticatedAppointmentRequestPayload) {
     return http.post<AuthenticatedAppointmentRequestResponse>("/appointments/request", payload);
+  },
+
+  async generateLabResultUploadUrl(payload: GenerateLabResultUploadUrlPayload) {
+    return http.post<GenerateLabResultUploadUrlResponse>("/lab-results/upload-url", payload);
+  },
+
+  async createLabResult(payload: CreateLabResultPayload) {
+    return http.post<CreateLabResultResponse>("/lab-results", payload);
+  },
+
+  async getLabResultFileUrl(labResultId: string | number) {
+    return http.get<LabResultFileUrlResponse>(`/lab-results/${labResultId}/file-url`, {
+      headers: {
+        "X-Skip-Global-Loading": "true",
+      },
+    });
   },
 };
 

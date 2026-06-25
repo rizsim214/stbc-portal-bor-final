@@ -28,12 +28,14 @@ class UpdateAppointmentStatusTest extends TestCase
         $this->patchJson("/api/appointments/{$appointmentId}/status", [
             'status' => 'checkup_ongoing',
         ])->assertOk()
-            ->assertJsonPath('data.status', 'checkup_ongoing');
+            ->assertJsonPath('data.status', 'checkup_ongoing')
+            ->assertJsonPath('data.allowed_next_statuses.0', 'awaiting_result');
 
         $this->patchJson("/api/appointments/{$appointmentId}/status", [
             'status' => 'awaiting_result',
         ])->assertOk()
-            ->assertJsonPath('data.status', 'awaiting_result');
+            ->assertJsonPath('data.status', 'awaiting_result')
+            ->assertJsonPath('data.allowed_next_statuses.0', 'releasing_lab_result');
     }
 
     public function test_status_transition_is_rejected_when_not_in_allowed_sequence(): void
@@ -86,6 +88,25 @@ class UpdateAppointmentStatusTest extends TestCase
         $this->getJson("/api/appointments/{$appointmentId}")
             ->assertOk()
             ->assertJsonPath('data.allowed_next_statuses.0', 'releasing_lab_result');
+    }
+
+    public function test_completing_releasing_lab_result_requires_uploaded_lab_result(): void
+    {
+        $adminRoleId = $this->createRole('admin');
+        $patientRoleId = $this->createRole('patient');
+        $appointmentTypeId = $this->createAppointmentType();
+        $admin = User::factory()->create(['role_id' => $adminRoleId]);
+        $patient = User::factory()->create(['role_id' => $patientRoleId]);
+        $appointmentId = $this->createAppointment($patient->id, $appointmentTypeId, 'releasing_lab_result');
+        $resourceId = $this->createResource();
+        $this->assignResource($appointmentId, $resourceId);
+
+        Sanctum::actingAs($admin);
+
+        $this->patchJson("/api/appointments/{$appointmentId}/status", [
+            'status' => 'completed',
+        ])->assertStatus(422)
+            ->assertJsonPath('error_code', 'APPOINTMENT_REQUIRES_LAB_RESULT');
     }
 
     private function createRole(string $name): int

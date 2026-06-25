@@ -1,5 +1,6 @@
 import DashboardLayout from "@/app/layouts/DashboardLayout.vue";
 import type { AppRoute } from "../types";
+import { accountRoutes } from "./modules/account.routes";
 import { patientRoutes } from "./modules/patient.routes";
 import { userRoutes } from "./modules/users.routes";
 import { appointmentRoutes } from "./modules/appointment.route";
@@ -37,6 +38,7 @@ export const privateRoutes: AppRoute[] = [
       ...patientRoutes,
       ...userRoutes,
       ...appointmentRoutes,
+      ...accountRoutes,
     ],
   },
 ];
