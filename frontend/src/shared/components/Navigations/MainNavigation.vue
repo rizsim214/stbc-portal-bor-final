@@ -118,7 +118,7 @@ function onUserMenuAction(action: UserMenuAction) {
   }
 
   if (action === "profile") {
-    navigateIfRouteExists("/profile", "Profile page is not available yet.");
+    router.push({ name: "accountProfile" });
     return;
   }
 
@@ -128,7 +128,7 @@ function onUserMenuAction(action: UserMenuAction) {
 </script>
 
 <template>
-  <header :class="headerClass" class="z-50 border-b transition-colors duration-300">
+  <header :class="headerClass" class="relative z-300 border-b transition-colors duration-300">
     <nav class="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
       <RouterLink v-if="!authStore.isAuthenticated" :to="homeLink"
         class="flex items-center gap-3 transition hover:opacity-90" aria-label="STBC Home">
@@ -177,7 +177,7 @@ function onUserMenuAction(action: UserMenuAction) {
               </DropdownMenuTrigger>
             </div>
             <DropdownMenuContent
-              class="z-50 mt-2 w-44 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg outline-none"
+              class="z-200 mt-2 w-44 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg outline-none"
               align="end" :side-offset="8">
               <template v-for="item in userMenuItems" :key="item.id">
                 <DropdownMenuSeparator v-if="item.id === 'logout'" class="my-1 h-px bg-brand-light/40" />
@@ -222,7 +222,7 @@ function onUserMenuAction(action: UserMenuAction) {
             </DropdownMenuTrigger>
           </div>
           <DropdownMenuContent
-            class="z-50 mt-2 w-44 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg outline-none"
+            class="z-200 mt-2 w-44 rounded-md border border-brand-light/30 bg-white p-1 shadow-lg outline-none"
             align="end" :side-offset="8">
             <template v-for="item in userMenuItems" :key="item.id">
               <DropdownMenuSeparator v-if="item.id === 'logout'" class="my-1 h-px bg-brand-light/40" />

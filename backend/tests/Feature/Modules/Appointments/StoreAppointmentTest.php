@@ -14,8 +14,8 @@ class StoreAppointmentTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const START_TIME = '08:00:00';
-    private const END_TIME = '17:00:00';
+    private const START_TIME = '09:00:00';
+    private const END_TIME = '16:30:00';
     private const APPOINTMENT_API_URL = '/api/appointments';
 
     public function test_authenticated_user_can_store_appointment(): void

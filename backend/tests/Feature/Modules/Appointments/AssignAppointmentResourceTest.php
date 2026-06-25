@@ -29,7 +29,8 @@ class AssignAppointmentResourceTest extends TestCase
             'resource_id' => $resourceId,
         ])->assertOk()
             ->assertJsonPath('data.status', 'assigned')
-            ->assertJsonPath('data.resources.0.id', $resourceId);
+            ->assertJsonPath('data.resources.0.id', $resourceId)
+            ->assertJsonPath('data.allowed_next_statuses.0', 'checkup_ongoing');
 
         $this->assertDatabaseHas('appointment_resources', [
             'appointment_id' => $appointmentId,

@@ -54,6 +54,13 @@ export interface AppointmentTypeSummary {
   description?: string | null;
 }
 
+export interface AppointmentLabResultSummary {
+  id: number;
+  appointment_id: number;
+  file_path: string | null;
+  released_at: string | null;
+}
+
 export interface AppointmentListItem {
   id: number;
   user_id: number;
@@ -68,6 +75,7 @@ export interface AppointmentListItem {
   user?: AppointmentPatientSummary | null;
   type?: AppointmentTypeSummary | null;
   resources?: AppointmentResourceSummary[];
+  lab_result?: AppointmentLabResultSummary | null;
 }
 
 export interface PaginationMeta {
@@ -178,4 +186,46 @@ export type UpdateAppointmentPayload = {
 
 export type UpdateAppointmentStatusPayload = {
   status: string;
+};
+
+export type GenerateLabResultUploadUrlPayload = {
+  appointment_id: number;
+  file_name: string;
+  content_type: string;
+  size_bytes: number;
+};
+
+export type GenerateLabResultUploadUrlResponse = {
+  message: string;
+  data: {
+    upload_url: string;
+    headers: Record<string, string>;
+    file_key: string;
+    expires_at: string;
+  };
+};
+
+export type CreateLabResultPayload = {
+  appointment_id: number;
+  file_key: string;
+  result_data?: Record<string, unknown>;
+  released_at?: string;
+};
+
+export type CreateLabResultResponse = {
+  message: string;
+  data: {
+    id: number;
+    appointment_id: number;
+    file_path: string | null;
+    released_at: string | null;
+  };
+};
+
+export type LabResultFileUrlResponse = {
+  message: string;
+  data: {
+    download_url: string;
+    expires_at: string;
+  };
 };

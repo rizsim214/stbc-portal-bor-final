@@ -28,11 +28,14 @@ function padTime(value: number): string {
 }
 
 function toCalendarRangeValue(date: Date): string {
-  return [
-    date.getFullYear(),
-    padTime(date.getMonth() + 1),
-    padTime(date.getDate()),
-  ].join("-") + ` ${padTime(date.getHours())}:${padTime(date.getMinutes())}:${padTime(date.getSeconds())}`;
+  return (
+    [
+      date.getFullYear(),
+      padTime(date.getMonth() + 1),
+      padTime(date.getDate()),
+    ].join("-") +
+    ` ${padTime(date.getHours())}:${padTime(date.getMinutes())}:${padTime(date.getSeconds())}`
+  );
 }
 
 export function useAppointmentBooking() {
@@ -56,8 +59,12 @@ export function useAppointmentBooking() {
   initialRangeEndDate.setDate(initialRangeEndDate.getDate() + 7);
   const calendarRangeStart = ref(toCalendarRangeValue(initialRangeStartDate));
   const calendarRangeEnd = ref(toCalendarRangeValue(initialRangeEndDate));
-  const bookingMode = computed(() => authStore.isAuthenticated ? "user" : "guest");
-  const availabilityEnabled = computed(() => Boolean(selectedDate.value && form.appointmentType));
+  const bookingMode = computed(() =>
+    authStore.isAuthenticated ? "user" : "guest",
+  );
+  const availabilityEnabled = computed(() =>
+    Boolean(selectedDate.value && form.appointmentType),
+  );
   const appointmentTypesQuery = useQuery({
     queryKey: ["appointments", "types"],
     queryFn: async () => {
@@ -133,10 +140,10 @@ export function useAppointmentBooking() {
     height: "auto",
     contentHeight: 920,
     allDaySlot: false,
-    slotMinTime: "07:30:00",
-    slotMaxTime: "17:00:00",
+    slotMinTime: "09:00:00",
+    slotMaxTime: "16:30:00",
     slotDuration: "00:30:00",
-    slotLabelInterval: "01:00:00",
+    slotLabelInterval: "00:30:00",
     nowIndicator: true,
     eventDisplay: "block",
     eventMinHeight: 32,
@@ -169,7 +176,9 @@ export function useAppointmentBooking() {
     return `${type} | ${date} | ${time}`;
   });
   const availableTimeOptions = computed(() =>
-    (availabilityQuery.data.value ?? []).map((slot) => extractTimeValue(slot.start_time)),
+    (availabilityQuery.data.value ?? []).map((slot) =>
+      extractTimeValue(slot.start_time),
+    ),
   );
 
   watch(
@@ -222,7 +231,9 @@ export function useAppointmentBooking() {
         });
 
         authStore.setSession(data.data.token, data.data.user);
-        await queryClient.invalidateQueries({ queryKey: ["appointments", "calendar"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["appointments", "calendar"],
+        });
         submitMessage.value = `Appointment request submitted. Temporary password: ${data.data.temporary_password}`;
         return;
       }
@@ -234,9 +245,13 @@ export function useAppointmentBooking() {
         notes: form.notes.trim() || undefined,
       });
 
-      await queryClient.invalidateQueries({ queryKey: ["appointments", "calendar"] });
-      await queryClient.invalidateQueries({ queryKey: ["appointments", "list"] });
-      await router.push({ name: "MyAppointmentList" });
+      await queryClient.invalidateQueries({
+        queryKey: ["appointments", "calendar"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["appointments", "list"],
+      });
+      await router.replace({ name: "MyAppointmentList" });
     } catch (error) {
       if (axios.isAxiosError(error)) {
         submitMessage.value =
@@ -256,7 +271,7 @@ export function useAppointmentBooking() {
     }
 
     const date = value.toDate(getLocalTimeZone());
-    const hours = form.time ? Number(form.time.split(":")[0]) : 8;
+    const hours = form.time ? Number(form.time.split(":")[0]) : 9;
     const minutes = form.time ? Number(form.time.split(":")[1]) : 0;
     date.setHours(hours, minutes, 0, 0);
 
@@ -284,7 +299,8 @@ export function useAppointmentBooking() {
     isLoadingAvailability: computed(
       () =>
         availabilityEnabled.value &&
-        (availabilityQuery.isPending.value || availabilityQuery.isFetching.value),
+        (availabilityQuery.isPending.value ||
+          availabilityQuery.isFetching.value),
     ),
     availableTimeOptions,
     calendarOptions,

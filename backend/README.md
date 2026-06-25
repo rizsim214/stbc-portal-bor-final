@@ -210,6 +210,44 @@ Useful URLs:
 - Reverb websocket: `ws://localhost:8080`
 - MinIO console: `http://localhost:9001`
 
+MinIO notes for local development:
+- create the bucket named `lab-results`
+- set `AWS_ENDPOINT=http://localhost:9000` in `backend/.env`
+- keep `AWS_USE_PATH_STYLE_ENDPOINT=true`
+- the browser uploads directly to the signed MinIO URL, so `http://minio:9000` is not suitable for local browser use even though it is valid inside Docker
+- configure MinIO bucket CORS to allow `http://localhost:5173` and `http://127.0.0.1:5173`
+
+Recommended local MinIO CORS policy:
+
+```json
+[
+  {
+    "AllowedOrigins": [
+      "http://localhost:5173",
+      "http://127.0.0.1:5173"
+    ],
+    "AllowedMethods": [
+      "GET",
+      "PUT",
+      "HEAD"
+    ],
+    "AllowedHeaders": [
+      "*"
+    ],
+    "ExposeHeaders": [
+      "ETag"
+    ],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+Staging/production env guidance:
+- update `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`, `AWS_BUCKET`, and `AWS_ENDPOINT`
+- keep `LAB_RESULTS_STORAGE_DISK=s3`
+- set `CORS_ALLOWED_ORIGINS` to the deployed frontend origins
+- if using MinIO outside local Docker, the endpoint must still be browser-reachable because uploads and downloads use signed URLs directly from the client
+
 Queue worker (Docker):
 - A dedicated `queue-worker` service runs `php artisan queue:work` with recycling flags for long-lived process stability:
   - `--memory=${QUEUE_WORKER_MEMORY:-256}`

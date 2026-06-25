@@ -82,7 +82,7 @@ class UpdateAppointmentTest extends TestCase
         $patient = User::factory()->create(['role_id' => $patientRoleId]);
         $appointmentId = $this->createAppointment($patient->id, $appointmentTypeId);
         $resourceId = $this->createResource();
-        $this->createResourceSchedule($resourceId, 3, '07:30:00', '17:00:00');
+        $this->createResourceSchedule($resourceId, 3, '09:00:00', '16:30:00');
         $this->assignResource($appointmentId, $resourceId, self::START_TIME3, self::END_TIME3);
 
         Sanctum::actingAs($admin);

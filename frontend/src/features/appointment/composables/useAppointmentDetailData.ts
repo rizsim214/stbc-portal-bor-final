@@ -306,6 +306,10 @@ export function useAppointmentDetailData(
     selectedEditDate.value = value;
   }
 
+  async function refreshAppointmentDetail(): Promise<void> {
+    await appointmentQuery.refetch();
+  }
+
   return {
     appointment,
     appointmentTypes,
@@ -326,6 +330,7 @@ export function useAppointmentDetailData(
     pageMessage,
     dismissPageState,
     setSelectedEditDate,
+    refreshAppointmentDetail,
     assignSelectedResource: async () => {
       await assignMutation.mutateAsync();
     },

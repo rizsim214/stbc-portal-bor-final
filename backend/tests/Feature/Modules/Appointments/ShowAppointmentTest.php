@@ -58,6 +58,22 @@ class ShowAppointmentTest extends TestCase
             ->assertJsonPath('data.id', $appointmentId);
     }
 
+    public function test_show_appointment_includes_lab_result_metadata_when_present(): void
+    {
+        $patientRoleId = $this->createRole('patient');
+        $appointmentTypeId = $this->createAppointmentType();
+        $patient = User::factory()->create(['role_id' => $patientRoleId]);
+        $appointmentId = $this->createAppointment($patient->id, $appointmentTypeId);
+        $labResultId = $this->createLabResult($appointmentId);
+
+        Sanctum::actingAs($patient);
+
+        $this->getJson(self::APPOINTMENT_URL . $appointmentId)
+            ->assertOk()
+            ->assertJsonPath('data.lab_result.id', $labResultId)
+            ->assertJsonPath('data.lab_result.file_path', 'results/cbc-001.pdf');
+    }
+
     private function createRole(string $name): int
     {
         $existingId = DB::table('roles')->where('name', $name)->value('id');
@@ -86,6 +102,18 @@ class ShowAppointmentTest extends TestCase
             'start_time' => '2026-04-25 09:00:00',
             'end_time' => '2026-04-25 09:30:00',
             'status' => 'pending',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    private function createLabResult(int $appointmentId): int
+    {
+        return (int) DB::table('lab_results')->insertGetId([
+            'appointment_id' => $appointmentId,
+            'file_path' => 'results/cbc-001.pdf',
+            'result_data' => json_encode(['summary' => 'CBC released']),
+            'released_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);

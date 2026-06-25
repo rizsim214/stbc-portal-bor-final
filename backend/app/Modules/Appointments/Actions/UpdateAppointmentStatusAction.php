@@ -44,6 +44,17 @@ class UpdateAppointmentStatusAction
             );
         }
 
+        if (
+            $currentStatus === 'releasing_lab_result'
+            && $nextStatus === 'completed'
+            && !$appointment->labResult()->exists()
+        ) {
+            throw new UnprocessableEntityApiException(
+                message: 'Upload a lab result before completing this appointment.',
+                errorCode: 'APPOINTMENT_REQUIRES_LAB_RESULT',
+            );
+        }
+
         $appointment->status = $nextStatus;
         $appointment->save();
 
@@ -52,6 +63,10 @@ class UpdateAppointmentStatusAction
             'type:id,name,description',
             'resources:id,name,type',
         ]);
+        $updatedAppointment->setAttribute(
+            'allowed_next_statuses',
+            self::allowedNextStatuses((string) $updatedAppointment->status),
+        );
 
         $this->lifecycleDispatcher->dispatch($updatedAppointment, 'status_updated');
 

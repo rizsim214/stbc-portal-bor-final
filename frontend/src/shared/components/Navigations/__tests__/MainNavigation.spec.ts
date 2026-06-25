@@ -69,7 +69,7 @@ describe("MainNavigation behavior", () => {
     expect(push).toHaveBeenCalledWith("/login");
   });
 
-  it("shows appointment CTA and routes through login redirect", async () => {
+  it("shows appointment CTA and routes to the appointment page", async () => {
     mockAuthState = {
       isAuthenticated: false,
       user: null,
@@ -80,7 +80,7 @@ describe("MainNavigation behavior", () => {
 
     await userEvent.click(screen.getAllByRole("button", { name: /set appointment/i })[0]);
 
-    expect(push).toHaveBeenCalledWith("/login?redirect=%2Fappointments");
+    expect(push).toHaveBeenCalledWith("/appointments");
   });
 
   it("logs out authenticated user and redirects to login", async () => {
@@ -100,7 +100,7 @@ describe("MainNavigation behavior", () => {
     expect(push).toHaveBeenCalledWith("/login");
   });
 
-  it("alerts when profile/settings routes do not exist", async () => {
+  it("routes to the profile page from the user menu", async () => {
     resolve.mockReturnValue({ matched: [] });
     mockAuthState = {
       isAuthenticated: true,
@@ -113,9 +113,25 @@ describe("MainNavigation behavior", () => {
     await userEvent.click(screen.getAllByRole("button", { name: /open user menu/i })[0]);
     await userEvent.click(screen.getByRole("menuitem", { name: /profile/i }));
 
-    expect(resolve).toHaveBeenCalledWith("/profile");
+    expect(push).toHaveBeenCalledWith({ name: "accountProfile" });
+  });
+
+  it("alerts when settings route does not exist", async () => {
+    resolve.mockReturnValue({ matched: [] });
+    mockAuthState = {
+      isAuthenticated: true,
+      user: { email: "test@example.com" },
+      getDashboardPath: () => "/dashboard/patient",
+      logout,
+    };
+    renderMainNavigation();
+
+    await userEvent.click(screen.getAllByRole("button", { name: /open user menu/i })[0]);
+    await userEvent.click(screen.getByRole("menuitem", { name: /settings/i }));
+
+    expect(resolve).toHaveBeenCalledWith("/settings");
     expect(globalThis.alert).toHaveBeenCalledWith(
-      "Profile page is not available yet.",
+      "Settings page is not available yet.",
     );
   });
 });

@@ -10,6 +10,7 @@ use App\Modules\Users\Controllers\ShowUserStaffScheduleController;
 use App\Modules\Users\Controllers\ShowUserMedicalHistoryController;
 use App\Modules\Users\Controllers\ShowOwnStaffAvailabilityController;
 use App\Modules\Users\Controllers\UpdateOwnStaffAvailabilityController;
+use App\Modules\Users\Controllers\UpdateOwnPasswordController;
 use App\Modules\Users\Controllers\UpdateOwnStaffScheduleController;
 use App\Modules\Users\Controllers\UpdateUserStaffScheduleController;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::patch('/users/{user}/toggle-status', DeactivateUserController::class)
         ->middleware('can:manage-users');
+
+    Route::patch('/users/me/password', UpdateOwnPasswordController::class);
 
     Route::get('/users/{user}/medical-history', ShowUserMedicalHistoryController::class);
     Route::get('/users/{user}/staff-schedule', ShowUserStaffScheduleController::class)
