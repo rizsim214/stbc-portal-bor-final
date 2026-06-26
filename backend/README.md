@@ -234,6 +234,23 @@ Reverb (Docker):
 - Backend publishing uses `REVERB_HOST`, `REVERB_PORT`, and `BROADCAST_CONNECTION=reverb`.
 - The browser websocket client uses `VITE_REVERB_APP_KEY`, `VITE_REVERB_HOST`, `VITE_REVERB_PORT`, and `VITE_REVERB_SCHEME`.
 
+Render backend deploy:
+- deployment script: `scripts/render-deploy.sh`
+- Composer alias: `composer run render:deploy`
+- tasks included:
+  - `php artisan optimize:clear`
+  - `php artisan storage:link`
+  - `php artisan migrate --force`
+  - `php artisan config:cache`
+  - `php artisan route:cache`
+  - `php artisan event:cache`
+  - `php artisan view:cache`
+  - `php artisan queue:restart`
+- suggested Render commands:
+  - Build command: `composer install --no-dev --optimize-autoloader`
+  - Pre-deploy command: `composer run render:deploy`
+  - Start command: `php artisan serve --host=0.0.0.0 --port=$PORT`
+
 ## 10. Testing
 
 Run tests:
