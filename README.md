@@ -27,6 +27,24 @@ Full-stack setup with:
 5. Start stack:
    - `docker compose up -d`
 
+## Render Environments
+
+Use the existing `.env.example` files for local Docker development.
+
+Use these Render-specific examples when deploying hosted services:
+- `backend/.env.render.staging.example`
+- `backend/.env.render.production.example`
+- `frontend/.env.render.staging.example`
+- `frontend/.env.render.production.example`
+
+Recommended mapping on Render:
+- Backend web service: copy values from the matching `backend/.env.render.*.example`
+- Queue worker: reuse the same backend env file for the same environment
+- Reverb service: reuse the same backend env file for the same environment
+- Frontend static site or web service: copy values from the matching `frontend/.env.render.*.example`
+
+Switching environments should only require swapping the staging file set for the production file set and then replacing the placeholder hosts, passwords, keys, and domains with the real Render values.
+
 ## URLs
 
 - Frontend: `http://localhost:5173`
