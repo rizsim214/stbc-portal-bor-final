@@ -230,7 +230,6 @@ export function useAppointmentBooking() {
           notes: form.notes.trim() || undefined,
         });
 
-        authStore.setSession(data.data.token, data.data.user);
         await queryClient.invalidateQueries({
           queryKey: ["appointments", "calendar"],
         });
