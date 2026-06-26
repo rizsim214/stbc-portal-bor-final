@@ -1,6 +1,6 @@
 services:
   app:
-    build: ./docker/php
+    build: ./backend/
     container_name: stbc_app
     working_dir: /var/www
     volumes:
@@ -15,7 +15,7 @@ services:
         condition: service_healthy
 
   reverb:
-    build: ./docker/php
+    build: ./backend/
     container_name: stbc_reverb
     working_dir: /var/www
     volumes:
@@ -37,7 +37,7 @@ services:
         condition: service_healthy
 
   queue-worker:
-    build: ./docker/php
+    build: ./backend/
     container_name: stbc_queue_worker
     working_dir: /var/www
     volumes:
