@@ -3,6 +3,8 @@
 set -eu
 
 php artisan optimize:clear --ansi
+php artisan migrate --force --ansi
+php artisan db:seed --force --ansi
 
 if php artisan storage:link --ansi; then
   echo "Storage link is ready."

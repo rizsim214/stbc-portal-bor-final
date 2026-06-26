@@ -13,10 +13,17 @@ class ResourceSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('resources')->insert([
+        $resources = [
             ['name' => 'Dr. Smith', 'type' => 'doctor'],
             ['name' => 'Radiologist John', 'type' => 'radiologist'],
             ['name' => 'X-Ray Machine 1', 'type' => 'machine'],
-        ]);
+        ];
+
+        foreach ($resources as $resource) {
+            DB::table('resources')->updateOrInsert(
+                ['name' => $resource['name']],
+                ['type' => $resource['type']]
+            );
+        }
     }
 }
