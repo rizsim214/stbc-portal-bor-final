@@ -31,9 +31,6 @@ const activeUsersCount = computed(
 const inactiveUsersCount = computed(
   () => normalizedUsers.value.filter((user) => user.status === "inactive").length,
 );
-const staffUsersCount = computed(
-  () => normalizedUsers.value.filter((user) => user.role === "staff").length,
-);
 const adminUsersCount = computed(
   () => normalizedUsers.value.filter((user) => user.role === "admin").length,
 );
@@ -75,13 +72,15 @@ function dismissStatusBanner(): void {
       :tone="dataError || pageError ? 'error' : 'success'" @dismiss="dismissStatusBanner" />
 
     <div class="mt-6 space-y-6">
-      <article class="relative overflow-hidden rounded-[1.75rem] border border-brand-light/20 bg-linear-to-br from-white via-sky-50 to-brand-lighter/35 p-6">
+      <article
+        class="relative overflow-hidden rounded-[1.75rem] border border-brand-light/20 bg-linear-to-br from-white via-sky-50 to-brand-lighter/35 p-6">
         <div class="absolute right-0 top-0 h-28 w-28 rounded-full bg-brand-light/10 blur-3xl" />
         <div class="absolute bottom-0 left-10 h-24 w-24 rounded-full bg-sky-300/10 blur-3xl" />
 
         <div class="relative grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
           <div class="space-y-4">
-            <div class="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-darker shadow-sm ring-1 ring-brand-light/15">
+            <div
+              class="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-darker shadow-sm ring-1 ring-brand-light/15">
               <UserRoundCog class="h-3.5 w-3.5" />
               Account Overview
             </div>
@@ -97,12 +96,6 @@ function dismissStatusBanner(): void {
                 <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">Active</p>
                 <p class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">{{ activeUsersCount }}</p>
                 <p class="mt-1 text-sm text-slate-600">Accounts ready to use</p>
-              </div>
-
-              <div class="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-sm backdrop-blur">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">Staff</p>
-                <p class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">{{ staffUsersCount }}</p>
-                <p class="mt-1 text-sm text-slate-600">Clinic team accounts</p>
               </div>
 
               <div class="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-sm backdrop-blur">
@@ -156,10 +149,13 @@ function dismissStatusBanner(): void {
       </article>
 
       <article class="overflow-hidden rounded-[1.5rem] border border-brand-light/20 bg-white shadow-sm">
-        <div class="flex flex-col gap-4 border-b border-brand-light/15 px-5 py-4 lg:flex-row lg:items-end lg:justify-between">
+        <div
+          class="flex flex-col gap-4 border-b border-brand-light/15 px-5 py-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">Account Directory</p>
-            <h2 class="mt-2 text-xl font-semibold tracking-tight text-brand-darker">Search, filter, and manage user access</h2>
+            <h2 class="mt-2 text-xl font-semibold tracking-tight text-brand-darker">Search, filter, and manage user
+              access
+            </h2>
           </div>
 
           <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -170,15 +166,12 @@ function dismissStatusBanner(): void {
 
         <div class="px-5 py-5">
           <UserTableFilters :search-term="searchTerm" :search-field="searchField" :status-filter="statusFilter"
-            @update:search-term="searchTerm = $event"
-            @update:search-field="searchField = $event" @update:status-filter="statusFilter = $event" />
+            @update:search-term="searchTerm = $event" @update:search-field="searchField = $event"
+            @update:status-filter="statusFilter = $event" />
 
           <div class="mt-5">
-            <DataTable
-              :users="filteredUsers"
-              :is-updating-status="isTogglingUserStatus"
-              @toggle-status="toggleUserStatus"
-            />
+            <DataTable :users="filteredUsers" :is-updating-status="isTogglingUserStatus"
+              @toggle-status="toggleUserStatus" />
           </div>
         </div>
       </article>
