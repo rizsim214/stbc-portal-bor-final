@@ -2,8 +2,10 @@ import axios from "axios";
 import { AUTH_STORAGE_KEYS } from "@/features/auth/constants";
 import { startApiLoading, stopApiLoading } from "@/shared/lib/apiLoading";
 
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim() || "/api";
+
 export const http = axios.create({
-  baseURL: "/api",
+  baseURL: apiBaseUrl,
   headers: {
     Accept: "application/json",
   },
