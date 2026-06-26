@@ -120,6 +120,16 @@ export function useUserManagementData() {
     );
   }
 
+  function updateUser(user: ManagedUser): void {
+    queryClient.setQueryData<ManagedUser[]>(
+      ["users", "management", "list"],
+      (currentUsers = []) =>
+        currentUsers.map((currentUser) =>
+          currentUser.id === user.id ? user : currentUser,
+        ),
+    );
+  }
+
   async function toggleUserStatus(userId: number): Promise<void> {
     await toggleStatusMutation.mutateAsync(userId);
   }
@@ -137,6 +147,7 @@ export function useUserManagementData() {
     loadInitialData,
     clearDataError,
     addUser,
+    updateUser,
     toggleUserStatus,
     isTogglingUserStatus: computed(() => toggleStatusMutation.isPending.value),
   };

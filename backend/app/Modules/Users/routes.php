@@ -8,6 +8,7 @@ use App\Modules\Users\Controllers\ListRolesController;
 use App\Modules\Users\Controllers\ShowOwnStaffScheduleController;
 use App\Modules\Users\Controllers\ShowUserStaffScheduleController;
 use App\Modules\Users\Controllers\ShowUserMedicalHistoryController;
+use App\Modules\Users\Controllers\UpdatePatientByAdminController;
 use App\Modules\Users\Controllers\ShowOwnStaffAvailabilityController;
 use App\Modules\Users\Controllers\UpdateOwnStaffAvailabilityController;
 use App\Modules\Users\Controllers\UpdateOwnPasswordController;
@@ -23,6 +24,9 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('can:manage-users');
 
     Route::post('/users', AdminRegisterUserController::class)
+        ->middleware('can:manage-users');
+
+    Route::patch('/users/{user}', UpdatePatientByAdminController::class)
         ->middleware('can:manage-users');
 
     Route::patch('/users/{user}/role', AssignUserRoleController::class)

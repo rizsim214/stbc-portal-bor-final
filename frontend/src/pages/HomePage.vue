@@ -32,8 +32,7 @@ const patientFlow = [
     class="min-h-screen bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-brand-lighter)_18%,white),white_26%,color-mix(in_srgb,var(--color-brand-light)_8%,white))]">
     <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
       <section class="relative overflow-hidden border-b border-brand-light/20 pb-12">
-        <div
-          class="absolute right-0 top-0 hidden h-56 w-56 rounded-full bg-brand-lighter/30 blur-3xl lg:block" />
+        <div class="absolute right-0 top-0 hidden h-56 w-56 rounded-full bg-brand-lighter/30 blur-3xl lg:block" />
 
         <div class="relative grid gap-10 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
           <div>
@@ -61,16 +60,6 @@ const patientFlow = [
             </div>
           </div>
 
-          <div class="justify-self-start lg:justify-self-end">
-            <div class="flex items-center gap-4">
-              <img :src="stbcLogo" alt="STBC Clinic Logo"
-                class="h-20 w-20 rounded-[1.5rem] border border-brand-light/20 bg-white object-cover shadow-[0_16px_40px_-26px_rgba(14,14,82,0.38)] sm:h-24 sm:w-24" />
-              <div>
-                <p class="text-lg font-semibold text-brand-darker sm:text-xl">ST. BENEDICT'S CLINIC</p>
-                <p class="mt-1 text-sm text-brand-dark/72">Trusted Care, Clear Results</p>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 

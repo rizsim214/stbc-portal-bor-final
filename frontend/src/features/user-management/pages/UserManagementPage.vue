@@ -3,10 +3,12 @@ import { Plus, ShieldCheck, Stethoscope, UserRound, UserRoundCog } from "lucide-
 import { computed } from "vue";
 import DataTable from "@/features/user-management/components/UserDataTable/UserDataTable.vue";
 import UserCreateModal from "@/features/user-management/components/UserCreateModal/UserCreateModal.vue";
+import UserEditModal from "@/features/user-management/components/UserEditModal/UserEditModal.vue";
 import UserTableFilters from "@/features/user-management/components/UserTableFilters/UserTableFilters.vue";
 import { useUserManagementData } from "@/features/user-management/composables/useUserManagementData";
 import { useUserManagementFilters } from "@/features/user-management/composables/useUserManagementFilters";
 import { useUserManagementForm } from "@/features/user-management/composables/useUserManagementForm";
+import type { ManagedUserRow } from "@/features/user-management/types";
 import PageHeader from "@/shared/components/PageHeader/PageHeader.vue";
 import ListMeta from "@/shared/components/ListMeta/ListMeta.vue";
 import StatusBanner from "@/shared/components/StatusBanner/StatusBanner.vue";
@@ -19,6 +21,7 @@ const {
   isLoadingUsers,
   normalizedUsers,
   addUser,
+  updateUser,
   toggleUserStatus,
   isTogglingUserStatus,
 } = useUserManagementData();
@@ -38,22 +41,31 @@ const nextReviewUser = computed(() => filteredUsers.value[0] ?? normalizedUsers.
 
 const {
   form,
+  editForm,
   formErrors,
   isSubmitting,
   isCreateModalOpen,
+  isEditModalOpen,
   pageError,
   pageMessage,
   clearPageError,
   clearPageMessage,
   toggleCreateModal,
   closeCreateModal,
+  openEditModal,
+  closeEditModal,
   submitUser,
-} = useUserManagementForm({ addUser });
+  submitEditedUser,
+} = useUserManagementForm({ addUser, updateUser });
 
 function dismissStatusBanner(): void {
   clearDataError();
   clearPageError();
   clearPageMessage();
+}
+
+function handleModifyUser(user: ManagedUserRow): void {
+  openEditModal(user);
 }
 </script>
 
@@ -171,7 +183,7 @@ function dismissStatusBanner(): void {
 
           <div class="mt-5">
             <DataTable :users="filteredUsers" :is-updating-status="isTogglingUserStatus"
-              @toggle-status="toggleUserStatus" />
+              @toggle-status="toggleUserStatus" @modify-user="handleModifyUser" />
           </div>
         </div>
       </article>
@@ -179,5 +191,7 @@ function dismissStatusBanner(): void {
     <UserCreateModal :is-open="isCreateModalOpen" :roles="roles" :form="form" :form-errors="formErrors"
       :is-submitting="isSubmitting" :page-error="pageError" :page-message="pageMessage" @close="closeCreateModal"
       @submit="submitUser" />
+    <UserEditModal :is-open="isEditModalOpen" :form="editForm" :form-errors="formErrors" :is-submitting="isSubmitting"
+      :page-error="pageError" :page-message="pageMessage" @close="closeEditModal" @submit="submitEditedUser" />
   </section>
 </template>
