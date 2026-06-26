@@ -1,0 +1,214 @@
+# Render Blueprint for the Laravel backend in ./backend.
+# Set all env vars marked sync: false in Render after the Blueprint is created.
+# Run `php artisan db:seed --force` once after the first successful deploy.
+
+services:
+  - type: keyvalue
+    name: stbc-redis
+    plan: starter
+    region: singapore
+    ipAllowList: []
+
+  - type: web
+    name: stbc-backend-api
+    runtime: docker
+    rootDir: backend
+    dockerContext: ./backend
+    dockerfilePath: ./backend/dockerfile
+    plan: starter
+    region: singapore
+    healthCheckPath: /api/health
+    preDeployCommand: php artisan migrate --force
+    envVars:
+      - fromGroup: stbc-backend-common
+      - key: APP_URL
+        sync: false
+      - key: DB_URL
+        fromDatabase:
+          name: stbc-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: stbc-redis
+          property: connectionString
+      - key: BROADCAST_CONNECTION
+        value: log
+      # Re-enable these when you add the Reverb service back.
+      # - key: REVERB_HOST
+      #   sync: false
+      # - key: REVERB_PORT
+      #   value: "443"
+      # - key: REVERB_SCHEME
+      #   value: https
+
+  - type: worker
+    name: stbc-backend-worker
+    runtime: docker
+    rootDir: backend
+    dockerContext: ./backend
+    dockerfilePath: ./backend/dockerfile
+    plan: starter
+    region: singapore
+    dockerCommand: php artisan queue:work --sleep=1 --tries=3 --memory=256 --max-jobs=1000 --max-time=3600
+    envVars:
+      - fromGroup: stbc-backend-common
+      - key: APP_URL
+        sync: false
+      - key: DB_URL
+        fromDatabase:
+          name: stbc-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: stbc-redis
+          property: connectionString
+      - key: BROADCAST_CONNECTION
+        value: log
+      # Re-enable these when you add the Reverb service back.
+      # - key: REVERB_HOST
+      #   sync: false
+      # - key: REVERB_PORT
+      #   value: "443"
+      # - key: REVERB_SCHEME
+      #   value: https
+
+  # Re-enable this service if you want realtime broadcasts over Laravel Reverb.
+  # - type: web
+  #   name: stbc-backend-reverb
+  #   runtime: docker
+  #   rootDir: backend
+  #   dockerContext: ./backend
+  #   dockerfilePath: ./backend/dockerfile
+  #   plan: starter
+  #   region: singapore
+  #   dockerCommand: php artisan reverb:start --host=0.0.0.0 --port=10000
+  #   envVars:
+  #     - fromGroup: stbc-backend-common
+  #     - key: APP_URL
+  #       sync: false
+  #     - key: DB_URL
+  #       fromDatabase:
+  #         name: stbc-postgres
+  #         property: connectionString
+  #     - key: REDIS_URL
+  #       fromService:
+  #         type: keyvalue
+  #         name: stbc-redis
+  #         property: connectionString
+  #     - key: REVERB_HOST
+  #       sync: false
+  #     - key: REVERB_PORT
+  #       value: "443"
+  #     - key: REVERB_SCHEME
+  #       value: https
+  #     - key: REVERB_SERVER_HOST
+  #       value: 0.0.0.0
+  #     - key: REVERB_SERVER_PORT
+  #       value: "10000"
+
+envVarGroups:
+  - name: stbc-backend-common
+    envVars:
+      - key: APP_NAME
+        value: STBC
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false
+      - key: APP_LOCALE
+        value: en
+      - key: APP_FALLBACK_LOCALE
+        value: en
+      - key: APP_FAKER_LOCALE
+        value: en_US
+      - key: AUTH_GUARD
+        value: sanctum
+      - key: LOG_CHANNEL
+        value: stack
+      - key: LOG_STACK
+        value: single
+      - key: LOG_LEVEL
+        value: warning
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_SSLMODE
+        value: require
+      - key: CACHE_STORE
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: QUEUE_WORKER_SLEEP
+        value: "1"
+      - key: QUEUE_WORKER_TRIES
+        value: "3"
+      - key: QUEUE_WORKER_MEMORY
+        value: "256"
+      - key: QUEUE_WORKER_MAX_JOBS
+        value: "1000"
+      - key: QUEUE_WORKER_MAX_TIME
+        value: "3600"
+      - key: SESSION_DRIVER
+        value: file
+      - key: SESSION_LIFETIME
+        value: "120"
+      - key: SESSION_ENCRYPT
+        value: "false"
+      - key: SESSION_PATH
+        value: /
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
+      - key: SESSION_SAME_SITE
+        value: lax
+      - key: SANCTUM_ROUTES
+        value: "false"
+      - key: SANCTUM_STATEFUL_DOMAINS
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: INITIAL_ADMIN_NAME
+        value: System Administrator
+      - key: INITIAL_ADMIN_EMAIL
+        sync: false
+      - key: INITIAL_ADMIN_PASSWORD
+        sync: false
+      # Re-enable these when you add the Reverb service back.
+      # - key: REVERB_APP_ID
+      #   sync: false
+      # - key: REVERB_APP_KEY
+      #   sync: false
+      # - key: REVERB_APP_SECRET
+      #   sync: false
+      # - key: REVERB_ALLOWED_ORIGINS
+      #   sync: false
+      - key: SUPABASE_STORAGE_ACCESS_KEY_ID
+        sync: false
+      - key: SUPABASE_STORAGE_SECRET_ACCESS_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_REGION
+        value: ap-southeast-1
+      - key: SUPABASE_STORAGE_BUCKET
+        value: lab-results
+      - key: SUPABASE_STORAGE_ENDPOINT
+        sync: false
+      - key: SUPABASE_STORAGE_PATH_STYLE
+        value: "true"
+      - key: LAB_RESULTS_STORAGE_DISK
+        value: supabase
+      - key: LAB_RESULTS_UPLOAD_URL_TTL_MINUTES
+        value: "10"
+      - key: LAB_RESULTS_DOWNLOAD_URL_TTL_MINUTES
+        value: "5"
+      - key: LAB_RESULTS_MAX_FILE_SIZE_BYTES
+        value: "10485760"
+
+databases:
+  - name: stbc-postgres
+    plan: basic-256mb
+    region: singapore
+    databaseName: stbc
+    user: stbc_user
+    ipAllowList: []
