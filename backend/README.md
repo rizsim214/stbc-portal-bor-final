@@ -5,7 +5,7 @@ This backend is a Laravel 13 API for:
 - user/role management
 - appointment booking
 - schedule availability computation
-- lab result upload/release/download flow (S3/MinIO signed URLs)
+- lab result upload/release/download flow (Supabase Storage signed URLs)
 
 The goal of this README is to explain how the code is structured and where business rules live so future-you can re-orient quickly.
 
@@ -15,7 +15,7 @@ The goal of this README is to explain how the code is structured and where busin
 - Laravel `^13`
 - Laravel Sanctum `^4.3`
 - PostgreSQL (default in `.env.example`)
-- S3-compatible object storage (MinIO in local Docker)
+- Supabase Storage via its S3-compatible endpoint
 
 Main dependencies are in `composer.json`.
 
@@ -105,7 +105,7 @@ Endpoints (auth required):
 
 Flow:
 1. Request signed upload URL with file metadata.
-2. Frontend uploads directly to S3/MinIO using signed URL.
+2. Frontend uploads directly to Supabase Storage using the signed URL.
 3. Frontend stores lab result record with returned `file_key`.
 4. Authorized users generate temporary download URL when needed.
 
@@ -186,7 +186,7 @@ Important env/config:
   - `LAB_RESULTS_UPLOAD_URL_TTL_MINUTES`
   - `LAB_RESULTS_DOWNLOAD_URL_TTL_MINUTES`
   - `LAB_RESULTS_MAX_FILE_SIZE_BYTES`
-  - `AWS_*` for S3/MinIO
+  - `SUPABASE_STORAGE_*` for Supabase Storage
 
 Lab-result-specific config is in `config/lab_results.php`.
 
@@ -208,45 +208,20 @@ Useful URLs:
 - API health: `http://localhost:8000/api/health`
 - Laravel health: `http://localhost:8000/up`
 - Reverb websocket: `ws://localhost:8080`
-- MinIO console: `http://localhost:9001`
 
-MinIO notes for local development:
-- create the bucket named `lab-results`
-- set `AWS_ENDPOINT=http://localhost:9000` in `backend/.env`
-- keep `AWS_USE_PATH_STYLE_ENDPOINT=true`
-- the browser uploads directly to the signed MinIO URL, so `http://minio:9000` is not suitable for local browser use even though it is valid inside Docker
-- configure MinIO bucket CORS to allow `http://localhost:5173` and `http://127.0.0.1:5173`
-
-Recommended local MinIO CORS policy:
-
-```json
-[
-  {
-    "AllowedOrigins": [
-      "http://localhost:5173",
-      "http://127.0.0.1:5173"
-    ],
-    "AllowedMethods": [
-      "GET",
-      "PUT",
-      "HEAD"
-    ],
-    "AllowedHeaders": [
-      "*"
-    ],
-    "ExposeHeaders": [
-      "ETag"
-    ],
-    "MaxAgeSeconds": 3600
-  }
-]
-```
+Supabase Storage notes:
+- create the `lab-results` bucket in Supabase Storage
+- generate S3 access keys in Supabase Storage settings
+- use the direct storage hostname for better browser upload performance:
+  `https://<project-ref>.storage.supabase.co/storage/v1/s3`
+- keep path-style addressing enabled
+- ensure your bucket/object access policies allow the intended server-side signing flow
 
 Staging/production env guidance:
-- update `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`, `AWS_BUCKET`, and `AWS_ENDPOINT`
-- keep `LAB_RESULTS_STORAGE_DISK=s3`
+- update `SUPABASE_STORAGE_ACCESS_KEY_ID`, `SUPABASE_STORAGE_SECRET_ACCESS_KEY`, `SUPABASE_STORAGE_REGION`, `SUPABASE_STORAGE_BUCKET`, and `SUPABASE_STORAGE_ENDPOINT`
+- keep `LAB_RESULTS_STORAGE_DISK=supabase`
 - set `CORS_ALLOWED_ORIGINS` to the deployed frontend origins
-- if using MinIO outside local Docker, the endpoint must still be browser-reachable because uploads and downloads use signed URLs directly from the client
+- the storage endpoint must remain browser-reachable because uploads and downloads use signed URLs directly from the client
 
 Queue worker (Docker):
 - A dedicated `queue-worker` service runs `php artisan queue:work` with recycling flags for long-lived process stability:
