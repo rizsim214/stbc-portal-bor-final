@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Modules\Appointments;
 
+use App\Mail\GuestAppointmentAccountCreated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class GuestAppointmentTest extends TestCase
@@ -18,6 +20,8 @@ class GuestAppointmentTest extends TestCase
 
     public function test_guest_can_submit_pending_appointment_request_and_create_patient_account(): void
     {
+        Mail::fake();
+
         $patientRoleId = $this->createRole('patient');
         $appointmentTypeId = $this->createAppointmentType();
 
@@ -40,7 +44,7 @@ class GuestAppointmentTest extends TestCase
             ->assertJsonPath('data.appointment.notes', self::APPOINTMENT_NOTES);
 
         $this->assertNotEmpty($response->json('data.token'));
-        $this->assertNotEmpty($response->json('data.temporary_password'));
+        $this->assertNull($response->json('data.temporary_password'));
 
         $userId = (int) DB::table('users')->where('email', self::APPOINTMENT_EMAIL)->value('id');
 
@@ -72,6 +76,13 @@ class GuestAppointmentTest extends TestCase
         $this->assertDatabaseMissing('resource_bookings', [
             'appointment_id' => $appointmentId,
         ]);
+
+        Mail::assertSent(GuestAppointmentAccountCreated::class, function (GuestAppointmentAccountCreated $mail) use ($appointmentId): bool {
+            return $mail->hasTo(self::APPOINTMENT_EMAIL)
+                && $mail->patientName === self::APPOINTMENT_FULL_NAME
+                && $mail->temporaryPassword !== ''
+                && $mail->appointment->id === $appointmentId;
+        });
     }
 
     public function test_guest_cannot_submit_overlapping_appointment_request(): void
