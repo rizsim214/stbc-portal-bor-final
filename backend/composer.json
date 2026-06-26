@@ -44,6 +44,9 @@
         "dev": [
             "@php artisan serve"
         ],
+        "render:deploy": [
+            "bash scripts/render-deploy.sh"
+        ],
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
