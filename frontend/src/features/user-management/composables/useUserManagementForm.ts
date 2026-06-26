@@ -2,13 +2,17 @@ import axios from "axios";
 import { reactive, ref } from "vue";
 import { usersApi } from "../api/usersApi";
 import type {
+  ManagedUserRow,
+  UpdatePatientPayload,
   UserFormPayload,
+  UserManagementEditFormState,
   UserManagementFormErrors,
   UserManagementFormState,
 } from "../types";
 
 type SubmitUserOptions = {
   addUser: (user: import("../types").ManagedUser) => void;
+  updateUser: (user: import("../types").ManagedUser) => void;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -20,9 +24,10 @@ function getErrorMessage(error: unknown): string {
   return "Unable to save the user.";
 }
 
-export function useUserManagementForm({ addUser }: SubmitUserOptions) {
+export function useUserManagementForm({ addUser, updateUser }: SubmitUserOptions) {
   const isSubmitting = ref(false);
   const isCreateModalOpen = ref(false);
+  const isEditModalOpen = ref(false);
   const pageError = ref("");
   const pageMessage = ref("");
   const formErrors = ref<UserManagementFormErrors>({});
@@ -34,6 +39,14 @@ export function useUserManagementForm({ addUser }: SubmitUserOptions) {
     passwordConfirmation: "",
     roleId: "",
     subRole: "",
+  });
+
+  const editForm = reactive<UserManagementEditFormState>({
+    userId: null,
+    name: "",
+    email: "",
+    password: "",
+    passwordConfirmation: "",
   });
 
   function clearFeedback(): void {
@@ -50,6 +63,15 @@ export function useUserManagementForm({ addUser }: SubmitUserOptions) {
     formErrors.value = {};
   }
 
+  function resetEditForm(): void {
+    editForm.userId = null;
+    editForm.name = "";
+    editForm.email = "";
+    editForm.password = "";
+    editForm.passwordConfirmation = "";
+    formErrors.value = {};
+  }
+
   function openCreateModal(): void {
     isCreateModalOpen.value = true;
     clearFeedback();
@@ -59,6 +81,24 @@ export function useUserManagementForm({ addUser }: SubmitUserOptions) {
   function closeCreateModal(): void {
     isCreateModalOpen.value = false;
     resetForm();
+    clearFeedback();
+  }
+
+  function openEditModal(user: ManagedUserRow): void {
+    editForm.userId = user.id;
+    editForm.name = user.name;
+    editForm.email = user.email;
+    editForm.password = "";
+    editForm.passwordConfirmation = "";
+    formErrors.value = {};
+    pageError.value = "";
+    pageMessage.value = "";
+    isEditModalOpen.value = true;
+  }
+
+  function closeEditModal(): void {
+    isEditModalOpen.value = false;
+    resetEditForm();
     clearFeedback();
   }
 
@@ -118,17 +158,54 @@ export function useUserManagementForm({ addUser }: SubmitUserOptions) {
     }
   }
 
+  async function submitEditedUser(): Promise<void> {
+    if (editForm.userId === null) {
+      pageError.value = "No patient selected.";
+      return;
+    }
+
+    clearFeedback();
+    formErrors.value = {};
+    isSubmitting.value = true;
+
+    try {
+      const payload: UpdatePatientPayload = {
+        name: editForm.name.trim(),
+      };
+
+      if (editForm.password) {
+        payload.password = editForm.password;
+        payload.password_confirmation = editForm.passwordConfirmation;
+      }
+
+      const { data } = await usersApi.updatePatient(editForm.userId, payload);
+      updateUser(data.data);
+      pageMessage.value = "Patient updated successfully.";
+      closeEditModal();
+    } catch (error) {
+      formErrors.value = getFormErrors(error);
+      pageError.value = getErrorMessage(error);
+    } finally {
+      isSubmitting.value = false;
+    }
+  }
+
   return {
     form,
+    editForm,
     formErrors,
     isSubmitting,
     isCreateModalOpen,
+    isEditModalOpen,
     pageError,
     pageMessage,
     openCreateModal,
+    openEditModal,
     closeCreateModal,
+    closeEditModal,
     toggleCreateModal,
     submitUser,
+    submitEditedUser,
     resetForm,
     clearPageError: clearFeedback,
     clearPageMessage: () => {

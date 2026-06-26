@@ -3,6 +3,7 @@ import type { StaffScheduleDay, StaffScheduleResponseData } from "@/features/sta
 import type {
   ManagedRole,
   ManagedUser,
+  UpdatePatientPayload,
   UserFormPayload,
 } from "../types";
 
@@ -30,6 +31,10 @@ export const usersApi = {
 
   createUser(payload: UserFormPayload) {
     return http.post<ApiResponse<ManagedUser>>("/users", payload);
+  },
+
+  updatePatient(userId: string | number, payload: UpdatePatientPayload) {
+    return http.patch<ApiResponse<ManagedUser>>(`/users/${userId}`, payload);
   },
 
   getUserStaffSchedule(userId: string | number) {
