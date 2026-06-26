@@ -13,8 +13,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      minio:
-        condition: service_started
 
   reverb:
     build: ./docker/php
@@ -37,8 +35,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      minio:
-        condition: service_started
 
   queue-worker:
     build: ./docker/php
@@ -62,8 +58,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      minio:
-        condition: service_started
 
   nginx:
     image: nginx:latest
@@ -129,22 +123,8 @@ services:
     depends_on:
       - nginx
 
-  minio:
-    image: minio/minio
-    container_name: stbc_minio
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password}
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
-
 volumes:
   postgres_data:
-  minio_data:
 
 networks:
   stbc-network:

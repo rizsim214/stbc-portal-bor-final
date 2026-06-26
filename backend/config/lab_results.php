@@ -7,10 +7,10 @@ return [
     |--------------------------------------------------------------------------
     |
     | Set this to the filesystem disk used for lab result files.
-    | For AWS S3, keep this as "s3" and configure the AWS_* variables in .env.
+    | Supabase Storage uses the dedicated "supabase" disk in config/filesystems.php.
     |
     */
-    'storage_disk' => env('LAB_RESULTS_STORAGE_DISK', 's3'),
+    'storage_disk' => env('LAB_RESULTS_STORAGE_DISK', 'supabase'),
 
     /*
     |--------------------------------------------------------------------------
@@ -30,7 +30,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Max file size accepted by the API (in bytes) and allowed MIME types.
-    | Keep this aligned with frontend validations and your S3 upload policy.
+    | Keep this aligned with frontend validations and your Supabase Storage policy.
     |
     */
     'max_file_size_bytes' => (int) env('LAB_RESULTS_MAX_FILE_SIZE_BYTES', 10485760), // 10 MB
