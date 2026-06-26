@@ -44,6 +44,14 @@ export interface UserManagementFormState {
   subRole: string;
 }
 
+export interface UserManagementEditFormState {
+  userId: number | null;
+  name: string;
+  email: string;
+  password: string;
+  passwordConfirmation: string;
+}
+
 export interface UserFormPayload {
   name: string;
   email: string;
@@ -51,4 +59,10 @@ export interface UserFormPayload {
   password_confirmation: string;
   role_id: number;
   sub_role?: string;
+}
+
+export interface UpdatePatientPayload {
+  name: string;
+  password?: string;
+  password_confirmation?: string;
 }

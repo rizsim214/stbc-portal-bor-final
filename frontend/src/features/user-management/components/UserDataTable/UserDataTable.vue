@@ -16,6 +16,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "toggle-status", userId: number): void;
+  (e: "modify-user", user: ManagedUserRow): void;
 }>();
 
 function asManagedUserRow(row: object): ManagedUserRow {
@@ -92,6 +93,8 @@ const columns = [
             :side-offset="8"
           >
             <DropdownMenuItem
+              v-if="asManagedUserRow(row).role === 'patient'"
+              @select="emit('modify-user', asManagedUserRow(row))"
               class="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-brand-dark outline-none focus:bg-brand-lighter/30"
             >
               <UserRoundPen class="h-4 w-4" />
