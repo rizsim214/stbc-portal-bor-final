@@ -25,9 +25,12 @@ export type PatientListSearchField = "name" | "email" | "role";
 
 export type PatientRecordRow = {
   id: number | string;
+  appointmentId: number | null;
+  labResultId: number | null;
   date: string;
   title: string;
   summary: string;
   kind: "appointment" | "lab_result";
   releasedAt: string | null;
+  filePath: string | null;
 };

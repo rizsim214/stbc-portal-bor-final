@@ -109,6 +109,32 @@ class UpdateAppointmentStatusTest extends TestCase
             ->assertJsonPath('error_code', 'APPOINTMENT_REQUIRES_LAB_RESULT');
     }
 
+    public function test_completing_appointment_releases_uploaded_lab_result(): void
+    {
+        $adminRoleId = $this->createRole('admin');
+        $patientRoleId = $this->createRole('patient');
+        $appointmentTypeId = $this->createAppointmentType();
+        $admin = User::factory()->create(['role_id' => $adminRoleId]);
+        $patient = User::factory()->create(['role_id' => $patientRoleId]);
+        $appointmentId = $this->createAppointment($patient->id, $appointmentTypeId, 'releasing_lab_result');
+        $resourceId = $this->createResource();
+        $this->assignResource($appointmentId, $resourceId);
+        $labResultId = $this->createLabResult($appointmentId, null);
+
+        Sanctum::actingAs($admin);
+
+        $this->patchJson("/api/appointments/{$appointmentId}/status", [
+            'status' => 'completed',
+        ])->assertOk()
+            ->assertJsonPath('data.status', 'completed')
+            ->assertJsonPath('data.lab_result.id', $labResultId);
+
+        $this->assertDatabaseMissing('lab_results', [
+            'id' => $labResultId,
+            'released_at' => null,
+        ]);
+    }
+
     private function createRole(string $name): int
     {
         $existingId = DB::table('roles')->where('name', $name)->value('id');

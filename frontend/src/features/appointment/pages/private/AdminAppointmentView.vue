@@ -94,6 +94,9 @@ const acceptedLabResultTypes = [
 const acceptedLabResultTypesLabel = ".pdf,.jpg,.jpeg,.png";
 const maxLabResultFileSizeBytes = 10 * 1024 * 1024;
 const hasLabResult = computed(() => Boolean(appointment.value?.lab_result?.id));
+const isCompletedAppointment = computed(
+  () => appointment.value?.status === "completed",
+);
 const canUploadLabResult = computed(
   () => appointment.value?.status === "releasing_lab_result",
 );
@@ -141,6 +144,48 @@ function clearLabResultState(): void {
 
 function formatFileSize(sizeBytes: number): string {
   return `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function sanitizeUploadHeaders(headers: Record<string, string>): Record<string, string> {
+  const forbiddenHeaders = new Set([
+    "host",
+    "content-length",
+  ]);
+
+  return Object.fromEntries(
+    Object.entries(headers).filter(([key]) => !forbiddenHeaders.has(key.toLowerCase())),
+  );
+}
+
+async function uploadLabResultFile(
+  uploadUrl: string,
+  file: File,
+  headers: Record<string, string>,
+): Promise<void> {
+  const uploadHeaders = new Headers();
+
+  Object.entries(sanitizeUploadHeaders(headers)).forEach(([key, value]) => {
+    uploadHeaders.set(key, value);
+  });
+
+  if (!uploadHeaders.has("Content-Type")) {
+    uploadHeaders.set("Content-Type", file.type);
+  }
+
+  const response = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: uploadHeaders,
+    body: file,
+  });
+
+  if (response.ok) {
+    return;
+  }
+
+  const errorBody = await response.text();
+  throw new Error(
+    errorBody || `Lab result upload failed with status ${response.status}.`,
+  );
 }
 
 function onLabResultFileChange(event: Event): void {
@@ -217,9 +262,11 @@ async function uploadLabResult(): Promise<void> {
       size_bytes: selectedLabResultFile.value.size,
     });
 
-    await axios.put(uploadData.data.upload_url, selectedLabResultFile.value, {
-      headers: uploadData.data.headers,
-    });
+    await uploadLabResultFile(
+      uploadData.data.upload_url,
+      selectedLabResultFile.value,
+      uploadData.data.headers,
+    );
 
     await appointmentsApi.createLabResult({
       appointment_id: appointment.value.id,
@@ -460,7 +507,7 @@ async function uploadLabResult(): Promise<void> {
             <StatusBanner v-if="labUploadMessage" :message="labUploadMessage" tone="success"
               @dismiss="labUploadMessage = ''" />
 
-            <div v-if="hasLabResult" class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div v-if="hasLabResult && isCompletedAppointment" class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <div class="flex items-start gap-3">
                 <FileText class="mt-0.5 h-4 w-4 text-brand-dark/70" />
                 <div class="min-w-0">
@@ -507,13 +554,17 @@ async function uploadLabResult(): Promise<void> {
                     Upload one file per appointment. Use a PDF or scanned image under
                     {{ formatFileSize(maxLabResultFileSizeBytes) }}.
                   </p>
-                  <p v-if="!canUploadLabResult" class="mt-2 text-sm leading-6 text-amber-600">
+                  <p v-if="hasLabResult && !isCompletedAppointment" class="mt-2 text-sm leading-6 text-slate-700">
+                    A lab result has already been uploaded. It will be available for viewing and download once this
+                    appointment reaches Completed.
+                  </p>
+                  <p v-else-if="!canUploadLabResult" class="mt-2 text-sm leading-6 text-amber-600">
                     Upload is available only in Releasing Lab Result.
                   </p>
                 </div>
               </div>
 
-              <input type="file" :accept="acceptedLabResultTypesLabel" :disabled="!canUploadLabResult"
+              <input type="file" :accept="acceptedLabResultTypesLabel" :disabled="!canUploadLabResult || hasLabResult"
                 class="block w-full rounded-xl border border-brand-light/40 bg-white px-3 py-2 text-sm text-brand-darker file:mr-3 file:rounded-lg file:border-0 file:bg-brand-lighter/35 file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-darker hover:file:bg-brand-lighter/45 disabled:cursor-not-allowed disabled:opacity-60"
                 @change="onLabResultFileChange" id="upload-lab-result" />
 
@@ -522,7 +573,7 @@ async function uploadLabResult(): Promise<void> {
               </p>
 
               <Button type="button" class="w-full bg-brand-dark text-white hover:bg-brand-darker"
-                :disabled="!canUploadLabResult" :loading="isUploadingLabResult" @click="uploadLabResult">
+                :disabled="!canUploadLabResult || hasLabResult" :loading="isUploadingLabResult" @click="uploadLabResult">
                 Upload Lab Result
               </Button>
             </div>

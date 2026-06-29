@@ -31,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::define('book-appointments', function (User $user): bool {
-            return $user->hasRole('user');
+            return $user->hasAnyRole(['user', 'patient']);
         });
 
         Gate::define('upload-lab-results', function (User $user): bool {
@@ -47,9 +47,11 @@ class AppServiceProvider extends ServiceProvider
                 return true;
             }
 
-            if ($user->hasRole('user')) {
+            if ($user->hasAnyRole(['user', 'patient'])) {
+                $appointmentStatus = strtolower(trim((string) $labResult->appointment?->status));
+
                 return (int) $labResult->appointment?->user_id === (int) $user->id
-                    && $labResult->released_at !== null;
+                    && ($labResult->released_at !== null || $appointmentStatus === 'completed');
             }
 
             return false;
@@ -60,7 +62,7 @@ class AppServiceProvider extends ServiceProvider
                 return true;
             }
 
-            return $user->hasRole('user') && (int) $user->id === (int) $targetUser->id;
+            return $user->hasAnyRole(['user', 'patient']) && (int) $user->id === (int) $targetUser->id;
         });
     }
 }

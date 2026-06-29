@@ -58,10 +58,19 @@ class UpdateAppointmentStatusAction
         $appointment->status = $nextStatus;
         $appointment->save();
 
+        if ($nextStatus === 'completed') {
+            $appointment->labResult()
+                ->whereNull('released_at')
+                ->update([
+                    'released_at' => now(),
+                ]);
+        }
+
         $updatedAppointment = $appointment->load([
             'user:id,name,email',
             'type:id,name,description',
             'resources:id,name,type',
+            'labResult:id,appointment_id,file_path,released_at',
         ]);
         $updatedAppointment->setAttribute(
             'allowed_next_statuses',

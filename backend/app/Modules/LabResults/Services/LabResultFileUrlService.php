@@ -16,10 +16,14 @@ class LabResultFileUrlService
     public function createTemporaryUploadUrl(string $fileKey, string $contentType, CarbonInterface $expiresAt): array
     {
         $disk = $this->adapterDisk();
-
-        return $disk->temporaryUploadUrl($fileKey, $expiresAt, [
+        $signedUpload = $disk->temporaryUploadUrl($fileKey, $expiresAt, [
             'ContentType' => $contentType,
         ]);
+
+        return [
+            'url' => $signedUpload['url'],
+            'headers' => $this->sanitizeBrowserUploadHeaders($signedUpload['headers'] ?? []),
+        ];
     }
 
     public function createTemporaryDownloadUrl(string $fileKey, CarbonInterface $expiresAt, ?string $downloadName = null): string
@@ -53,5 +57,33 @@ class LabResultFileUrlService
         }
 
         return $disk;
+    }
+
+    /**
+     * Browsers refuse to set certain transport headers such as Host, and the
+     * AWS client returns header values as string arrays.
+     *
+     * @param array<string, mixed> $headers
+     * @return array<string, string>
+     */
+    private function sanitizeBrowserUploadHeaders(array $headers): array
+    {
+        $forbiddenHeaders = [
+            'host',
+            'content-length',
+        ];
+
+        return collect($headers)
+            ->reject(static function (mixed $_value, string $key) use ($forbiddenHeaders): bool {
+                return in_array(strtolower($key), $forbiddenHeaders, true);
+            })
+            ->map(static function (mixed $value): string {
+                if (is_array($value)) {
+                    return implode(', ', array_map('strval', $value));
+                }
+
+                return (string) $value;
+            })
+            ->all();
     }
 }

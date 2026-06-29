@@ -22,6 +22,14 @@ export const patientRoutes: AppRoute[] = [
     meta: { roles: ["admin", "patient"], selfOnly: true, ownerParam: "userId" },
   },
   {
+    path: "users/:userId/records/:appointmentId",
+    name: "adminPatientLabResultView",
+    component: () =>
+      import("@/features/patients/pages/AdminPatientLabResultPage.vue"),
+    props: true,
+    meta: { roles: ["admin"] },
+  },
+  {
     path: "users/record",
     name: "userMedicalRecord",
     component: () =>

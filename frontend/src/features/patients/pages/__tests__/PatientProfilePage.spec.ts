@@ -22,11 +22,14 @@ describe("PatientProfilePage", () => {
       records: computed(() => [
         {
           id: 1,
+          appointmentId: 44,
+          labResultId: 1,
           date: "2026-05-12",
           title: "Lab Exam",
           summary: "Routine follow-up lab result.",
           kind: "lab_result",
           releasedAt: "2026-05-13T00:00:00.000Z",
+          filePath: "lab-results/44/result.pdf",
         },
       ]),
       isLoading: computed(() => false),
@@ -51,10 +54,14 @@ describe("PatientProfilePage", () => {
       },
     });
 
-    expect(screen.getByText("Maria Dela Cruz")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Maria Dela Cruz" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("maria.delacruz@example.com")).toBeInTheDocument();
-    expect(screen.getByText("active")).toBeInTheDocument();
-    expect(screen.getByText("2026-05-12 - Lab Exam")).toBeInTheDocument();
+    expect(screen.getByText("Active")).toBeInTheDocument();
+    expect(screen.getByText("Lab Exam")).toBeInTheDocument();
+    expect(screen.getByText("Routine follow-up lab result.")).toBeInTheDocument();
+    expect(screen.getByText("View Lab Result")).toBeInTheDocument();
     expect(screen.queryByText(/edit/i)).not.toBeInTheDocument();
   });
 });
