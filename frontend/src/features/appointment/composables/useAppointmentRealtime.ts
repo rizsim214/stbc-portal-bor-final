@@ -4,6 +4,10 @@ import { useAuthStore } from "@/features/auth/stores/useAuthStore";
 import { getEcho } from "@/shared/realtime/echo";
 import { formatAppointmentStatus } from "../utils/status";
 import { useRealtimeNotificationStore } from "@/shared/stores/useRealtimeNotificationStore";
+import {
+  subscribeToPatientAppointmentLifecycle,
+  unsubscribeFromPatientAppointmentLifecycle,
+} from "./useSharedPatientAppointmentChannel";
 
 type AppointmentRealtimePayload = {
   action: string;
@@ -83,9 +87,7 @@ export function useAppointmentRealtime(mode: "mine" | "admin") {
     }
   };
 
-  echo
-    .private(userChannel)
-    .listen(".appointment.lifecycle.updated", refreshQueries);
+  subscribeToPatientAppointmentLifecycle(userChannel, refreshQueries);
 
   if (mode === "admin" && authStore.user?.role?.name === "admin") {
     echo
@@ -94,7 +96,7 @@ export function useAppointmentRealtime(mode: "mine" | "admin") {
   }
 
   onBeforeUnmount(() => {
-    echo.leave(`private-${userChannel}`);
+    unsubscribeFromPatientAppointmentLifecycle(userChannel, refreshQueries);
 
     if (mode === "admin" && authStore.user?.role?.name === "admin") {
       echo.leave(`private-${adminChannel}`);

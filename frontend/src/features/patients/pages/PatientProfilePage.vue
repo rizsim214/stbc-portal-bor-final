@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import {
+  ArrowRight,
   ChevronLeft,
   ClipboardPlus,
+  FlaskConical,
   Mail,
   ShieldCheck,
 } from "lucide-vue-next";
@@ -155,30 +157,60 @@ function dismissStatusBanner(): void {
           <article
             v-for="record in records"
             :key="record.id"
-            class="rounded-2xl border border-brand-light/20 bg-linear-to-r from-white to-slate-50 p-4 transition hover:border-brand-light/35"
+            class="overflow-hidden rounded-2xl border border-brand-light/20 bg-linear-to-r from-white to-slate-50 transition hover:border-brand-light/35 hover:shadow-sm"
           >
-            <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-              <div class="min-w-0">
-                <div class="flex flex-wrap items-center gap-2">
-                  <p class="text-sm font-semibold text-brand-darker">
-                    {{ record.title }}
-                  </p>
-                  <span
-                    class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.12em]"
-                    :class="record.kind === 'lab_result'
-                      ? 'bg-violet-50 text-violet-700 ring-1 ring-violet-200'
-                      : 'bg-blue-50 text-blue-700 ring-1 ring-blue-200'"
-                  >
-                    {{ record.kind === "lab_result" ? "Lab Result" : "Appointment" }}
-                  </span>
-                </div>
-                <p class="mt-1 text-sm leading-6 text-brand-dark">{{ record.summary }}</p>
-              </div>
+            <RouterLink
+              :to="{
+                name: 'adminPatientLabResultView',
+                params: {
+                  userId,
+                  appointmentId: record.appointmentId,
+                },
+              }"
+              class="group block p-4 no-underline"
+            >
+              <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="text-sm font-semibold text-brand-darker">
+                      {{ record.title }}
+                    </p>
+                    <span
+                      class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.12em]"
+                      :class="record.kind === 'lab_result'
+                        ? 'bg-violet-50 text-violet-700 ring-1 ring-violet-200'
+                        : 'bg-blue-50 text-blue-700 ring-1 ring-blue-200'"
+                    >
+                      {{ record.kind === "lab_result" ? "Lab Result" : "Appointment" }}
+                    </span>
+                  </div>
+                  <p class="mt-1 text-sm leading-6 text-brand-dark">{{ record.summary }}</p>
 
-              <div class="shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600">
-                {{ record.date }}
+                  <div class="mt-3 flex flex-wrap items-center gap-2 text-xs font-medium">
+                    <span class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-brand-darker ring-1 ring-brand-light/20">
+                      <FlaskConical class="h-3.5 w-3.5" />
+                      {{ record.labResultId ? "View Lab Result" : "Open Appointment Record" }}
+                    </span>
+                    <span
+                      v-if="record.releasedAt"
+                      class="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 ring-1 ring-emerald-200"
+                    >
+                      Released
+                    </span>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-3 md:block md:text-right">
+                  <div class="shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600">
+                    {{ record.date }}
+                  </div>
+                  <div class="mt-0 inline-flex items-center gap-1 text-sm font-medium text-brand-darker md:mt-3">
+                    Open
+                    <ArrowRight class="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                </div>
               </div>
-            </div>
+            </RouterLink>
           </article>
         </div>
       </div>

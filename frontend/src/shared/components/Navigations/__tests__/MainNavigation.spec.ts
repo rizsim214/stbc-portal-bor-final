@@ -15,6 +15,17 @@ type MockAuthState = {
 };
 
 let mockAuthState: MockAuthState;
+const mockAppointmentStatusNotificationStore = {
+  items: [] as Array<{
+    id: string;
+    appointmentId: number;
+    message: string;
+    occurredAt: string;
+    isRead: boolean;
+  }>,
+  unreadCount: 0,
+  markAllRead: vi.fn(),
+};
 
 vi.mock("vue-router", async () => {
   const actual =
@@ -30,6 +41,14 @@ vi.mock("vue-router", async () => {
 
 vi.mock("@/features/auth/stores/useAuthStore", () => ({
   useAuthStore: () => mockAuthState,
+}));
+
+vi.mock("@/features/appointment/composables/usePatientAppointmentStatusNotifications", () => ({
+  usePatientAppointmentStatusNotifications: vi.fn(),
+}));
+
+vi.mock("@/shared/stores/useAppointmentStatusNotificationStore", () => ({
+  useAppointmentStatusNotificationStore: () => mockAppointmentStatusNotificationStore,
 }));
 
 function renderMainNavigation() {
@@ -51,6 +70,9 @@ describe("MainNavigation behavior", () => {
     push.mockReset();
     resolve.mockReset();
     logout.mockReset();
+    mockAppointmentStatusNotificationStore.items = [];
+    mockAppointmentStatusNotificationStore.unreadCount = 0;
+    mockAppointmentStatusNotificationStore.markAllRead.mockReset();
     vi.stubGlobal("alert", vi.fn());
   });
 
@@ -133,5 +155,20 @@ describe("MainNavigation behavior", () => {
     expect(globalThis.alert).toHaveBeenCalledWith(
       "Settings page is not available yet.",
     );
+  });
+
+  it("shows the notification bell for authenticated users", () => {
+    mockAuthState = {
+      isAuthenticated: true,
+      user: { email: "test@example.com" },
+      getDashboardPath: () => "/dashboard/patient",
+      logout,
+    };
+
+    renderMainNavigation();
+
+    expect(
+      screen.getAllByRole("button", { name: /open notifications/i })[0],
+    ).toBeInTheDocument();
   });
 });

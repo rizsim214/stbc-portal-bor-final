@@ -50,7 +50,7 @@ class GenerateLabResultUploadUrlAction
 
         return [
             'upload_url' => $signedUpload['url'],
-            'headers' => $signedUpload['headers'],
+            'headers' => $this->sanitizeBrowserUploadHeaders($signedUpload['headers'] ?? []),
             'file_key' => $fileKey,
             'expires_at' => $expiresAt->toIso8601String(),
         ];
@@ -62,5 +62,30 @@ class GenerateLabResultUploadUrlAction
         $suffix = $extension !== '' ? '.'.$extension : '';
 
         return 'lab-results/'.$appointmentId.'/'.Str::uuid()->toString().$suffix;
+    }
+
+    /**
+     * @param array<string, mixed> $headers
+     * @return array<string, string>
+     */
+    private function sanitizeBrowserUploadHeaders(array $headers): array
+    {
+        $forbiddenHeaders = [
+            'host',
+            'content-length',
+        ];
+
+        return collect($headers)
+            ->reject(static function (mixed $_value, string $key) use ($forbiddenHeaders): bool {
+                return in_array(strtolower($key), $forbiddenHeaders, true);
+            })
+            ->map(static function (mixed $value): string {
+                if (is_array($value)) {
+                    return implode(', ', array_map('strval', $value));
+                }
+
+                return (string) $value;
+            })
+            ->all();
     }
 }

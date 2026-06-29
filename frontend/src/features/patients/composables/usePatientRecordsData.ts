@@ -34,11 +34,14 @@ export function usePatientRecordsData(userId: string | number) {
     const items = recordsQuery.data.value?.medical_history ?? [];
     return items.map((item) => ({
       id: item.id,
+      appointmentId: item.appointment?.id ?? null,
+      labResultId: item.kind === "lab_result" && typeof item.id === "number" ? item.id : null,
       date: formatDate(item.date),
       title: item.title,
       summary: item.summary,
       kind: item.kind,
       releasedAt: item.released_at,
+      filePath: item.file_path ?? null,
     }));
   });
 

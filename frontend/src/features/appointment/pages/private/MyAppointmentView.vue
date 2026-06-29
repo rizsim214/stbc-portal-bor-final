@@ -53,8 +53,18 @@ const appointmentStatusLabel = computed(() =>
 const labResultUrl = ref("");
 const labResultError = ref("");
 const isLoadingLabResult = ref(false);
-const hasReleasedLabResult = computed(() =>
-  Boolean(appointment.value?.lab_result?.id && appointment.value?.lab_result?.released_at),
+const isCompletedAppointment = computed(
+  () => appointment.value?.status === "completed",
+);
+const canViewCompletedLabResult = computed(() =>
+  Boolean(
+    isCompletedAppointment.value &&
+    appointment.value?.lab_result?.id,
+  ),
+);
+const isPendingAppointmentStatus = computed(() => appointment.value?.status === "pending");
+const isPdfLabResult = computed(() =>
+  appointment.value?.lab_result?.file_path?.toLowerCase().endsWith(".pdf") ?? false,
 );
 
 async function handleUpdateAppointmentDetails(): Promise<void> {
@@ -103,7 +113,7 @@ async function handleDownloadLabResult(): Promise<void> {
     <PageHeader title="Appointment Details"
       subtitle="Review the schedule, status, and notes for your appointment request in one clear view."
       heading-tag="h1">
-      <template #actions>
+      <template #actions v-if="isPendingAppointmentStatus">
         <Button type="button" variant="outline"
           class="border-brand-light/40 text-brand-darker hover:bg-brand-lighter/20"
           @click="isEditFormVisible = !isEditFormVisible">
@@ -224,24 +234,27 @@ async function handleDownloadLabResult(): Promise<void> {
                 <h3 class="mt-2 text-lg font-semibold tracking-tight text-brand-darker">
                   View and download your PDF
                 </h3>
+                <p class="mt-2 text-sm leading-6 text-brand-dark/80">
+                  Open the uploaded result for this appointment or download a copy.
+                </p>
               </div>
             </div>
 
             <div class="mt-5 space-y-4">
-              <div v-if="hasReleasedLabResult" class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div v-if="canViewCompletedLabResult" class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div class="flex flex-wrap gap-3">
                   <Button type="button" class="w-auto bg-brand-dark text-white hover:bg-brand-darker"
                     :disabled="isLoadingLabResult" @click="handleViewLabResult">
                     <LoaderCircle v-if="isLoadingLabResult" class="mr-2 h-4 w-4 animate-spin" />
                     <ScanEye v-else class="mr-2 h-4 w-4" />
-                    View PDF
+                    View File
                   </Button>
 
                   <Button type="button" variant="outline"
                     class="w-auto border-brand-light/40 text-brand-darker hover:bg-brand-lighter/20"
                     :disabled="isLoadingLabResult" @click="handleDownloadLabResult">
                     <Download class="mr-2 h-4 w-4" />
-                    Download PDF
+                    Download File
                   </Button>
                 </div>
 
@@ -250,7 +263,9 @@ async function handleDownloadLabResult(): Promise<void> {
                 </p>
 
                 <div v-if="labResultUrl" class="mt-4 overflow-hidden rounded-2xl border border-brand-light/20 bg-white">
-                  <iframe :src="labResultUrl" title="Lab Result PDF Preview" class="h-[28rem] w-full" />
+                  <iframe v-if="isPdfLabResult" :src="labResultUrl" title="Lab Result PDF Preview"
+                    class="h-112 w-full" />
+                  <img v-else :src="labResultUrl" alt="Lab result preview" class="max-h-112 w-full object-contain" />
                 </div>
               </div>
 
@@ -262,7 +277,8 @@ async function handleDownloadLabResult(): Promise<void> {
                       No released PDF yet
                     </p>
                     <p class="mt-2 text-sm leading-6 text-brand-dark/80">
-                      Your lab result PDF will appear here once the clinic releases it to your account.
+                      Your lab result file will appear here once the clinic releases it and the appointment reaches
+                      completed.
                     </p>
                   </div>
                 </div>
