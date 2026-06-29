@@ -25,6 +25,8 @@ const mockAppointmentStatusNotificationStore = {
   }>,
   unreadCount: 0,
   markAllRead: vi.fn(),
+  getTrackedStatus: vi.fn(() => ""),
+  trackStatus: vi.fn(),
 };
 
 vi.mock("vue-router", async () => {
@@ -73,6 +75,9 @@ describe("MainNavigation behavior", () => {
     mockAppointmentStatusNotificationStore.items = [];
     mockAppointmentStatusNotificationStore.unreadCount = 0;
     mockAppointmentStatusNotificationStore.markAllRead.mockReset();
+    mockAppointmentStatusNotificationStore.getTrackedStatus.mockReset();
+    mockAppointmentStatusNotificationStore.getTrackedStatus.mockReturnValue("");
+    mockAppointmentStatusNotificationStore.trackStatus.mockReset();
     vi.stubGlobal("alert", vi.fn());
   });
 
