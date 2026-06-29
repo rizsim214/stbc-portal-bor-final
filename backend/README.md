@@ -192,6 +192,10 @@ Lab-result-specific config is in `config/lab_results.php`.
 
 ## 9. Local Setup
 
+Dockerfile split:
+- `Dockerfile.local`: local Docker Compose image with PHP-FPM on port `9000`
+- `Dockerfile.render`: Render image using `php artisan serve` on port `10000`
+
 From repo root (Docker path, recommended):
 
 1. Copy env files
@@ -223,18 +227,13 @@ Staging/production env guidance:
 - set `CORS_ALLOWED_ORIGINS` to the deployed frontend origins
 - the storage endpoint must remain browser-reachable because uploads and downloads use signed URLs directly from the client
 
-Queue worker (Docker):
-- A dedicated `queue-worker` service runs `php artisan queue:work` with recycling flags for long-lived process stability:
-  - `--memory=${QUEUE_WORKER_MEMORY:-256}`
-  - `--max-jobs=${QUEUE_WORKER_MAX_JOBS:-1000}`
-  - `--max-time=${QUEUE_WORKER_MAX_TIME:-3600}`
-
 Reverb (Docker):
 - A dedicated `reverb` service runs `php artisan reverb:start` on port `8080`.
 - Backend publishing uses `REVERB_HOST`, `REVERB_PORT`, and `BROADCAST_CONNECTION=reverb`.
 - The browser websocket client uses `VITE_REVERB_APP_KEY`, `VITE_REVERB_HOST`, `VITE_REVERB_PORT`, and `VITE_REVERB_SCHEME`.
 
 Render backend deploy:
+- Dockerfile path: `backend/Dockerfile.render`
 - deployment script: `scripts/render-deploy.sh`
 - Composer alias: `composer run render:deploy`
 - tasks included:
@@ -245,7 +244,6 @@ Render backend deploy:
   - `php artisan route:cache`
   - `php artisan event:cache`
   - `php artisan view:cache`
-  - `php artisan queue:restart`
 - suggested Render commands:
   - Build command: `composer install --no-dev --optimize-autoloader`
   - Pre-deploy command: `composer run render:deploy`
