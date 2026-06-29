@@ -34,9 +34,6 @@ const activeUsersCount = computed(
 const inactiveUsersCount = computed(
   () => normalizedUsers.value.filter((user) => user.status === "inactive").length,
 );
-const staffUsersCount = computed(
-  () => normalizedUsers.value.filter((user) => user.role === "staff").length,
-);
 const adminUsersCount = computed(
   () => normalizedUsers.value.filter((user) => user.role === "admin").length,
 );
@@ -194,8 +191,7 @@ function handleModifyUser(user: ManagedUserRow): void {
     <UserCreateModal :is-open="isCreateModalOpen" :roles="roles" :form="form" :form-errors="formErrors"
       :is-submitting="isSubmitting" :page-error="pageError" :page-message="pageMessage" @close="closeCreateModal"
       @submit="submitUser" />
-    <UserEditModal :is-open="isEditModalOpen" :form="editForm" :form-errors="formErrors"
-      :is-submitting="isSubmitting" :page-error="pageError" :page-message="pageMessage" @close="closeEditModal"
-      @submit="submitEditedUser" />
+    <UserEditModal :is-open="isEditModalOpen" :form="editForm" :form-errors="formErrors" :is-submitting="isSubmitting"
+      :page-error="pageError" :page-message="pageMessage" @close="closeEditModal" @submit="submitEditedUser" />
   </section>
 </template>

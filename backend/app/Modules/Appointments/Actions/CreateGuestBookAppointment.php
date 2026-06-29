@@ -2,6 +2,7 @@
 
 namespace App\Modules\Appointments\Actions;
 
+use App\Mail\GuestAppointmentAccountCreated;
 use App\Models\Appointment;
 use App\Models\Role;
 use App\Models\User;
@@ -10,6 +11,7 @@ use App\Modules\Appointments\Services\AppointmentScheduleService;
 use App\Modules\Appointments\Support\AppointmentLifecycleDispatcher;
 use App\Modules\Shared\Exceptions\UnprocessableEntityApiException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class CreateGuestBookAppointment
@@ -78,14 +80,28 @@ class CreateGuestBookAppointment
                     'user' => $user->load('role'),
                     'appointment' => $appointment,
                     'token' => $token,
-                    'temporary_password' => $temporaryPassword,
                 ],
+                'temporary_password' => $temporaryPassword,
             ];
         });
 
         /** @var Appointment $appointment */
         $appointment = $result['data']['appointment'];
+        /** @var User $user */
+        $user = $result['data']['user'];
+        /** @var string $temporaryPassword */
+        $temporaryPassword = $result['temporary_password'];
+
+        Mail::to($user->email)->send(
+            new GuestAppointmentAccountCreated(
+                patientName: $user->name,
+                temporaryPassword: $temporaryPassword,
+                appointment: $appointment,
+            ),
+        );
+
         $this->lifecycleDispatcher->dispatch($appointment, 'created');
+        unset($result['temporary_password']);
 
         return $result;
     }

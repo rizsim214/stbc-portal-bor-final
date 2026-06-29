@@ -5,7 +5,7 @@ namespace App\Modules\Appointments\Support;
 use App\Models\Appointment;
 use App\Modules\Appointments\Events\AppointmentCalendarUpdated;
 use App\Modules\Appointments\Events\AppointmentLifecycleUpdated;
-use App\Modules\Appointments\Jobs\SendAppointmentLifecycleNotifications;
+use Illuminate\Support\Facades\Log;
 
 class AppointmentLifecycleDispatcher
 {
@@ -19,6 +19,12 @@ class AppointmentLifecycleDispatcher
 
         event(new AppointmentLifecycleUpdated($action, $fresh));
         event(new AppointmentCalendarUpdated($action, $fresh));
-        SendAppointmentLifecycleNotifications::dispatch($fresh->id, $action)->afterCommit();
+
+        Log::info('appointment.lifecycle', [
+            'action' => $action,
+            'appointment_id' => $fresh->id,
+            'user_id' => $fresh->user_id,
+            'status' => $fresh->status,
+        ]);
     }
 }

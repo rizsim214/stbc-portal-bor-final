@@ -161,7 +161,6 @@ export type GuestAppointmentResponse = {
       status: string;
     };
     token: string;
-    temporary_password: string;
   };
 };
 

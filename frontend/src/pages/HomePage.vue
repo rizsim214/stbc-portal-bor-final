@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ArrowRight, CalendarDays } from "lucide-vue-next";
-import stbcLogo from "@/assets/resources/stbc-logo.jpg";
 
 const quickActions = [
   {

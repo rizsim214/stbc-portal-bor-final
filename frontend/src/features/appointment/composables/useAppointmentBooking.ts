@@ -221,7 +221,7 @@ export function useAppointmentBooking() {
 
     try {
       if (bookingMode.value === "guest") {
-        const { data } = await appointmentsApi.createGuestAppointment({
+        await appointmentsApi.createGuestAppointment({
           name: form.fullName,
           email: form.email,
           appointment_type_id: Number(form.appointmentType),
@@ -233,7 +233,7 @@ export function useAppointmentBooking() {
         await queryClient.invalidateQueries({
           queryKey: ["appointments", "calendar"],
         });
-        submitMessage.value = `Appointment request submitted. Temporary password: ${data.data.temporary_password}`;
+        submitMessage.value = "Appointment request submitted. Check your email for your temporary password.";
         return;
       }
 
