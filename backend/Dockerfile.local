@@ -1,0 +1,22 @@
+FROM composer:2 AS composer_bin
+
+FROM php:8.3-fpm-bookworm
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    unzip \
+    libpq-dev \
+    libzip-dev \
+    && docker-php-ext-install pdo_pgsql pcntl \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer_bin /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www
+
+EXPOSE 9000
+
+CMD ["php-fpm"]

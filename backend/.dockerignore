@@ -9,6 +9,7 @@ vendor
 node_modules
 public/build
 public/hot
+public/storage
 storage/logs
 storage/framework/cache/data
 storage/framework/sessions

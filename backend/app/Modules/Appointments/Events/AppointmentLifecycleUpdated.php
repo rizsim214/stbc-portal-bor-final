@@ -4,10 +4,10 @@ namespace App\Modules\Appointments\Events;
 
 use App\Models\Appointment;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 
-class AppointmentLifecycleUpdated implements ShouldBroadcast, ShouldDispatchAfterCommit
+class AppointmentLifecycleUpdated implements ShouldBroadcastNow, ShouldDispatchAfterCommit
 {
     public function __construct(
         public readonly string $action,
