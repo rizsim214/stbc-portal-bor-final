@@ -5,6 +5,15 @@ Full-stack setup with:
 - `backend`: Laravel 13 + PHP-FPM
 - `docker`: Nginx + PHP + Postgres + Redis + Reverb orchestration
 
+## Dockerfiles
+
+The backend now uses two separate Dockerfiles:
+- `backend/Dockerfile.local`: local Docker Compose development with PHP-FPM behind Nginx
+- `backend/Dockerfile.render`: Render deployment using `php artisan serve`
+
+Local `docker compose` uses `backend/Dockerfile.local`.
+Render should be configured to use `backend/Dockerfile.render`.
+
 ## Auth Model
 
 - Authentication is `login/logout` only.
@@ -39,7 +48,6 @@ Use these Render-specific examples when deploying hosted services:
 
 Recommended mapping on Render:
 - Backend web service: copy values from the matching `backend/.env.render.*.example`
-- Queue worker: reuse the same backend env file for the same environment
 - Reverb service: reuse the same backend env file for the same environment
 - Frontend static site or web service: copy values from the matching `frontend/.env.render.*.example`
 
