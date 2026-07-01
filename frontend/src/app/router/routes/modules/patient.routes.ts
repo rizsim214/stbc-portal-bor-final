@@ -36,4 +36,12 @@ export const patientRoutes: AppRoute[] = [
       import("@/features/patients/pages/MyLabResultsPage.vue"),
     meta: { roles: ["patient"] },
   },
+  {
+    path: "users/record/:labResultId",
+    name: "userLabResultDetail",
+    component: () =>
+      import("@/features/patients/pages/PatientLabResultDetailPage.vue"),
+    props: true,
+    meta: { roles: ["patient"] },
+  },
 ];

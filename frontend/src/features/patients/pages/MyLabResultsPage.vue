@@ -2,34 +2,41 @@
 import { useQuery } from "@tanstack/vue-query";
 import {
   CalendarDays,
+  ChevronRight,
   CircleAlert,
-  Download,
   FileText,
   FlaskConical,
-  ScanEye,
 } from "lucide-vue-next";
 import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
 import { appointmentsApi } from "@/features/appointment/api/appointmentsApi";
-import type { LabResultListItem } from "@/features/appointment/types";
+import AppointmentListPagination from "@/features/appointment/components/AppointmentListPagination.vue";
+import type { LabResultListItem, PaginationMeta } from "@/features/appointment/types";
 import { formatScheduleRange } from "@/features/appointment/utils/schedule";
+import ListMeta from "@/shared/components/ListMeta/ListMeta.vue";
 import PageHeader from "@/shared/components/PageHeader/PageHeader.vue";
 import StatusBanner from "@/shared/components/StatusBanner/StatusBanner.vue";
 import { Button } from "@/shared/ui/button";
 
-const activePreviewLabResultId = ref<number | null>(null);
-const activePreviewUrl = ref("");
-const labResultError = ref("");
-const isLoadingLabResultId = ref<number | null>(null);
+const router = useRouter();
+const page = ref(1);
+const perPage = ref(10);
 
 const labResultsQuery = useQuery({
-  queryKey: ["lab-results", "mine"],
+  queryKey: ["lab-results", "mine", page, perPage],
   queryFn: async () => {
-    const { data } = await appointmentsApi.listMyLabResults();
-    return data.data;
+    const { data } = await appointmentsApi.listMyLabResults(page.value, perPage.value);
+    return data;
   },
 });
 
-const labResults = computed<LabResultListItem[]>(() => labResultsQuery.data.value ?? []);
+const labResults = computed<LabResultListItem[]>(() => labResultsQuery.data.value?.data ?? []);
+const meta = computed<PaginationMeta>(() => labResultsQuery.data.value?.meta ?? {
+  current_page: 1,
+  last_page: 1,
+  per_page: perPage.value,
+  total: 0,
+});
 const isLoading = computed(
   () => labResultsQuery.isPending.value || labResultsQuery.isFetching.value,
 );
@@ -42,10 +49,6 @@ const dataError = computed(() => {
     ? labResultsQuery.error.value.message
     : "Unable to load your lab results.";
 });
-
-function isPdfFile(filePath: string | null | undefined): boolean {
-  return filePath?.toLowerCase().endsWith(".pdf") ?? false;
-}
 
 function formatReleasedAt(value: string | null): string {
   if (!value) {
@@ -78,42 +81,21 @@ function getRecordSummary(labResult: LabResultListItem): string {
   );
 }
 
-async function ensureLabResultUrl(labResult: LabResultListItem): Promise<string> {
-  if (!labResult.id) {
-    throw new Error("No lab result file is available for this record.");
-  }
-
-  if (
-    activePreviewLabResultId.value === labResult.id &&
-    activePreviewUrl.value
-  ) {
-    return activePreviewUrl.value;
-  }
-
-  isLoadingLabResultId.value = labResult.id;
-  labResultError.value = "";
-
-  try {
-    const { data } = await appointmentsApi.getLabResultFileUrl(labResult.id);
-    activePreviewLabResultId.value = labResult.id;
-    activePreviewUrl.value = data.data.download_url;
-
-    return activePreviewUrl.value;
-  } catch {
-    labResultError.value = "Unable to load the selected lab result file.";
-    throw new Error(labResultError.value);
-  } finally {
-    isLoadingLabResultId.value = null;
-  }
+function getFileTypeLabel(filePath: string | null | undefined): string {
+  return filePath?.toLowerCase().endsWith(".pdf")
+    ? "PDF document"
+    : "Image document";
 }
 
-async function handleViewLabResult(labResult: LabResultListItem): Promise<void> {
-  await ensureLabResultUrl(labResult);
+function openLabResultDetail(labResultId: number): void {
+  router.push({
+    name: "userLabResultDetail",
+    params: { labResultId: String(labResultId) },
+  });
 }
 
-async function handleDownloadLabResult(labResult: LabResultListItem): Promise<void> {
-  const url = await ensureLabResultUrl(labResult);
-  globalThis.open(url, "_blank", "noopener,noreferrer");
+function setPage(nextPage: number): void {
+  page.value = nextPage;
 }
 </script>
 
@@ -121,7 +103,7 @@ async function handleDownloadLabResult(labResult: LabResultListItem): Promise<vo
   <section class="space-y-6">
     <PageHeader
       title="My Lab-Results"
-      subtitle="Review every released lab result associated with your appointments, then preview or download the file you need."
+      subtitle="Browse all released lab results linked to your appointments. Open any item to view the full file details and download page."
       heading-tag="h1"
     />
 
@@ -131,11 +113,12 @@ async function handleDownloadLabResult(labResult: LabResultListItem): Promise<vo
       tone="error"
       @dismiss="void 0"
     />
-    <StatusBanner
-      v-if="labResultError"
-      :message="labResultError"
-      tone="error"
-      @dismiss="labResultError = ''"
+
+    <ListMeta
+      :shown-count="labResults.length"
+      :total-count="meta.total"
+      label="lab results"
+      :is-loading="isLoading"
     />
 
     <div
@@ -162,143 +145,98 @@ async function handleDownloadLabResult(labResult: LabResultListItem): Promise<vo
       </div>
     </div>
 
-    <div v-else class="grid gap-6">
+    <div v-else class="grid gap-5">
       <article
         v-for="labResult in labResults"
         :key="labResult.id"
-        class="overflow-hidden rounded-[1.9rem] border border-brand-light/20 bg-white shadow-sm"
+        class="rounded-[1.8rem] border border-brand-light/20 bg-white p-5 shadow-sm transition hover:border-brand-light/35 hover:shadow-md"
       >
-        <div class="border-b border-brand-light/15 bg-linear-to-r from-white via-sky-50 to-brand-lighter/25 p-6">
-          <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-            <div class="min-w-0">
-              <div
-                class="inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-darker shadow-sm ring-1 ring-brand-light/15"
-              >
-                <FlaskConical class="h-3.5 w-3.5" />
-                Released Lab Result
-              </div>
-
-              <h2 class="mt-4 text-2xl font-semibold tracking-tight text-brand-darker">
-                {{ getRecordTitle(labResult) }}
-              </h2>
-              <p class="mt-3 max-w-3xl text-sm leading-6 text-brand-dark/80">
-                {{ getRecordSummary(labResult) }}
-              </p>
+        <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+          <div class="min-w-0 flex-1">
+            <div
+              class="inline-flex items-center gap-2 rounded-full bg-brand-lighter/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-darker"
+            >
+              <FlaskConical class="h-3.5 w-3.5" />
+              Released Lab Result
             </div>
 
-            <div class="flex flex-wrap gap-3">
-              <Button
-                type="button"
-                class="w-auto bg-brand-dark text-white hover:bg-brand-darker"
-                :loading="isLoadingLabResultId === labResult.id"
-                @click="handleViewLabResult(labResult)"
-              >
-                <ScanEye class="mr-2 h-4 w-4" />
-                View File
-              </Button>
+            <h2 class="mt-4 text-xl font-semibold tracking-tight text-brand-darker">
+              {{ getRecordTitle(labResult) }}
+            </h2>
+            <p class="mt-2 max-w-3xl text-sm leading-6 text-brand-dark/80">
+              {{ getRecordSummary(labResult) }}
+            </p>
 
-              <Button
-                type="button"
-                variant="outline"
-                class="w-auto border-brand-light/40 text-brand-darker hover:bg-brand-lighter/20"
-                :disabled="isLoadingLabResultId === labResult.id"
-                @click="handleDownloadLabResult(labResult)"
-              >
-                <Download class="mr-2 h-4 w-4" />
-                Download
-              </Button>
+            <div class="mt-4 grid gap-3 md:grid-cols-3">
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div class="flex items-start gap-3">
+                  <CalendarDays class="mt-0.5 h-4 w-4 text-brand-dark/70" />
+                  <div class="min-w-0">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">
+                      Appointment Schedule
+                    </p>
+                    <p class="mt-2 text-sm font-medium text-slate-900">
+                      {{
+                        labResult.appointment
+                          ? formatScheduleRange(
+                              labResult.appointment.start_time,
+                              labResult.appointment.end_time,
+                            )
+                          : "-"
+                      }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div class="flex items-start gap-3">
+                  <FileText class="mt-0.5 h-4 w-4 text-brand-dark/70" />
+                  <div class="min-w-0">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">
+                      Released At
+                    </p>
+                    <p class="mt-2 text-sm font-medium text-slate-900">
+                      {{ formatReleasedAt(labResult.released_at) }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div class="flex items-start gap-3">
+                  <FileText class="mt-0.5 h-4 w-4 text-brand-dark/70" />
+                  <div class="min-w-0">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">
+                      File Type
+                    </p>
+                    <p class="mt-2 text-sm font-medium text-slate-900">
+                      {{ getFileTypeLabel(labResult.file_path) }}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="grid gap-6 p-6 xl:grid-cols-[0.95fr_1.05fr]">
-          <aside class="space-y-4">
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div class="flex items-start gap-3">
-                <CalendarDays class="mt-0.5 h-4 w-4 text-brand-dark/70" />
-                <div class="min-w-0">
-                  <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">
-                    Appointment Schedule
-                  </p>
-                  <p class="mt-2 text-sm font-medium text-slate-900">
-                    {{
-                      labResult.appointment
-                        ? formatScheduleRange(
-                            labResult.appointment.start_time,
-                            labResult.appointment.end_time,
-                          )
-                        : "-"
-                    }}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div class="flex items-start gap-3">
-                <FileText class="mt-0.5 h-4 w-4 text-brand-dark/70" />
-                <div class="min-w-0">
-                  <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">
-                    Released At
-                  </p>
-                  <p class="mt-2 text-sm font-medium text-slate-900">
-                    {{ formatReleasedAt(labResult.released_at) }}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div class="flex items-start gap-3">
-                <FileText class="mt-0.5 h-4 w-4 text-brand-dark/70" />
-                <div class="min-w-0">
-                  <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-dark/60">
-                    File Type
-                  </p>
-                  <p class="mt-2 text-sm font-medium text-slate-900">
-                    {{ isPdfFile(labResult.file_path) ? "PDF document" : "Image document" }}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </aside>
-
-          <div class="rounded-2xl border border-brand-light/20 bg-slate-50 p-4">
-            <div
-              v-if="activePreviewLabResultId === labResult.id && activePreviewUrl"
-              class="overflow-hidden rounded-2xl border border-brand-light/15 bg-white"
+          <div class="shrink-0">
+            <Button
+              type="button"
+              class="w-auto bg-brand-dark text-white hover:bg-brand-darker"
+              @click="openLabResultDetail(labResult.id)"
             >
-              <iframe
-                v-if="isPdfFile(labResult.file_path)"
-                :src="activePreviewUrl"
-                :title="`${getRecordTitle(labResult)} Preview`"
-                class="h-[38rem] w-full bg-white"
-              />
-              <img
-                v-else
-                :src="activePreviewUrl"
-                alt="Lab result preview"
-                class="max-h-[38rem] w-full object-contain bg-white"
-              />
-            </div>
-
-            <div
-              v-else
-              class="flex min-h-56 items-center justify-center rounded-2xl border border-dashed border-brand-light/30 bg-white px-6 text-center"
-            >
-              <div>
-                <p class="text-sm font-semibold text-brand-darker">
-                  Preview not opened yet
-                </p>
-                <p class="mt-2 text-sm leading-6 text-brand-dark/75">
-                  Select <span class="font-medium">View File</span> to preview this result here, or use
-                  <span class="font-medium">Download</span> to open it in a new tab.
-                </p>
-              </div>
-            </div>
+              View Details
+              <ChevronRight class="ml-2 h-4 w-4" />
+            </Button>
           </div>
         </div>
       </article>
+
+      <AppointmentListPagination
+        :current-page="meta.current_page"
+        :last-page="meta.last_page"
+        @update:page="setPage"
+      />
     </div>
   </section>
 </template>

@@ -4,11 +4,11 @@ namespace App\Modules\LabResults\Actions;
 
 use App\Models\LabResult;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ListLabResultsAction
 {
-    public function execute(User $user): Collection
+    public function execute(User $user, int $perPage = 10): LengthAwarePaginator
     {
         $query = LabResult::query()->with([
             'appointment.user',
@@ -26,6 +26,6 @@ class ListLabResultsAction
         return $query
             ->orderByDesc('released_at')
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate($perPage);
     }
 }

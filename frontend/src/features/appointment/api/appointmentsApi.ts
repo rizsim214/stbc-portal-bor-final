@@ -22,6 +22,7 @@ import type {
   GenerateLabResultUploadUrlResponse,
   GuestAppointmentPayload,
   GuestAppointmentResponse,
+  LabResultDetailResponse,
   LabResultListResponse,
   LabResultFileUrlResponse,
   PaginatedAppointmentListResponse,
@@ -202,8 +203,20 @@ export const appointmentsApi = {
     return http.post<CreateLabResultResponse>("/lab-results", payload);
   },
 
-  async listMyLabResults() {
+  async listMyLabResults(page = 1, perPage = 10) {
     return http.get<LabResultListResponse>("/lab-results", {
+      params: {
+        page,
+        per_page: perPage,
+      },
+      headers: {
+        "X-Skip-Global-Loading": "true",
+      },
+    });
+  },
+
+  async getLabResult(labResultId: string | number) {
+    return http.get<LabResultDetailResponse>(`/lab-results/${labResultId}`, {
       headers: {
         "X-Skip-Global-Loading": "true",
       },

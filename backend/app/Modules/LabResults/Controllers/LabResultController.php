@@ -4,27 +4,30 @@ namespace App\Modules\LabResults\Controllers;
 
 use App\Models\LabResult;
 use App\Models\User;
+use App\Modules\Appointments\Controllers\Concerns\FormatsPaginatedResponse;
 use App\Modules\LabResults\Actions\CreateLabResultAction;
 use App\Modules\LabResults\Actions\GenerateLabResultFileUrlAction;
 use App\Modules\LabResults\Actions\GenerateLabResultUploadUrlAction;
 use App\Modules\LabResults\Actions\ListLabResultsAction;
 use App\Modules\LabResults\Actions\ReleaseLabResultAction;
 use App\Modules\LabResults\Requests\GenerateLabResultUploadUrlRequest;
+use App\Modules\LabResults\Requests\ListLabResultsRequest;
 use App\Modules\LabResults\Requests\ReleaseLabResultRequest;
 use App\Modules\LabResults\Requests\StoreLabResultRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class LabResultController extends Controller
 {
-    public function index(Request $request, ListLabResultsAction $action): JsonResponse
+    use FormatsPaginatedResponse;
+
+    public function index(ListLabResultsRequest $request, ListLabResultsAction $action): JsonResponse
     {
         $user = $request->user();
 
         abort_unless($user instanceof User, 401);
 
         return response()->json([
-            'data' => $action->execute($user),
+            ...$this->paginatedResponse($action->execute($user, $request->perPage())),
         ]);
     }
 
