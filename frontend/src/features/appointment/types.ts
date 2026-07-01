@@ -253,4 +253,9 @@ export type LabResultFileUrlResponse = {
 
 export type LabResultListResponse = {
   data: LabResultListItem[];
+  meta: PaginationMeta;
+};
+
+export type LabResultDetailResponse = {
+  data: LabResultListItem;
 };
