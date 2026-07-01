@@ -2,6 +2,8 @@
 
 set -eu
 
+export PORT="${PORT:-10000}"
+
 php artisan optimize:clear --ansi
 php artisan migrate --force --ansi
 php artisan db:seed --force --ansi
@@ -17,4 +19,6 @@ php artisan route:cache --ansi
 php artisan event:cache --ansi
 php artisan view:cache --ansi
 
-exec php artisan serve --host=0.0.0.0 --port="${PORT:-10000}"
+envsubst '${PORT}' < /etc/nginx/templates/render.conf.template > /etc/nginx/sites-available/default
+
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
