@@ -41,10 +41,11 @@ class GuestAppointmentTest extends TestCase
             ->assertJsonPath('data.user.role.name', 'patient')
             ->assertJsonPath('data.appointment.appointment_type_id', $appointmentTypeId)
             ->assertJsonPath('data.appointment.status', 'pending')
-            ->assertJsonPath('data.appointment.notes', self::APPOINTMENT_NOTES);
+            ->assertJsonPath('data.appointment.notes', self::APPOINTMENT_NOTES)
+            ->assertJsonPath('data.temporary_password', $response->json('data.temporary_password'));
 
         $this->assertNotEmpty($response->json('data.token'));
-        $this->assertNull($response->json('data.temporary_password'));
+        $this->assertNotEmpty($response->json('data.temporary_password'));
 
         $userId = (int) DB::table('users')->where('email', self::APPOINTMENT_EMAIL)->value('id');
 
