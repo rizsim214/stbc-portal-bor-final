@@ -33,7 +33,7 @@ export const patientRoutes: AppRoute[] = [
     path: "users/record",
     name: "userMedicalRecord",
     component: () =>
-      import("@/features/patients/pages/PatientMedicalRecord.vue"),
+      import("@/features/patients/pages/MyLabResultsPage.vue"),
     meta: { roles: ["patient"] },
   },
 ];

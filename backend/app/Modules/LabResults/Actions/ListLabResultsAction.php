@@ -10,10 +10,12 @@ class ListLabResultsAction
 {
     public function execute(User $user): Collection
     {
-        $query = LabResult::query()->with('appointment.user');
-        $role = $user->role?->name;
+        $query = LabResult::query()->with([
+            'appointment.user',
+            'appointment.type',
+        ]);
 
-        if ($role === 'patient') {
+        if ($user->hasAnyRole(['user', 'patient'])) {
             $query
                 ->whereNotNull('released_at')
                 ->whereHas('appointment', function ($appointmentQuery) use ($user) {
@@ -21,6 +23,9 @@ class ListLabResultsAction
                 });
         }
 
-        return $query->orderByDesc('created_at')->get();
+        return $query
+            ->orderByDesc('released_at')
+            ->orderByDesc('created_at')
+            ->get();
     }
 }
