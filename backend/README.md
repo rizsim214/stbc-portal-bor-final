@@ -194,7 +194,7 @@ Lab-result-specific config is in `config/lab_results.php`.
 
 Dockerfile split:
 - `Dockerfile.local`: local Docker Compose image with PHP-FPM on port `9000`
-- `Dockerfile.render`: Render image using `php artisan serve` on port `10000`
+- `Dockerfile.render`: Render image using `nginx + php-fpm + reverb` behind Render's public port
 
 From repo root (Docker path, recommended):
 
@@ -244,10 +244,55 @@ Render backend deploy:
   - `php artisan route:cache`
   - `php artisan event:cache`
   - `php artisan view:cache`
-- suggested Render commands:
-  - Build command: `composer install --no-dev --optimize-autoloader`
-  - Pre-deploy command: `composer run render:deploy`
-  - Start command: `php artisan serve --host=0.0.0.0 --port=$PORT`
+- Render web service settings:
+  - Environment: `Docker`
+  - Root directory: `backend`
+  - Dockerfile path: `Dockerfile.render`
+  - Docker build context: `backend`
+  - Pre-deploy command: none
+  - Start command: handled by `Dockerfile.render`
+
+Single-service Reverb on Render:
+- Render exposes only one public port for the web service.
+- `nginx` listens on Render's `PORT`.
+- `php-fpm` handles Laravel requests internally on `127.0.0.1:9000`.
+- Reverb runs internally on `127.0.0.1:8080`.
+- `nginx` proxies websocket paths `/app` and `/apps` to the internal Reverb process.
+
+Recommended backend env values on Render:
+- `APP_ENV=production`
+- `APP_DEBUG=false`
+- `APP_URL=https://<your-backend-service>.onrender.com`
+- `LOG_CHANNEL=stack`
+- `LOG_STACK=stderr`
+- `BROADCAST_CONNECTION=reverb`
+- `QUEUE_CONNECTION=sync`
+- `REVERB_APP_ID=<shared-app-id>`
+- `REVERB_APP_KEY=<shared-app-key>`
+- `REVERB_APP_SECRET=<shared-app-secret>`
+- `REVERB_SERVER_HOST=0.0.0.0`
+- `REVERB_SERVER_PORT=8080`
+- `REVERB_HOST=<your-backend-service>.onrender.com`
+- `REVERB_PORT=443`
+- `REVERB_SCHEME=https`
+- `REVERB_ALLOWED_ORIGINS=https://<your-frontend-site>`
+- `SANCTUM_STATEFUL_DOMAINS=<your-frontend-site-host-without-https>`
+- `CORS_ALLOWED_ORIGINS=https://<your-frontend-site>`
+
+Recommended frontend env values on Render:
+- `VITE_API_BASE_URL=https://<your-backend-service>.onrender.com/api`
+- `VITE_REVERB_APP_KEY=<same-shared-app-key>`
+- `VITE_REVERB_HOST=<your-backend-service>.onrender.com`
+- `VITE_REVERB_PORT=443`
+- `VITE_REVERB_SCHEME=https`
+
+Render deployment checklist:
+1. Deploy the backend web service from `backend/Dockerfile.render`.
+2. Set all backend env vars from `backend/.env.render.production.example`.
+3. Deploy the frontend static site and set env vars from `frontend/.env.render.production.example`.
+4. Replace the placeholder backend domain in both backend and frontend env values.
+5. Keep the backend Reverb host equal to the backend public Render domain, not a separate websocket host.
+6. Use the same `REVERB_APP_KEY` value on backend and frontend.
 
 ## 10. Testing
 

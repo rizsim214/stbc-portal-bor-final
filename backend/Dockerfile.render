@@ -33,9 +33,12 @@ RUN mkdir -p resources/views \
     && php artisan package:discover --ansi
 
 
-FROM php:8.3-cli-bookworm
+FROM php:8.3-fpm-bookworm
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    nginx \
+    supervisor \
+    gettext-base \
     git \
     unzip \
     libpq-dev \
@@ -49,6 +52,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /opt/render/project/src
 
 COPY --from=vendor /app /opt/render/project/src
+COPY docker/render/nginx.conf.template /etc/nginx/templates/render.conf.template
+COPY docker/render/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 RUN mkdir -p storage/framework/cache/data \
     storage/framework/sessions \
@@ -56,6 +61,8 @@ RUN mkdir -p storage/framework/cache/data \
     storage/logs \
     resources/views \
     bootstrap/cache \
+    /var/log/supervisor \
+    /run/php \
     && chmod +x scripts/render-start.sh \
     && chown -R www-data:www-data /opt/render/project/src \
     && chmod -R 775 storage bootstrap/cache
