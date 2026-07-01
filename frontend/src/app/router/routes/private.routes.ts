@@ -20,19 +20,19 @@ export const privateRoutes: AppRoute[] = [
       {
         path: "patient",
         name: "patientDashboard",
-        component: () => import("@/pages/dashboard/DashboardOverviewPage.vue"),
+        component: () => import("@/pages/dashboard/PatientDashboardPage.vue"),
         meta: { roles: ["patient"] },
       },
       {
         path: "admin",
         name: "adminDashboard",
-        component: () => import("@/pages/dashboard/DashboardOverviewPage.vue"),
+        component: () => import("@/pages/dashboard/AdminDashboardPage.vue"),
         meta: { roles: ["admin"] },
       },
       {
         path: "staff",
         name: "staffDashboard",
-        component: () => import("@/pages/dashboard/DashboardOverviewPage.vue"),
+        component: () => import("@/pages/dashboard/StaffDashboardPage.vue"),
         meta: { roles: ["staff"] },
       },
       ...patientRoutes,
