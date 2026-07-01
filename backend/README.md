@@ -232,6 +232,21 @@ Reverb (Docker):
 - Backend publishing uses `REVERB_HOST`, `REVERB_PORT`, and `BROADCAST_CONNECTION=reverb`.
 - The browser websocket client uses `VITE_REVERB_APP_KEY`, `VITE_REVERB_HOST`, `VITE_REVERB_PORT`, and `VITE_REVERB_SCHEME`.
 
+Guest first-appointment email:
+- The only live account email flow currently wired in code is the guest first-appointment account email.
+- It is sent from `CreateGuestBookAppointment` using the `GuestAppointmentAccountCreated` mailable.
+- The guest appointment API response currently also includes the generated `temporary_password` for hobby-project convenience.
+- Admin-created user accounts do not send temporary-password emails yet.
+- For real delivery with Gmail, set:
+  - `MAIL_MAILER=smtp`
+  - `MAIL_SCHEME=tls`
+  - `MAIL_HOST=smtp.gmail.com`
+  - `MAIL_PORT=587`
+  - `MAIL_USERNAME=<your-gmail-address@gmail.com>`
+  - `MAIL_PASSWORD=<your-google-app-password>`
+  - `MAIL_FROM_ADDRESS=<your-gmail-address@gmail.com>`
+- Gmail requires 2-Step Verification plus a Google App Password. Regular Gmail account passwords will not work.
+
 Render backend deploy:
 - Dockerfile path: `backend/Dockerfile.render`
 - deployment script: `scripts/render-deploy.sh`

@@ -53,6 +53,7 @@ export function useAppointmentBooking() {
   const selectedDate = ref<CalendarDate | undefined>();
   const datePlaceholder = today(getLocalTimeZone());
   const submitMessage = ref("");
+  const guestTemporaryPassword = ref("");
   const minDate = toDateInput(datePlaceholder);
   const initialRangeStartDate = new Date(`${minDate}T00:00:00`);
   const initialRangeEndDate = new Date(initialRangeStartDate);
@@ -200,6 +201,7 @@ export function useAppointmentBooking() {
 
   async function submitAppointment(): Promise<void> {
     submitMessage.value = "";
+    guestTemporaryPassword.value = "";
 
     if (!selectedDate.value) {
       submitMessage.value = "Please select an appointment date.";
@@ -221,7 +223,7 @@ export function useAppointmentBooking() {
 
     try {
       if (bookingMode.value === "guest") {
-        await appointmentsApi.createGuestAppointment({
+        const { data } = await appointmentsApi.createGuestAppointment({
           name: form.fullName,
           email: form.email,
           appointment_type_id: Number(form.appointmentType),
@@ -233,7 +235,8 @@ export function useAppointmentBooking() {
         await queryClient.invalidateQueries({
           queryKey: ["appointments", "calendar"],
         });
-        submitMessage.value = "Appointment request submitted. Check your email for your temporary password.";
+        guestTemporaryPassword.value = data.data.temporary_password;
+        submitMessage.value = "Appointment request submitted successfully. Save your temporary password before leaving this page.";
         return;
       }
 
@@ -308,6 +311,7 @@ export function useAppointmentBooking() {
     selectedDate,
     setSelectedDate,
     submitMessage,
+    guestTemporaryPassword,
     summaryText,
     formatSelectedDate,
     formatTimeValue,

@@ -18,6 +18,7 @@ const {
   isLoadingAppointmentTypes,
   selectedDate,
   submitMessage,
+  guestTemporaryPassword,
   summaryText,
   formatSelectedDate,
   formatTimeValue,
@@ -48,7 +49,7 @@ useAppointmentBookingRealtime({
           :format-selected-date="formatSelectedDate" :format-time-value="formatTimeValue" :form="form"
           :is-loading-appointment-types="isLoadingAppointmentTypes" :is-loading-availability="isLoadingAvailability"
           :selected-date="selectedDate"
-          :submit-message="submitMessage" :summary-text="summaryText"
+          :submit-message="submitMessage" :guest-temporary-password="guestTemporaryPassword" :summary-text="summaryText"
           :time-options="availableTimeOptions"
           @update:selected-date="setSelectedDate" @submit="submitAppointment" />
       </div>

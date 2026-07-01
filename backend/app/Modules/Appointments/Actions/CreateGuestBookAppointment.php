@@ -80,8 +80,8 @@ class CreateGuestBookAppointment
                     'user' => $user->load('role'),
                     'appointment' => $appointment,
                     'token' => $token,
+                    'temporary_password' => $temporaryPassword,
                 ],
-                'temporary_password' => $temporaryPassword,
             ];
         });
 
@@ -90,7 +90,7 @@ class CreateGuestBookAppointment
         /** @var User $user */
         $user = $result['data']['user'];
         /** @var string $temporaryPassword */
-        $temporaryPassword = $result['temporary_password'];
+        $temporaryPassword = $result['data']['temporary_password'];
 
         Mail::to($user->email)->send(
             new GuestAppointmentAccountCreated(
@@ -101,7 +101,6 @@ class CreateGuestBookAppointment
         );
 
         $this->lifecycleDispatcher->dispatch($appointment, 'created');
-        unset($result['temporary_password']);
 
         return $result;
     }

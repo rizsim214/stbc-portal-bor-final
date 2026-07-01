@@ -7,7 +7,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
+  KeyRound,
   Mail,
+  OctagonAlert,
   ShieldCheck,
 } from "lucide-vue-next";
 import {
@@ -55,6 +57,7 @@ const props = defineProps<{
   isLoadingAppointmentTypes: boolean;
   selectedDate: CalendarDate | undefined;
   submitMessage: string;
+  guestTemporaryPassword: string;
   summaryText: string;
   timeOptions: string[];
 }>();
@@ -277,7 +280,38 @@ function onSelectedDateChange(value: DateValue | undefined): void {
         <Button type="submit" class="h-11 w-full bg-brand-dark text-white hover:bg-brand-darker">
           Submit Appointment Request
         </Button>
-        <p v-if="props.submitMessage" class="text-sm text-emerald-700">
+        <div
+          v-if="props.guestTemporaryPassword"
+          class="rounded-2xl border-2 border-amber-300 bg-linear-to-br from-amber-50 via-white to-rose-50 p-4 shadow-[0_18px_36px_-24px_rgba(217,119,6,0.75)] ring-1 ring-amber-200/70"
+        >
+          <div class="flex items-start gap-3">
+            <div class="rounded-2xl bg-amber-500 p-2.5 text-white shadow-sm">
+              <OctagonAlert class="h-5 w-5" />
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-amber-700">
+                Important
+              </p>
+              <h3 class="mt-1 text-lg font-semibold text-slate-900">
+                Save this temporary password now
+              </h3>
+              <p class="mt-2 text-sm leading-6 text-slate-700">
+                This password is needed for your first sign-in. Keep it somewhere safe before closing or refreshing this page.
+              </p>
+
+              <div class="mt-4 rounded-2xl border border-amber-200 bg-slate-950 px-4 py-4 text-center shadow-inner">
+                <p class="mb-2 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-200/90">
+                  <KeyRound class="h-3.5 w-3.5" />
+                  Temporary Password
+                </p>
+                <p class="break-all font-mono text-xl font-bold tracking-[0.22em] text-white sm:text-2xl">
+                  {{ props.guestTemporaryPassword }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p v-if="props.submitMessage" class="text-sm font-medium text-emerald-700">
           {{ props.submitMessage }}
         </p>
       </div>
