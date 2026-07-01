@@ -61,6 +61,27 @@ export interface AppointmentLabResultSummary {
   released_at: string | null;
 }
 
+export interface LabResultListItem {
+  id: number;
+  appointment_id: number;
+  file_path: string | null;
+  result_data?: Record<string, unknown> | null;
+  released_at: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  appointment?: {
+    id: number;
+    user_id: number;
+    appointment_type_id: number;
+    start_time: string;
+    end_time: string;
+    status: string;
+    notes: string | null;
+    user?: AppointmentPatientSummary | null;
+    type?: AppointmentTypeSummary | null;
+  } | null;
+}
+
 export interface AppointmentListItem {
   id: number;
   user_id: number;
@@ -228,4 +249,8 @@ export type LabResultFileUrlResponse = {
     download_url: string;
     expires_at: string;
   };
+};
+
+export type LabResultListResponse = {
+  data: LabResultListItem[];
 };

@@ -22,6 +22,7 @@ import type {
   GenerateLabResultUploadUrlResponse,
   GuestAppointmentPayload,
   GuestAppointmentResponse,
+  LabResultListResponse,
   LabResultFileUrlResponse,
   PaginatedAppointmentListResponse,
   UpdateAppointmentPayload,
@@ -199,6 +200,14 @@ export const appointmentsApi = {
 
   async createLabResult(payload: CreateLabResultPayload) {
     return http.post<CreateLabResultResponse>("/lab-results", payload);
+  },
+
+  async listMyLabResults() {
+    return http.get<LabResultListResponse>("/lab-results", {
+      headers: {
+        "X-Skip-Global-Loading": "true",
+      },
+    });
   },
 
   async getLabResultFileUrl(labResultId: string | number) {
