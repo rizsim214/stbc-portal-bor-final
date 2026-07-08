@@ -8,8 +8,10 @@ use App\Models\Role;
 use App\Models\User;
 use App\Modules\Appointments\DTOs\GuestBookAppointmentDTO;
 use App\Modules\Appointments\Services\AppointmentScheduleService;
+use App\Modules\Appointments\Services\AppointmentSlotLockService;
 use App\Modules\Appointments\Support\AppointmentLifecycleDispatcher;
 use App\Modules\Shared\Exceptions\UnprocessableEntityApiException;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -18,6 +20,7 @@ class CreateGuestBookAppointment
 {
     public function __construct(
         private readonly AppointmentScheduleService $appointmentScheduleService,
+        private readonly AppointmentSlotLockService $appointmentSlotLockService,
         private readonly AppointmentLifecycleDispatcher $lifecycleDispatcher,
     ) {
     }
@@ -48,42 +51,59 @@ class CreateGuestBookAppointment
             );
         }
 
-        $result = DB::transaction(function () use ($dto): array {
-            $patientRole = Role::query()
-                ->where('name', 'patient')
-                ->firstOrFail();
+        try {
+            $result = DB::transaction(function () use ($dto): array {
+                $patientRole = Role::query()
+                    ->where('name', 'patient')
+                    ->firstOrFail();
 
-            $temporaryPassword = Str::password(12);
+                $temporaryPassword = Str::password(12);
 
-            $user = User::query()->create([
-                'name' => $dto->name,
-                'email' => $dto->email,
-                'password' => $temporaryPassword,
-                'role_id' => $patientRole->id,
-                'account_status' => 'active',
-            ]);
+                $user = User::query()->create([
+                    'name' => $dto->name,
+                    'email' => $dto->email,
+                    'password' => $temporaryPassword,
+                    'role_id' => $patientRole->id,
+                    'account_status' => 'active',
+                ]);
 
-            $appointment = Appointment::query()->create([
-                'user_id' => $user->id,
-                'appointment_type_id' => $dto->appointmentTypeId,
-                'start_time' => $dto->startTime,
-                'end_time' => $dto->endTime,
-                'status' => 'pending',
-                'notes' => $dto->notes,
-            ])->load('type');
+                $appointment = Appointment::query()->create([
+                    'user_id' => $user->id,
+                    'appointment_type_id' => $dto->appointmentTypeId,
+                    'start_time' => $dto->startTime,
+                    'end_time' => $dto->endTime,
+                    'status' => 'pending',
+                    'notes' => $dto->notes,
+                ]);
 
-            $token = $user->createToken('guest-booking')->plainTextToken;
+                $this->appointmentSlotLockService->syncForAppointment(
+                    $appointment,
+                    $dto->startTime,
+                    $dto->endTime,
+                );
 
-            return [
-                'message' => 'Appointment request submitted and patient account created successfully.',
-                'data' => [
-                    'user' => $user->load('role'),
-                    'appointment' => $appointment,
-                    'token' => $token,
-                    'temporary_password' => $temporaryPassword,
-                ],
-            ];
-        });
+                $token = $user->createToken('guest-booking')->plainTextToken;
+
+                return [
+                    'message' => 'Appointment request submitted and patient account created successfully.',
+                    'data' => [
+                        'user' => $user->load('role'),
+                        'appointment' => $appointment->load('type'),
+                        'token' => $token,
+                        'temporary_password' => $temporaryPassword,
+                    ],
+                ];
+            });
+        } catch (QueryException $e) {
+            if (in_array($e->getCode(), ['23P01', '23505'], true)) {
+                throw new UnprocessableEntityApiException(
+                    message: 'Selected time slot is not available.',
+                    errorCode: 'APPOINTMENT_SLOT_UNAVAILABLE',
+                );
+            }
+
+            throw $e;
+        }
 
         /** @var Appointment $appointment */
         $appointment = $result['data']['appointment'];

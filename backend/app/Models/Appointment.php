@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Appointment extends Model
 {
@@ -15,23 +18,28 @@ class Appointment extends Model
         'notes'
     ];
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function type()
+    public function type(): BelongsTo
     {
         return $this->belongsTo(AppointmentType::class, 'appointment_type_id');
     }
 
-    public function resources()
+    public function resources(): BelongsToMany
     {
         return $this->belongsToMany(Resource::class, 'appointment_resources');
     }
 
-    public function labResult()
+    public function labResult(): HasOne
     {
         return $this->hasOne(LabResult::class);
+    }
+
+    public function slotLock(): HasOne
+    {
+        return $this->hasOne(AppointmentSlotLock::class);
     }
 }

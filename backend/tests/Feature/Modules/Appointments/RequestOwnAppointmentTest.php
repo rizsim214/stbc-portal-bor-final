@@ -46,6 +46,16 @@ class RequestOwnAppointmentTest extends TestCase
             'status' => 'pending',
             'notes' => self::APPOINTMENT_NOTES,
         ]);
+
+        $appointmentId = (int) DB::table('appointments')
+            ->where('user_id', $user->id)
+            ->value('id');
+
+        $this->assertDatabaseHas('appointment_slot_locks', [
+            'appointment_id' => $appointmentId,
+            'start_time' => self::APPOINTMENT_START_TIME,
+            'end_time' => self::APPOINTMENT_END_TIME,
+        ]);
     }
 
     public function test_authenticated_patient_cannot_submit_overlapping_appointment_request(): void

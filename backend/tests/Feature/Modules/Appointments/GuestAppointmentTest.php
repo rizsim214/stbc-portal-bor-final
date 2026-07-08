@@ -78,6 +78,12 @@ class GuestAppointmentTest extends TestCase
             'appointment_id' => $appointmentId,
         ]);
 
+        $this->assertDatabaseHas('appointment_slot_locks', [
+            'appointment_id' => $appointmentId,
+            'start_time' => self::APPOINTMENT_START_TIME,
+            'end_time' => self::APPOINTMENT_END_TIME,
+        ]);
+
         Mail::assertSent(GuestAppointmentAccountCreated::class, function (GuestAppointmentAccountCreated $mail) use ($appointmentId): bool {
             return $mail->hasTo(self::APPOINTMENT_EMAIL)
                 && $mail->patientName === self::APPOINTMENT_FULL_NAME

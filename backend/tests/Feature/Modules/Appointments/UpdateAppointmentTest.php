@@ -50,6 +50,12 @@ class UpdateAppointmentTest extends TestCase
             'end_time' => self::END_TIME1,
             'notes' => self::NOTES,
         ]);
+
+        $this->assertDatabaseHas('appointment_slot_locks', [
+            'appointment_id' => $appointmentId,
+            'start_time' => self::START_TIME1,
+            'end_time' => self::END_TIME1,
+        ]);
     }
 
     public function test_update_rejects_overlapping_slot(): void
